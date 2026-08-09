@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@libsql/client": "^0.6.0",
+    "@libsql/client": "^0.17.4",
     "@vitejs/plugin-vue": "^5.0.4",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
