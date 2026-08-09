@@ -32,14 +32,14 @@
   --dur-slow: 520ms;
 
   /* --- accent (shared across themes) ---
-     Amber is the primary brand accent (a price-tag/marquee gold),
-     not violet — violet is demoted to just one of four status
-     colors so the page isn't "black + one bright accent". */
-  --accent-amber: #f2a93b;
-  --accent-amber-2: #ffc266;
-  --accent-red: #e85c4a;
-  --accent-violet: #8b6ff0;
-  --accent-teal: #3fb8a6;
+     Cyan is the primary brand accent (an arcade-marquee neon),
+     with amber demoted to one of four status colors so the page
+     isn't monochrome. */
+  --accent-amber: #35c6d6;
+  --accent-amber-2: #7fe3ee;
+  --accent-red: #ff5f6d;
+  --accent-violet: #a37bff;
+  --accent-teal: #e8a33d;
 }
 
 /* ---------------- Dark theme (default) ---------------- */
@@ -48,8 +48,8 @@
   --bg-1: #1c202b;
   --bg-2: #242a38;
   --bg-3: #2e3547;
-  --border-soft: rgba(242, 169, 59, 0.14);
-  --border-strong: rgba(242, 169, 59, 0.30);
+  --border-soft: rgba(53, 198, 214, 0.14);
+  --border-strong: rgba(53, 198, 214, 0.30);
   --text-0: #f5f1e6;
   --text-1: #c9c4b4;
   --text-2: #8b8779;
@@ -60,8 +60,8 @@
   --status-playing: var(--accent-violet);
   --status-dropped: var(--accent-red);
   --wallpaper-ink: rgba(245, 241, 230, 0.045);
-  --glow-amber: rgba(242, 169, 59, 0.20);
-  --glow-violet: rgba(139, 111, 240, 0.14);
+  --glow-amber: rgba(53, 198, 214, 0.20);
+  --glow-violet: rgba(163, 123, 255, 0.14);
 }
 
 /* ---------------- Light theme ---------------- */
@@ -72,20 +72,20 @@
   --bg-1: #f6f1e3;
   --bg-2: #ece3cd;
   --bg-3: #ded1b0;
-  --border-soft: rgba(120, 74, 12, 0.16);
-  --border-strong: rgba(120, 74, 12, 0.30);
+  --border-soft: rgba(15, 122, 134, 0.16);
+  --border-strong: rgba(15, 122, 134, 0.30);
   --text-0: #241f16;
   --text-1: #4c4432;
   --text-2: #786c53;
   --shadow-card: 0 12px 26px -16px rgba(60, 40, 10, 0.35);
   --scrim: rgba(36, 31, 22, 0.5);
-  --status-completed: #a06a17;
-  --status-planned: #157b6f;
+  --status-completed: #0f7a86;
+  --status-planned: #8a5a12;
   --status-playing: #6c4de0;
   --status-dropped: #c23f2c;
   --wallpaper-ink: rgba(36, 31, 22, 0.05);
-  --glow-amber: rgba(242, 169, 59, 0.22);
-  --glow-violet: rgba(139, 111, 240, 0.12);
+  --glow-amber: rgba(53, 198, 214, 0.22);
+  --glow-violet: rgba(163, 123, 255, 0.12);
 }
 
 * { box-sizing: border-box; }
@@ -159,13 +159,13 @@ button { font-family: var(--font-body); cursor: pointer; }
 .btn:active { transform: translateY(0); }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-amber), #d98a1f);
+  background: linear-gradient(135deg, var(--accent-amber), #1a95a3);
   border-color: transparent;
-  color: #241a05;
-  box-shadow: 0 8px 20px -8px rgba(242, 169, 59, 0.55);
+  color: #04262b;
+  box-shadow: 0 8px 20px -8px rgba(53, 198, 214, 0.55);
   transition: filter var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
-.btn-primary:hover { filter: brightness(1.12) saturate(1.15); box-shadow: 0 10px 26px -8px rgba(242, 169, 59, 0.7); }
+.btn-primary:hover { filter: brightness(1.12) saturate(1.15); box-shadow: 0 10px 26px -8px rgba(53, 198, 214, 0.7); }
 
 .btn-ghost {
   background: transparent;
@@ -185,14 +185,14 @@ button { font-family: var(--font-body); cursor: pointer; }
 }
 .input:focus {
   border-color: var(--accent-amber);
-  box-shadow: 0 0 0 3px rgba(242, 169, 59, 0.18);
+  box-shadow: 0 0 0 3px rgba(53, 198, 214, 0.18);
   outline: none;
 }
 
 .card-surface {
   background: var(--bg-1);
-  border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
 }
 
 /* barcode strip — reusable decorative device for the "receipt" motif */
