@@ -55,9 +55,11 @@ function choose(s) {
           <div class="text-col">
             <h3 class="title">{{ game.title }}</h3>
             <p class="meta">
-              <span v-if="game.rating" class="rating mono">★ {{ game.rating.toFixed(1) }}</span>
-              <span v-if="game.genres?.length">{{ game.genres[0] }}</span>
-              <span v-if="game.released" class="mono">{{ game.released.slice(0, 4) }}</span>
+              <span class="meta-line1">
+                <span v-if="game.rating" class="rating mono">★ {{ game.rating.toFixed(1) }}</span>
+                <span v-if="game.released" class="mono">{{ game.released.slice(0, 4) }}</span>
+              </span>
+              <span v-if="game.genres?.length" class="meta-line2">{{ game.genres[0] }}</span>
             </p>
           </div>
 
@@ -95,7 +97,7 @@ function choose(s) {
 
 .art {
   position: relative;
-  aspect-ratio: 3 / 4.65;
+  aspect-ratio: 3 / 4.9;
   background: var(--bg-2);
   overflow: hidden;
 }
@@ -158,7 +160,7 @@ function choose(s) {
   justify-content: space-between;
   gap: 10px;
 }
-.text-col { min-width: 0; flex: 1; min-height: 68px; display: flex; flex-direction: column; justify-content: center; }
+.text-col { min-width: 0; flex: 1; min-height: 84px; display: flex; flex-direction: column; justify-content: center; }
 .title {
   font-size: 16px;
   font-weight: 700;
@@ -173,14 +175,21 @@ function choose(s) {
 .meta {
   margin: 6px 0 0;
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 3px;
   font-size: 11px;
-  line-height: 1.5;
   color: rgba(253, 250, 242, 0.78);
+}
+.meta-line1 {
+  display: flex;
+  gap: 10px;
+  white-space: nowrap;
+}
+.meta-line2 {
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
-.meta span { overflow: hidden; text-overflow: ellipsis; }
 .meta .rating { color: var(--accent-amber-2); font-weight: 700; }
 
 .status-badge {
