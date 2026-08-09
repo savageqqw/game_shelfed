@@ -33,6 +33,7 @@ export async function ensureSchema() {
         title TEXT NOT NULL,
         cover TEXT,
         status TEXT NOT NULL,
+        rating TEXT,
         updated_at TEXT DEFAULT (datetime('now')),
         UNIQUE(user_id, game_id),
         FOREIGN KEY(user_id) REFERENCES users(id)
@@ -40,5 +41,11 @@ export async function ensureSchema() {
     ],
     'write'
   )
+  // Migration for tables created before the `rating` column existed.
+  try {
+    await db.execute('ALTER TABLE library_items ADD COLUMN rating TEXT')
+  } catch (e) {
+    if (!/duplicate column/i.test(e.message || '')) throw e
+  }
   ensured = true
 }

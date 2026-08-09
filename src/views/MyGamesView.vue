@@ -59,7 +59,9 @@ onMounted(() => {
         :key="item.game_id"
         :game="toCardGame(item)"
         :status="item.status"
+        :user-rating="item.rating"
         @set-status="(s) => library.upsert(toCardGame(item), s)"
+        @set-rating="(r) => library.rate(item.game_id, r)"
         @remove="library.remove(item.game_id)"
       />
     </transition-group>

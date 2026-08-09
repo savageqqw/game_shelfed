@@ -2,12 +2,14 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { STATUSES } from '../stores/library'
+import RatingPicker from './RatingPicker.vue'
 
 const props = defineProps({
   game: { type: Object, required: true }, // { id, title, cover, rating, released, genres }
-  status: { type: String, default: null }
+  status: { type: String, default: null },
+  userRating: { type: String, default: null } // null | 'like' | 'dislike' | 'mixed'
 })
-const emit = defineEmits(['set-status', 'remove'])
+const emit = defineEmits(['set-status', 'remove', 'set-rating'])
 
 const { t } = useI18n()
 const menuOpen = ref(false)
@@ -48,6 +50,11 @@ function choose(s) {
           {{ status ? t('status.change') : t('status.add') }}
         </button>
         <button v-if="status" class="btn btn-ghost remove-btn" @click="emit('remove')" :aria-label="t('status.remove')">✕</button>
+      </div>
+
+      <div v-if="status" class="rate-row">
+        <span class="rate-label">{{ t('rating.label') }}</span>
+        <RatingPicker :model-value="userRating" @update:model-value="(r) => emit('set-rating', r)" />
       </div>
 
       <transition name="fade-slide">
@@ -208,6 +215,18 @@ function choose(s) {
 }
 .pick-btn { flex: 1; padding: 9px 14px; font-size: 13px; }
 .remove-btn { padding: 9px 12px; }
+
+.rate-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+.rate-label {
+  font-size: 11px;
+  color: var(--text-2);
+  font-weight: 600;
+}
 
 .status-menu {
   position: absolute;

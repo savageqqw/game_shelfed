@@ -27,7 +27,7 @@ export default withErrors(async (req, res) => {
   })
 
   const result = await db.execute({
-    sql: 'SELECT id, game_id, title, cover, status, updated_at FROM library_items WHERE user_id = ? AND game_id = ?',
+    sql: 'SELECT id, game_id, title, cover, status, rating, updated_at FROM library_items WHERE user_id = ? AND game_id = ?',
     args: [user.id, String(game_id)]
   })
 

@@ -1,6 +1,6 @@
 # Game Shelfed
 
-SPA для обліку пройдених ігор: величезний каталог для пошуку (через RAWG API), особиста полиця з категоріями «В планах / Граю / Пройдено / Кинуто», реєстрація та вхід, темна/світла тема, три мови (укр/eng/рос). Фронтенд — Vue 3 + Vite, бекенд — Vercel Serverless Functions + Turso (libSQL).
+SPA для обліку пройдених ігор: величезний каталог для пошуку (через IGDB/Twitch), особиста полиця з категоріями «В планах / Граю / Пройдено / Кинуто», реєстрація та вхід, темна/світла тема, три мови (укр/eng/рос). Фронтенд — Vue 3 + Vite, бекенд — Vercel Serverless Functions + Turso (libSQL).
 
 ## Архітектура
 
@@ -22,7 +22,11 @@ Vercel не хостить постійний Express-сервер — тому 
    ```
    Таблиці створюються самі при першому запиті (див. `api/_utils/db.js`), ручний запуск `db/schema.sql` не обов'язковий.
 
-2. **RAWG API ключ (каталог ігор)** — безкоштовно на [rawg.io/apidocs](https://rawg.io/apidocs), дає доступ до 500 000+ ігор з обкладинками, рейтингами, жанрами.
+2. **IGDB (каталог ігор, через Twitch)** — безкоштовно й миттєво, без черги схвалення:
+   - Заходиш на [dev.twitch.tv/console/apps](https://dev.twitch.tv/console/apps) з будь-яким Twitch-акаунтом
+   - **Register Your Application** → назва будь-яка, OAuth Redirect URL: `https://localhost`, Category: `Application Integration`
+   - Копіюєш **Client ID**, тиснеш **New Secret** → копіюєш **Client Secret**
+   - Це значення `IGDB_CLIENT_ID` і `IGDB_CLIENT_SECRET`
 
 3. **JWT_SECRET** — будь-який довгий випадковий рядок (наприклад `openssl rand -hex 32`).
 
@@ -41,7 +45,7 @@ vercel dev                   # піднімає і фронт, і функції
 
 1. Заливаєш репозиторій на GitHub.
 2. На [vercel.com](https://vercel.com): **Add New → Project**, обираєш репозиторій. Vercel сам розпізнає Vite-проєкт і підхопить `vercel.json` (build command, output directory, SPA-редіректи, функції з `api/`).
-3. В **Project Settings → Environment Variables** додаєш чотири змінні з `.env.example`: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `JWT_SECRET`, `RAWG_API_KEY`.
+3. В **Project Settings → Environment Variables** додаєш п'ять змінних з `.env.example`: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `JWT_SECRET`, `IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`.
 4. Деплой → готово. SPA-роутинг (сторінки `/my-games`, `/login` тощо при прямому переході) вже налаштований через `rewrites` у `vercel.json`.
 
 Безкоштовний план Vercel (Hobby) не потребує картки і повністю покриває цей проєкт: статичний хостинг, serverless-функції з щедрими лімітами запитів, автодеплой з GitHub.

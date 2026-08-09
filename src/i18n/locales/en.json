@@ -80,6 +80,13 @@
       "mismatch": "New passwords don't match."
     }
   },
+  "rating": {
+    "label": "Rating",
+    "none": "Not rated",
+    "like": "Liked it",
+    "dislike": "Didn't like it",
+    "mixed": "Mixed feelings"
+  },
   "theme": {
     "toggle": "Toggle theme"
   },

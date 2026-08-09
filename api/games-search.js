@@ -2,45 +2,97 @@ import { sendJson, withErrors } from './_utils/response.js'
 
 const PAGE_SIZE = 24
 
+// Cached across warm invocations of this function instance.
+let cachedToken = null
+let cachedExpiry = 0
+
+async function getAppToken() {
+  if (cachedToken && Date.now() < cachedExpiry) return cachedToken
+
+  const clientId = process.env.IGDB_CLIENT_ID
+  const clientSecret = process.env.IGDB_CLIENT_SECRET
+  if (!clientId || !clientSecret) {
+    const err = new Error(
+      'IGDB_CLIENT_ID / IGDB_CLIENT_SECRET are not configured. Create a free app at dev.twitch.tv/console/apps and set both in Vercel env vars.'
+    )
+    err.statusCode = 500
+    throw err
+  }
+
+  const tokenUrl = new URL('https://id.twitch.tv/oauth2/token')
+  tokenUrl.searchParams.set('client_id', clientId)
+  tokenUrl.searchParams.set('client_secret', clientSecret)
+  tokenUrl.searchParams.set('grant_type', 'client_credentials')
+
+  const res = await fetch(tokenUrl, { method: 'POST' })
+  if (!res.ok) {
+    const err = new Error('Failed to authenticate with the game catalog provider')
+    err.statusCode = 502
+    throw err
+  }
+  const data = await res.json()
+  cachedToken = data.access_token
+  cachedExpiry = Date.now() + (data.expires_in - 60) * 1000
+  return cachedToken
+}
+
+function escapeQuery(q) {
+  return q.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+}
+
+async function igdbFetch(path, body, clientId, token) {
+  const res = await fetch(`https://api.igdb.com/v4/${path}`, {
+    method: 'POST',
+    headers: {
+      'Client-ID': clientId,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'text/plain'
+    },
+    body
+  })
+  if (!res.ok) {
+    const err = new Error('Failed to reach the game catalog provider')
+    err.statusCode = res.status
+    throw err
+  }
+  return res.json()
+}
+
 export default withErrors(async (req, res) => {
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' })
 
-  const apiKey = process.env.RAWG_API_KEY
-  if (!apiKey) {
-    return sendJson(res, 500, {
-      error: 'RAWG_API_KEY is not configured on the server. Get a free key at rawg.io/apidocs and set it in Vercel env vars.'
-    })
-  }
+  const clientId = process.env.IGDB_CLIENT_ID
+  const token = await getAppToken()
 
   const params = req.query || {}
   const q = (params.q || '').trim()
   const page = Math.max(1, parseInt(params.page || '1', 10))
+  const offset = (page - 1) * PAGE_SIZE
+  const fields = 'id,name,cover.url,rating,first_release_date,genres.name'
 
-  const url = new URL('https://api.rawg.io/api/games')
-  url.searchParams.set('key', apiKey)
-  url.searchParams.set('page', String(page))
-  url.searchParams.set('page_size', String(PAGE_SIZE))
+  let gamesBody
   if (q) {
-    url.searchParams.set('search', q)
-    url.searchParams.set('search_precise', 'true')
+    gamesBody = `search "${escapeQuery(q)}"; fields ${fields}; limit ${PAGE_SIZE}; offset ${offset};`
   } else {
-    url.searchParams.set('ordering', '-added')
+    gamesBody = `fields ${fields}; sort total_rating_count desc; limit ${PAGE_SIZE}; offset ${offset};`
   }
 
-  const upstream = await fetch(url)
-  if (!upstream.ok) {
-    return sendJson(res, upstream.status, { error: 'Failed to reach the game catalog provider' })
-  }
-  const data = await upstream.json()
+  const [games, countRes] = await Promise.all([
+    igdbFetch('games', gamesBody, clientId, token),
+    igdbFetch('games/count', q ? `search "${escapeQuery(q)}";` : '', clientId, token)
+  ])
 
-  const results = (data.results || []).map((g) => ({
+  const results = (games || []).map((g) => ({
     id: g.id,
     title: g.name,
-    cover: g.background_image || null,
-    rating: g.rating || null,
-    released: g.released || null,
+    cover: g.cover?.url ? 'https:' + g.cover.url.replace('t_thumb', 't_cover_big') : null,
+    rating: g.rating ? Number((g.rating / 20).toFixed(1)) : null,
+    released: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10) : null,
     genres: (g.genres || []).map((x) => x.name)
   }))
 
-  sendJson(res, 200, { results, hasMore: !!data.next, count: data.count || 0 })
+  const count = countRes?.count || 0
+  const hasMore = offset + PAGE_SIZE < count
+
+  sendJson(res, 200, { results, hasMore, count })
 })

@@ -146,7 +146,9 @@ watch(() => auth.isAuthed, (v) => { if (v && !library.loaded) library.fetchAll()
         :key="g.id"
         :game="g"
         :status="library.entryFor(g.id)?.status"
+        :user-rating="library.entryFor(g.id)?.rating"
         @set-status="(s) => setStatus(g, s)"
+        @set-rating="(r) => library.rate(g.id, r)"
         @remove="library.remove(g.id)"
       />
     </transition-group>
@@ -246,17 +248,18 @@ watch(() => auth.isAuthed, (v) => { if (v && !library.loaded) library.fetchAll()
 .cover-stack {
   position: relative;
   width: 100%;
-  max-width: 260px;
+  max-width: 280px;
   aspect-ratio: 1 / 1;
+  padding: 6px;
 }
 .cover-tag {
   position: absolute;
   width: 62%;
   aspect-ratio: 4 / 5;
-  border-radius: var(--radius-md);
+  border-radius: 22px;
   overflow: hidden;
-  border: 1px solid var(--border-strong);
-  box-shadow: var(--shadow-card);
+  border: 4px solid var(--accent-amber);
+  box-shadow: 0 16px 34px -14px rgba(0, 0, 0, 0.65);
   background: var(--bg-2);
 }
 .cover-tag img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -265,7 +268,6 @@ watch(() => auth.isAuthed, (v) => { if (v && !library.loaded) library.fetchAll()
   top: 4%;
   transform: rotate(-7deg);
   z-index: 1;
-  filter: brightness(0.72);
 }
 .cover-front {
   right: 2%;

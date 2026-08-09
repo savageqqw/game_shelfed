@@ -52,6 +52,14 @@ export const useLibraryStore = defineStore('library', {
       await api.post('/library-delete', { game_id: gameId }, auth.token)
       this.items = this.items.filter((i) => String(i.game_id) !== String(gameId))
     },
+    async rate(gameId, rating) {
+      const auth = useAuthStore()
+      if (!auth.isAuthed) throw new Error('not-authed')
+      const res = await api.post('/library-rate', { game_id: gameId, rating }, auth.token)
+      const idx = this.items.findIndex((i) => String(i.game_id) === String(gameId))
+      if (idx >= 0) this.items[idx] = res.item
+      return res.item
+    },
     reset() {
       this.items = []
       this.loaded = false
