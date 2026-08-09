@@ -1,0 +1,71 @@
+{
+  "nav": {
+    "library": "Library",
+    "myGames": "My Games",
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out",
+    "profile": "Profile"
+  },
+  "search": {
+    "placeholder": "Search the catalog…",
+    "noResults": "No games matched \"{query}\".",
+    "loading": "Loading games…",
+    "loadMore": "Load more",
+    "errorTitle": "Couldn't load the catalog"
+  },
+  "status": {
+    "planned": "Planned",
+    "playing": "Playing",
+    "completed": "Completed",
+    "dropped": "Dropped",
+    "add": "Add to library",
+    "change": "Change status",
+    "remove": "Remove from my games"
+  },
+  "myGames": {
+    "title": "My Games",
+    "empty": "This shelf is empty — go add a game from the Library.",
+    "emptyCta": "Browse the library",
+    "tabs": {
+      "all": "All",
+      "planned": "Planned",
+      "playing": "Playing",
+      "completed": "Completed",
+      "dropped": "Dropped"
+    },
+    "signInPrompt": "Sign in to build your own shelf of games.",
+    "stat": "{count} titles"
+  },
+  "library": {
+    "eyebrow": "Game catalog",
+    "title": "Shelf your next game",
+    "subtitle": "Find any title and file it onto your shelf — planned, playing, or cleared.",
+    "stats": {
+      "games": "games in the catalog",
+      "statuses": "progress statuses",
+      "langs": "interface languages"
+    }
+  },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "loginSubtitle": "Log in to keep tracking your games.",
+    "registerTitle": "Create an account",
+    "registerSubtitle": "One shelf for every game you play.",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "loginBtn": "Log in",
+    "registerBtn": "Create account",
+    "noAccount": "No account yet?",
+    "haveAccount": "Already have an account?",
+    "switchToRegister": "Sign up",
+    "switchToLogin": "Log in"
+  },
+  "theme": {
+    "toggle": "Toggle theme"
+  },
+  "footer": {
+    "tagline": "A shelf for every game you've ever cleared."
+  }
+}
