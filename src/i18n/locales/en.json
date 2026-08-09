@@ -62,6 +62,24 @@
     "switchToRegister": "Sign up",
     "switchToLogin": "Log in"
   },
+  "account": {
+    "title": "Account",
+    "subtitle": "Your profile and shelf stats.",
+    "username": "Username",
+    "email": "Email",
+    "memberSince": "Member since",
+    "statsTitle": "Your shelf",
+    "totalGames": "Total games",
+    "password": {
+      "title": "Change password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "submit": "Update password",
+      "success": "Password updated.",
+      "mismatch": "New passwords don't match."
+    }
+  },
   "theme": {
     "toggle": "Toggle theme"
   },
