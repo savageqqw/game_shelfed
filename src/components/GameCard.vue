@@ -95,7 +95,7 @@ function choose(s) {
 
 .art {
   position: relative;
-  aspect-ratio: 3 / 4.35;
+  aspect-ratio: 3 / 4.65;
   background: var(--bg-2);
   overflow: hidden;
 }
@@ -154,30 +154,33 @@ function choose(s) {
 }
 .info-row {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
-.text-col { min-width: 0; flex: 1; }
+.text-col { min-width: 0; flex: 1; min-height: 68px; display: flex; flex-direction: column; justify-content: center; }
 .title {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.28;
   color: #fdfaf2;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 .meta {
   margin: 6px 0 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 8px;
+  gap: 8px;
   font-size: 11px;
   line-height: 1.5;
   color: rgba(253, 250, 242, 0.78);
+  white-space: nowrap;
+  overflow: hidden;
 }
+.meta span { overflow: hidden; text-overflow: ellipsis; }
 .meta .rating { color: var(--accent-amber-2); font-weight: 700; }
 
 .status-badge {

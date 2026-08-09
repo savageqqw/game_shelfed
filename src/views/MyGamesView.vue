@@ -31,8 +31,9 @@ function toCardGame(item) {
   }
 }
 
-onMounted(() => {
-  if (!library.loaded) library.fetchAll()
+onMounted(async () => {
+  if (!library.loaded) await library.fetchAll()
+  library.backfillMeta()
 })
 </script>
 

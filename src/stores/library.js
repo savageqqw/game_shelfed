@@ -63,6 +63,40 @@ export const useLibraryStore = defineStore('library', {
       if (idx >= 0) this.items[idx] = res.item
       return res.item
     },
+    // Games added before genres/released/catalog_rating were tracked have
+    // no metadata saved. Quietly fetch and persist it once, in the background.
+    async backfillMeta() {
+      const auth = useAuthStore()
+      if (!auth.isAuthed) return
+      const missing = this.items.filter((i) => !i.genres && !i.released && i.catalog_rating == null)
+      if (!missing.length) return
+
+      const ids = missing.map((i) => i.game_id).join(',')
+      let details
+      try {
+        details = await api.get('/games-details', auth.token, { ids })
+      } catch {
+        return
+      }
+      const byId = new Map((details.results || []).map((r) => [String(r.id), r]))
+
+      for (const item of missing) {
+        const d = byId.get(String(item.game_id))
+        if (!d || (!d.genres?.length && !d.released && d.rating == null)) continue
+        try {
+          const res = await api.post('/library-backfill-meta', {
+            game_id: item.game_id,
+            genres: d.genres || null,
+            released: d.released || null,
+            catalog_rating: d.rating ?? null
+          }, auth.token)
+          const idx = this.items.findIndex((i) => String(i.game_id) === String(item.game_id))
+          if (idx >= 0) this.items[idx] = res.item
+        } catch {
+          // best-effort; skip on failure
+        }
+      }
+    },
     reset() {
       this.items = []
       this.loaded = false
