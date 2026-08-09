@@ -80,7 +80,8 @@ function choose(opt, event) {
   gap: 2px;
   padding: 3px;
   border-radius: 999px;
-  background: var(--bg-2);
+  background: rgba(253, 250, 242, 0.14);
+  backdrop-filter: blur(6px);
   width: fit-content;
 }
 .indicator {
@@ -89,7 +90,7 @@ function choose(opt, event) {
   bottom: 3px;
   left: 0;
   border-radius: 999px;
-  background: var(--bg-3);
+  background: rgba(253, 250, 242, 0.28);
   transition: transform var(--dur-med) var(--ease-out), width var(--dur-med) var(--ease-out);
   pointer-events: none;
   z-index: 0;
@@ -107,7 +108,7 @@ function choose(opt, event) {
   background: transparent;
   font-size: 14px;
   line-height: 1;
-  color: var(--text-2);
+  color: #fdfaf2;
   opacity: 0.55;
   transition: opacity var(--dur-fast);
 }

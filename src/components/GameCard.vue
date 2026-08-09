@@ -74,7 +74,6 @@ function choose(s) {
         </div>
 
         <div v-if="status && showRating" class="rate-row">
-          <span class="rate-label">{{ t('rating.label') }}</span>
           <RatingPicker :model-value="userRating" @update:model-value="(r) => emit('set-rating', r)" />
         </div>
       </div>
@@ -145,32 +144,6 @@ function choose(s) {
   z-index: 2;
 }
 
-.status-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.5);
-}
-.status-badge.unset {
-  background: rgba(8, 9, 14, 0.55);
-  color: #fdfaf2;
-  backdrop-filter: blur(4px);
-}
-.badge-plus { font-size: 16px; font-weight: 700; line-height: 1; }
-.badge-dot { width: 10px; height: 10px; border-radius: 3px; background: #fdfaf2; }
-.status-badge.s-completed { background: var(--status-completed); }
-.status-badge.s-planned { background: var(--status-planned); }
-.status-badge.s-playing { background: var(--status-playing); }
-.status-badge.s-dropped { background: var(--status-dropped); }
-
 .info {
   position: absolute;
   left: 0;
@@ -191,20 +164,21 @@ function choose(s) {
   font-weight: 700;
   line-height: 1.28;
   color: #fdfaf2;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 .meta {
   margin: 5px 0 0;
   display: flex;
-  flex-wrap: wrap;
   gap: 6px 10px;
   font-size: 11px;
   color: rgba(253, 250, 242, 0.78);
+  white-space: nowrap;
+  overflow: hidden;
 }
+.meta span { overflow: hidden; text-overflow: ellipsis; }
 .meta .rating { color: var(--accent-amber-2); font-weight: 700; }
 
 .status-badge {
@@ -231,15 +205,7 @@ function choose(s) {
 .status-badge.s-dropped { background: var(--status-dropped); }
 
 .rate-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   margin-top: 12px;
-}
-.rate-label {
-  font-size: 11px;
-  color: rgba(253, 250, 242, 0.7);
-  font-weight: 600;
 }
 
 .status-menu {
