@@ -152,6 +152,7 @@ button { font-family: var(--font-body); cursor: pointer; }
   color: var(--text-0);
   font-weight: 600;
   font-size: 14px;
+  text-decoration: none;
   transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast);
 }
 .btn:hover { transform: translateY(-1px); background: var(--bg-3); }
@@ -162,8 +163,9 @@ button { font-family: var(--font-body); cursor: pointer; }
   border-color: transparent;
   color: #241a05;
   box-shadow: 0 8px 20px -8px rgba(242, 169, 59, 0.55);
+  transition: filter var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
-.btn-primary:hover { box-shadow: 0 10px 26px -8px rgba(242, 169, 59, 0.7); }
+.btn-primary:hover { filter: brightness(1.12) saturate(1.15); box-shadow: 0 10px 26px -8px rgba(242, 169, 59, 0.7); }
 
 .btn-ghost {
   background: transparent;

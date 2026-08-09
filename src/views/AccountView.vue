@@ -106,16 +106,16 @@ onMounted(() => {
 
     <section class="stats-section">
       <h2>{{ t('account.statsTitle') }}</h2>
-      <div class="stat-row">
-        <div class="stat-card s-total">
+      <ul class="stat-row">
+        <li class="stat-item s-total">
+          <span class="stat-label"><span class="dot" />{{ t('account.totalGames') }}</span>
           <span class="stat-num mono">{{ library.items.length }}</span>
-          <span class="stat-label">{{ t('account.totalGames') }}</span>
-        </div>
-        <div v-for="s in STATUSES" :key="s" class="stat-card" :class="`s-${s}`">
+        </li>
+        <li v-for="s in STATUSES" :key="s" class="stat-item" :class="`s-${s}`">
+          <span class="stat-label"><span class="dot" />{{ t(`status.${s}`) }}</span>
           <span class="stat-num mono">{{ library.counts[s] || 0 }}</span>
-          <span class="stat-label">{{ t(`status.${s}`) }}</span>
-        </div>
-      </div>
+        </li>
+      </ul>
     </section>
 
     <section class="card-surface password-card">
@@ -161,27 +161,39 @@ onMounted(() => {
 .stats-section h2, .password-card h2 { font-size: 18px; margin-bottom: 16px; }
 
 .stat-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  margin: 0;
+  padding: 0;
 }
-.stat-card {
+.stat-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 16px 18px;
-  border-radius: var(--radius-md);
-  background: var(--bg-1);
-  border: 1px solid var(--border-soft);
-  border-left: 3px solid transparent;
+  gap: 6px;
+}
+.stat-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-2);
+  font-weight: 600;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--text-2);
 }
 .stat-num { font-size: 24px; font-weight: 700; color: var(--text-0); }
-.stat-label { font-size: 12px; color: var(--text-2); }
-.stat-card.s-completed { border-left-color: var(--status-completed); }
-.stat-card.s-planned { border-left-color: var(--status-planned); }
-.stat-card.s-playing { border-left-color: var(--status-playing); }
-.stat-card.s-dropped { border-left-color: var(--status-dropped); }
-.stat-card.s-total { border-left-color: var(--accent-amber); }
+.stat-item.s-total .dot { background: var(--accent-amber); }
+.stat-item.s-completed .dot { background: var(--status-completed); }
+.stat-item.s-planned .dot { background: var(--status-planned); }
+.stat-item.s-playing .dot { background: var(--status-playing); }
+.stat-item.s-dropped .dot { background: var(--status-dropped); }
 
 .password-card { padding: 28px 32px; max-width: 440px; }
 .auth-form { display: flex; flex-direction: column; gap: 16px; }

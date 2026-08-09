@@ -1,4 +1,5 @@
 <script setup>
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
@@ -9,13 +10,42 @@ const emit = defineEmits(['update:modelValue'])
 const { t } = useI18n()
 
 const tabs = ['all', 'planned', 'playing', 'completed', 'dropped']
+
+const tabRefs = ref([])
+const indicator = ref({ left: 0, width: 0 })
+
+function setTabRef(el, i) {
+  if (el) tabRefs.value[i] = el
+}
+
+function updateIndicator() {
+  const i = tabs.indexOf(props.modelValue)
+  const el = tabRefs.value[i]
+  if (!el) return
+  indicator.value = { left: el.offsetLeft, width: el.offsetWidth }
+}
+
+watch(() => props.modelValue, () => nextTick(updateIndicator))
+
+let ro
+onMounted(() => {
+  nextTick(updateIndicator)
+  ro = new ResizeObserver(() => updateIndicator())
+  tabRefs.value.forEach((el) => el && ro.observe(el))
+})
+onBeforeUnmount(() => ro && ro.disconnect())
 </script>
 
 <template>
   <div class="cat-tabs" role="tablist">
+    <span
+      class="indicator"
+      :style="{ transform: `translateX(${indicator.left}px)`, width: indicator.width + 'px' }"
+    />
     <button
-      v-for="tab in tabs"
+      v-for="(tab, i) in tabs"
       :key="tab"
+      :ref="(el) => setTabRef(el, i)"
       class="cat-tab"
       :class="[`s-${tab}`, { active: modelValue === tab }]"
       role="tab"
@@ -30,16 +60,26 @@ const tabs = ['all', 'planned', 'playing', 'completed', 'dropped']
 
 <style scoped>
 .cat-tabs {
+  position: relative;
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
-  padding: 6px;
-  background: var(--bg-1);
-  border: 1px solid var(--border-soft);
-  border-radius: 999px;
   width: fit-content;
 }
+.indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--bg-3);
+  transition: transform var(--dur-med) var(--ease-out), width var(--dur-med) var(--ease-out);
+  pointer-events: none;
+  z-index: 0;
+}
 .cat-tab {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -50,10 +90,10 @@ const tabs = ['all', 'planned', 'playing', 'completed', 'dropped']
   color: var(--text-2);
   font-weight: 600;
   font-size: 13px;
-  transition: background var(--dur-fast), color var(--dur-fast);
+  transition: color var(--dur-fast);
 }
 .cat-tab:hover { color: var(--text-0); }
-.cat-tab.active { background: var(--bg-3); color: var(--text-0); }
+.cat-tab.active { color: var(--text-0); }
 .cat-tab.active.s-completed { color: var(--status-completed); }
 .cat-tab.active.s-planned { color: var(--status-planned); }
 .cat-tab.active.s-playing { color: var(--status-playing); }

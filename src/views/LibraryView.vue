@@ -105,7 +105,15 @@ watch(() => auth.isAuthed, (v) => { if (v && !library.loaded) library.fetchAll()
       </div>
 
       <div class="hero-art" aria-hidden="true">
-        <svg viewBox="0 0 220 220" class="tag-stack">
+        <div v-if="games[0]?.cover && games[1]?.cover" class="cover-stack">
+          <div class="cover-tag cover-back">
+            <img :src="games[1].cover" :alt="games[1].title" loading="lazy" />
+          </div>
+          <div class="cover-tag cover-front">
+            <img :src="games[0].cover" :alt="games[0].title" loading="lazy" />
+          </div>
+        </div>
+        <svg v-else viewBox="0 0 220 220" class="tag-stack">
           <g transform="translate(30,20) rotate(-6)">
             <rect x="0" y="0" width="120" height="150" rx="10" fill="var(--bg-2)" stroke="var(--border-strong)" stroke-width="2" />
             <rect x="16" y="20" width="88" height="52" rx="6" fill="var(--bg-3)" />
@@ -234,6 +242,37 @@ watch(() => auth.isAuthed, (v) => { if (v && !library.loaded) library.fetchAll()
   justify-content: center;
 }
 .tag-stack { width: 100%; max-width: 260px; height: auto; }
+
+.cover-stack {
+  position: relative;
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 1 / 1;
+}
+.cover-tag {
+  position: absolute;
+  width: 62%;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-card);
+  background: var(--bg-2);
+}
+.cover-tag img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cover-back {
+  left: 4%;
+  top: 4%;
+  transform: rotate(-7deg);
+  z-index: 1;
+  filter: brightness(0.72);
+}
+.cover-front {
+  right: 2%;
+  bottom: 2%;
+  transform: rotate(6deg);
+  z-index: 2;
+}
 
 .status-msg {
   color: var(--text-2);
