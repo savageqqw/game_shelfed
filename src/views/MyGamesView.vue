@@ -15,7 +15,20 @@ const filtered = computed(() => {
 })
 
 function toCardGame(item) {
-  return { id: item.game_id, title: item.title, cover: item.cover }
+  let genres = null
+  try {
+    genres = item.genres ? JSON.parse(item.genres) : null
+  } catch {
+    genres = null
+  }
+  return {
+    id: item.game_id,
+    title: item.title,
+    cover: item.cover,
+    genres,
+    released: item.released || null,
+    rating: item.catalog_rating ?? null
+  }
 }
 
 onMounted(() => {

@@ -34,6 +34,9 @@ export async function ensureSchema() {
         cover TEXT,
         status TEXT NOT NULL,
         rating TEXT,
+        genres TEXT,
+        released TEXT,
+        catalog_rating REAL,
         updated_at TEXT DEFAULT (datetime('now')),
         UNIQUE(user_id, game_id),
         FOREIGN KEY(user_id) REFERENCES users(id)
@@ -41,11 +44,18 @@ export async function ensureSchema() {
     ],
     'write'
   )
-  // Migration for tables created before the `rating` column existed.
-  try {
-    await db.execute('ALTER TABLE library_items ADD COLUMN rating TEXT')
-  } catch (e) {
-    if (!/duplicate column/i.test(e.message || '')) throw e
+  // Migrations for tables created before these columns existed.
+  for (const stmt of [
+    'ALTER TABLE library_items ADD COLUMN rating TEXT',
+    'ALTER TABLE library_items ADD COLUMN genres TEXT',
+    'ALTER TABLE library_items ADD COLUMN released TEXT',
+    'ALTER TABLE library_items ADD COLUMN catalog_rating REAL'
+  ]) {
+    try {
+      await db.execute(stmt)
+    } catch (e) {
+      if (!/duplicate column/i.test(e.message || '')) throw e
+    }
   }
   ensured = true
 }

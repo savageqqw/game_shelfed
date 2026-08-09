@@ -56,7 +56,7 @@ function choose(s) {
             <h3 class="title">{{ game.title }}</h3>
             <p class="meta">
               <span v-if="game.rating" class="rating mono">★ {{ game.rating.toFixed(1) }}</span>
-              <span v-if="game.genres?.length">{{ game.genres.slice(0, 2).join(' · ') }}</span>
+              <span v-if="game.genres?.length">{{ game.genres[0] }}</span>
               <span v-if="game.released" class="mono">{{ game.released.slice(0, 4) }}</span>
             </p>
           </div>
@@ -95,7 +95,7 @@ function choose(s) {
 
 .art {
   position: relative;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 3 / 4.35;
   background: var(--bg-2);
   overflow: hidden;
 }
@@ -149,7 +149,7 @@ function choose(s) {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 16px 14px 16px;
+  padding: 16px 14px 18px;
   z-index: 1;
 }
 .info-row {
@@ -170,15 +170,14 @@ function choose(s) {
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 .meta {
-  margin: 5px 0 0;
+  margin: 6px 0 0;
   display: flex;
-  gap: 6px 10px;
+  flex-wrap: wrap;
+  gap: 4px 8px;
   font-size: 11px;
+  line-height: 1.5;
   color: rgba(253, 250, 242, 0.78);
-  white-space: nowrap;
-  overflow: hidden;
 }
-.meta span { overflow: hidden; text-overflow: ellipsis; }
 .meta .rating { color: var(--accent-amber-2); font-weight: 700; }
 
 .status-badge {
@@ -206,6 +205,19 @@ function choose(s) {
 
 .rate-row {
   margin-top: 12px;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity var(--dur-med) var(--ease-out), transform var(--dur-med) var(--ease-out);
+}
+.card:hover .rate-row,
+.card:focus-within .rate-row {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+@media (hover: none) {
+  .rate-row { opacity: 1; transform: none; pointer-events: auto; }
 }
 
 .status-menu {

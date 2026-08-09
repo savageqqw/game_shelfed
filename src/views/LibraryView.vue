@@ -98,7 +98,7 @@ watch(() => auth.isAuthed, (v) => { if (v && !library.loaded) library.fetchAll()
             <span class="chip-num mono">4</span>
           </li>
           <li class="chip chip-violet">
-            <span class="chip-label"><span class="dot" />{{ t('library.stats.langs') }}</span>
+            <span class="chip-label"><span class="dot" />{{ t('library.stats.ratings') }}</span>
             <span class="chip-num mono">3</span>
           </li>
         </ul>

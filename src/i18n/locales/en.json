@@ -44,7 +44,7 @@
     "stats": {
       "games": "games in the catalog",
       "statuses": "progress statuses",
-      "langs": "interface languages"
+      "ratings": "ways to rate a game"
     }
   },
   "auth": {

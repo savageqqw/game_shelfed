@@ -55,7 +55,7 @@
   --text-2: #8b8779;
   --shadow-card: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
   --scrim: rgba(10, 11, 16, 0.72);
-  --status-completed: var(--accent-amber);
+  --status-completed: #34d399;
   --status-planned: var(--accent-teal);
   --status-playing: var(--accent-violet);
   --status-dropped: var(--accent-red);
@@ -79,7 +79,7 @@
   --text-2: #786c53;
   --shadow-card: 0 12px 26px -16px rgba(60, 40, 10, 0.35);
   --scrim: rgba(36, 31, 22, 0.5);
-  --status-completed: #0f7a86;
+  --status-completed: #157347;
   --status-planned: #8a5a12;
   --status-playing: #6c4de0;
   --status-dropped: #c23f2c;

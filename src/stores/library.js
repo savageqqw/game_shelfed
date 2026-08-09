@@ -39,7 +39,10 @@ export const useLibraryStore = defineStore('library', {
         game_id: game.id,
         title: game.title,
         cover: game.cover,
-        status
+        status,
+        genres: game.genres || null,
+        released: game.released || null,
+        catalog_rating: typeof game.rating === 'number' ? game.rating : null
       }, auth.token)
       const idx = this.items.findIndex((i) => String(i.game_id) === String(game.id))
       if (idx >= 0) this.items[idx] = res.item
