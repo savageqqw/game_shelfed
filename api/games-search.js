@@ -72,14 +72,14 @@ export default withErrors(async (req, res) => {
 
   let gamesBody
   if (q) {
-    gamesBody = `search "${escapeQuery(q)}"; fields ${fields}; limit ${PAGE_SIZE}; offset ${offset};`
+    gamesBody = `search "${escapeQuery(q)}"; where version_parent = null; fields ${fields}; limit ${PAGE_SIZE}; offset ${offset};`
   } else {
-    gamesBody = `fields ${fields}; sort total_rating_count desc; limit ${PAGE_SIZE}; offset ${offset};`
+    gamesBody = `fields ${fields}; where version_parent = null; sort total_rating_count desc; limit ${PAGE_SIZE}; offset ${offset};`
   }
 
   const [games, countRes] = await Promise.all([
     igdbFetch('games', gamesBody, clientId, token),
-    igdbFetch('games/count', q ? `search "${escapeQuery(q)}";` : '', clientId, token)
+    igdbFetch('games/count', q ? `search "${escapeQuery(q)}"; where version_parent = null;` : 'where version_parent = null;', clientId, token)
   ])
 
   const results = (games || []).map((g) => ({

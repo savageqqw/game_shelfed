@@ -7,7 +7,8 @@ import RatingPicker from './RatingPicker.vue'
 const props = defineProps({
   game: { type: Object, required: true }, // { id, title, cover, rating, released, genres }
   status: { type: String, default: null },
-  userRating: { type: String, default: null } // null | 'like' | 'dislike' | 'mixed'
+  userRating: { type: String, default: null }, // null | 'like' | 'dislike' | 'mixed'
+  showRating: { type: Boolean, default: false }
 })
 const emit = defineEmits(['set-status', 'remove', 'set-rating'])
 
@@ -52,7 +53,7 @@ function choose(s) {
         <button v-if="status" class="btn btn-ghost remove-btn" @click="emit('remove')" :aria-label="t('status.remove')">✕</button>
       </div>
 
-      <div v-if="status" class="rate-row">
+      <div v-if="status && showRating" class="rate-row">
         <span class="rate-label">{{ t('rating.label') }}</span>
         <RatingPicker :model-value="userRating" @update:model-value="(r) => emit('set-rating', r)" />
       </div>

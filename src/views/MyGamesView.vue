@@ -60,6 +60,7 @@ onMounted(() => {
         :game="toCardGame(item)"
         :status="item.status"
         :user-rating="item.rating"
+        :show-rating="true"
         @set-status="(s) => library.upsert(toCardGame(item), s)"
         @set-rating="(r) => library.rate(item.game_id, r)"
         @remove="library.remove(item.game_id)"
