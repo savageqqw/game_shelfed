@@ -68,19 +68,34 @@ export default withErrors(async (req, res) => {
   const q = (params.q || '').trim()
   const page = Math.max(1, parseInt(params.page || '1', 10))
   const offset = (page - 1) * PAGE_SIZE
-  const fields = 'id,name,cover.url,rating,first_release_date,genres.name'
+  const fields = 'id,name,cover.url,rating,first_release_date,genres.name,total_rating_count'
 
-  let gamesBody
+  let games
+  let hasMore
+  let count
+
   if (q) {
-    gamesBody = `search "${escapeQuery(q)}"; where version_parent = null; fields ${fields}; limit ${PAGE_SIZE}; offset ${offset};`
+    // IGDB's fuzzy "search" matches any title containing the term (lots of
+    // obscure noise). Pull a larger candidate pool once and re-rank it by
+    // popularity so well-known games surface first, then paginate locally.
+    const CANDIDATE_POOL = 200
+    const candidatesBody = `search "${escapeQuery(q)}"; where version_parent = null; fields ${fields}; limit ${CANDIDATE_POOL};`
+    const candidates = await igdbFetch('games', candidatesBody, clientId, token)
+    const sorted = (candidates || []).slice().sort((a, b) => (b.total_rating_count || 0) - (a.total_rating_count || 0))
+    games = sorted.slice(offset, offset + PAGE_SIZE)
+    count = sorted.length
+    hasMore = offset + PAGE_SIZE < sorted.length
   } else {
-    gamesBody = `fields ${fields}; where version_parent = null; sort total_rating_count desc; limit ${PAGE_SIZE}; offset ${offset};`
+    const gamesBody = `fields ${fields}; where version_parent = null; sort total_rating_count desc; limit ${PAGE_SIZE}; offset ${offset};`
+    const countBody = 'where version_parent = null;'
+    const [gamesRes, countRes] = await Promise.all([
+      igdbFetch('games', gamesBody, clientId, token),
+      igdbFetch('games/count', countBody, clientId, token)
+    ])
+    games = gamesRes
+    count = countRes?.count || 0
+    hasMore = offset + PAGE_SIZE < count
   }
-
-  const [games, countRes] = await Promise.all([
-    igdbFetch('games', gamesBody, clientId, token),
-    igdbFetch('games/count', q ? `search "${escapeQuery(q)}"; where version_parent = null;` : 'where version_parent = null;', clientId, token)
-  ])
 
   const results = (games || []).map((g) => ({
     id: g.id,
@@ -90,9 +105,6 @@ export default withErrors(async (req, res) => {
     released: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10) : null,
     genres: (g.genres || []).map((x) => x.name)
   }))
-
-  const count = countRes?.count || 0
-  const hasMore = offset + PAGE_SIZE < count
 
   sendJson(res, 200, { results, hasMore, count })
 })
