@@ -89,17 +89,17 @@ watch(() => auth.isAuthed, (v) => { if (v && !library.loaded) library.fetchAll()
         </div>
 
         <ul class="stat-chips">
-          <li class="chip">
+          <li class="chip chip-amber">
+            <span class="chip-label"><span class="dot" />{{ t('library.stats.games') }}</span>
             <span class="chip-num mono">{{ formatCount(catalogCount) || '500k+' }}</span>
-            {{ t('library.stats.games') }}
           </li>
-          <li class="chip">
+          <li class="chip chip-teal">
+            <span class="chip-label"><span class="dot" />{{ t('library.stats.statuses') }}</span>
             <span class="chip-num mono">4</span>
-            {{ t('library.stats.statuses') }}
           </li>
-          <li class="chip">
+          <li class="chip chip-violet">
+            <span class="chip-label"><span class="dot" />{{ t('library.stats.langs') }}</span>
             <span class="chip-num mono">3</span>
-            {{ t('library.stats.langs') }}
           </li>
         </ul>
       </div>
@@ -182,25 +182,37 @@ watch(() => auth.isAuthed, (v) => { if (v && !library.loaded) library.fetchAll()
   list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin: 22px 0 0;
+  gap: 32px;
+  margin: 26px 0 0;
   padding: 0;
 }
 .chip {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chip-label {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: var(--bg-1);
-  border: 1px solid var(--border-soft);
+  gap: 7px;
   font-size: 12px;
   color: var(--text-2);
+  font-weight: 600;
 }
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.chip-amber .dot { background: var(--accent-amber); }
+.chip-teal .dot { background: var(--accent-teal); }
+.chip-violet .dot { background: var(--accent-violet); }
 .chip-num {
-  font-size: 13px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text-0);
+  letter-spacing: -0.01em;
 }
 
 .search-bar {
