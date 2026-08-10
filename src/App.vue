@@ -102,10 +102,10 @@ const { t } = useI18n()
   border-radius: 50%;
   flex-shrink: 0;
 }
-.dot.s-completed { background: var(--status-completed); }
-.dot.s-planned { background: var(--status-planned); }
-.dot.s-playing { background: var(--status-playing); }
-.dot.s-dropped { background: var(--status-dropped); }
+.dot.s-completed { background: var(--card-completed); }
+.dot.s-planned { background: var(--card-planned); }
+.dot.s-playing { background: var(--card-playing); }
+.dot.s-dropped { background: var(--card-dropped); }
 
 .receipt {
   display: flex;

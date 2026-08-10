@@ -190,10 +190,10 @@ onMounted(() => {
 }
 .stat-num { font-size: 24px; font-weight: 700; color: var(--text-0); }
 .stat-item.s-total .dot { background: var(--accent-amber); }
-.stat-item.s-completed .dot { background: var(--status-completed); }
-.stat-item.s-planned .dot { background: var(--status-planned); }
-.stat-item.s-playing .dot { background: var(--status-playing); }
-.stat-item.s-dropped .dot { background: var(--status-dropped); }
+.stat-item.s-completed .dot { background: var(--card-completed); }
+.stat-item.s-planned .dot { background: var(--card-planned); }
+.stat-item.s-playing .dot { background: var(--card-playing); }
+.stat-item.s-dropped .dot { background: var(--card-dropped); }
 
 .password-card { padding: 28px 32px; max-width: 440px; }
 .auth-form { display: flex; flex-direction: column; gap: 16px; }
