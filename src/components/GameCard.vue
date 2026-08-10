@@ -247,10 +247,10 @@ function choose(s) {
 }
 .badge-plus { font-size: 18px; font-weight: 700; line-height: 1; }
 .badge-dot { width: 10px; height: 10px; border-radius: 3px; background: #fdfaf2; }
-.status-badge.s-completed { background: var(--status-completed); }
-.status-badge.s-planned { background: var(--status-planned); }
-.status-badge.s-playing { background: var(--status-playing); }
-.status-badge.s-dropped { background: var(--status-dropped); }
+.status-badge.s-completed { background: var(--card-completed); }
+.status-badge.s-planned { background: var(--card-planned); }
+.status-badge.s-playing { background: var(--card-playing); }
+.status-badge.s-dropped { background: var(--card-dropped); }
 
 .rate-row {
   margin-top: 12px;
@@ -292,10 +292,10 @@ function choose(s) {
 .status-opt:hover { background: var(--bg-2); }
 .status-opt.active { color: var(--text-0); font-weight: 700; background: var(--bg-2); }
 .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.status-opt.s-completed .dot { background: var(--status-completed); }
-.status-opt.s-planned .dot { background: var(--status-planned); }
-.status-opt.s-playing .dot { background: var(--status-playing); }
-.status-opt.s-dropped .dot { background: var(--status-dropped); }
+.status-opt.s-completed .dot { background: var(--card-completed); }
+.status-opt.s-planned .dot { background: var(--card-planned); }
+.status-opt.s-playing .dot { background: var(--card-playing); }
+.status-opt.s-dropped .dot { background: var(--card-dropped); }
 
 .fade-slide-enter-active, .fade-slide-leave-active {
   transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);

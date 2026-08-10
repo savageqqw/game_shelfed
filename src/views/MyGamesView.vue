@@ -67,7 +67,7 @@ onMounted(async () => {
       <router-link :to="{ name: 'library' }" class="btn btn-primary">{{ t('myGames.emptyCta') }}</router-link>
     </div>
 
-    <transition-group v-else tag="div" name="grid-fade" class="game-grid">
+    <div v-else class="game-grid">
       <GameCard
         v-for="item in filtered"
         :key="item.game_id"
@@ -79,7 +79,7 @@ onMounted(async () => {
         @set-rating="(r) => library.rate(item.game_id, r)"
         @remove="library.remove(item.game_id)"
       />
-    </transition-group>
+    </div>
   </div>
 </template>
 

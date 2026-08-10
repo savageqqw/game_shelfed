@@ -40,6 +40,14 @@
   --accent-red: #ff5f6d;
   --accent-violet: #a37bff;
   --accent-teal: #e8a33d;
+
+  /* Fixed status colors for GameCard badges — the card art is always a
+     dark overlay regardless of site theme, so these stay constant instead
+     of switching between the light/dark theme status-* variables. */
+  --card-completed: #22c55e;
+  --card-planned: #eab308;
+  --card-playing: #8b5cf6;
+  --card-dropped: #ef4444;
 }
 
 /* ---------------- Dark theme (default) ---------------- */
