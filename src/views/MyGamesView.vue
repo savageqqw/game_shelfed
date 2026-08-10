@@ -51,12 +51,12 @@ onMounted(async () => {
       <button
         v-for="s in STATUSES"
         :key="s"
-        class="stat-item"
+        class="stat-card"
         :class="[`s-${s}`, { active: activeTab === s }]"
         @click="activeTab = s"
       >
-        <span class="stat-label"><span class="dot" />{{ t(`status.${s}`) }}</span>
         <span class="stat-num mono">{{ library.counts[s] || 0 }}</span>
+        <span class="stat-label">{{ t(`status.${s}`) }}</span>
       </button>
     </div>
 
@@ -97,39 +97,31 @@ onMounted(async () => {
 .stat { color: var(--text-2); font-size: 12px; margin-top: 6px; }
 
 .stat-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 28px;
-  margin-bottom: 34px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 30px;
 }
-.stat-item {
+.stat-card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  background: none;
-  border: none;
-  padding: 0 0 4px;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  background: var(--bg-1);
+  border: 1px solid var(--border-soft);
   text-align: left;
-  border-bottom: 2px solid transparent;
-  transition: border-color var(--dur-fast);
+  border-left: 3px solid transparent;
+  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast);
 }
-.stat-item:hover { border-bottom-color: var(--border-strong); }
-.stat-item.active { border-bottom-color: currentColor; }
-.stat-label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  color: var(--text-2);
-  font-weight: 600;
-}
-.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.stat-num { font-size: 22px; font-weight: 700; color: var(--text-0); letter-spacing: -0.01em; }
-.stat-item.s-completed { color: var(--status-completed); }
-.stat-item.s-planned { color: var(--status-planned); }
-.stat-item.s-playing { color: var(--status-playing); }
-.stat-item.s-dropped { color: var(--status-dropped); }
-.stat-item .dot { background: currentColor; }
+.stat-card:hover { transform: translateY(-2px); }
+.stat-num { font-size: 24px; font-weight: 700; color: var(--text-0); }
+.stat-label { font-size: 12px; color: var(--text-2); }
+.stat-card.s-completed { border-left-color: var(--status-completed); }
+.stat-card.s-planned { border-left-color: var(--status-planned); }
+.stat-card.s-playing { border-left-color: var(--status-playing); }
+.stat-card.s-dropped { border-left-color: var(--status-dropped); }
+.stat-card.active { border-color: var(--border-strong); background: var(--bg-2); }
 
 .empty-state {
   text-align: center;

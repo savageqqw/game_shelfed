@@ -1,7 +1,6 @@
 import { sendJson, withErrors } from './_utils/response.js'
 
 const PAGE_SIZE = 24
-const CANDIDATE_POOL = 200
 
 // Cached across warm invocations of this function instance.
 let cachedToken = null
@@ -41,51 +40,6 @@ function escapeQuery(q) {
   return q.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 }
 
-const CYRILLIC_MAP = {
-  а: 'a', б: 'b', в: 'v', г: 'g', ґ: 'g', д: 'd', е: 'e', є: 'ye', ё: 'yo',
-  ж: 'zh', з: 'z', и: 'i', і: 'i', ї: 'yi', й: 'y', к: 'k', л: 'l', м: 'm',
-  н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h',
-  ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya'
-}
-
-function hasCyrillic(s) {
-  return /[\u0400-\u04FF]/.test(s)
-}
-
-// Rough letter-by-letter reversal of the phonetic borrowing gamers use when
-// typing English titles in Cyrillic (e.g. "край" for the "cry" sound).
-// Cheap and fast, but literal — doesn't fix cases where the Cyrillic spelling
-// doesn't map 1:1 onto the original English letters (see translateToEnglish).
-function transliterate(s) {
-  return s
-    .toLowerCase()
-    .split('')
-    .map((ch) => (CYRILLIC_MAP[ch] !== undefined ? CYRILLIC_MAP[ch] : ch))
-    .join('')
-}
-
-// Fallback for when transliteration doesn't produce a real English word
-// (e.g. "фар край" -> "far kray", not "far cry"). Machine translators tend
-// to recognize well-known game/brand names from their training data and
-// often return the correct real title instead of a literal translation.
-async function translateToEnglish(text) {
-  for (const source of ['ru', 'uk']) {
-    try {
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${source}|en`
-      const r = await fetch(url)
-      if (!r.ok) continue
-      const data = await r.json()
-      const translated = data?.responseData?.translatedText
-      if (translated && !/NO QUERY|INVALID|MYMEMORY WARNING/i.test(translated) && translated.toLowerCase() !== text.toLowerCase()) {
-        return translated
-      }
-    } catch {
-      // try next source language
-    }
-  }
-  return null
-}
-
 async function igdbFetch(path, body, clientId, token) {
   const res = await fetch(`https://api.igdb.com/v4/${path}`, {
     method: 'POST',
@@ -104,12 +58,6 @@ async function igdbFetch(path, body, clientId, token) {
   return res.json()
 }
 
-async function searchCandidates(term, fields, clientId, token) {
-  const body = `search "${escapeQuery(term)}"; where version_parent = null; fields ${fields}; limit ${CANDIDATE_POOL};`
-  const candidates = await igdbFetch('games', body, clientId, token)
-  return (candidates || []).slice().sort((a, b) => (b.total_rating_count || 0) - (a.total_rating_count || 0))
-}
-
 export default withErrors(async (req, res) => {
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' })
 
@@ -117,7 +65,7 @@ export default withErrors(async (req, res) => {
   const token = await getAppToken()
 
   const params = req.query || {}
-  const rawQ = (params.q || '').trim()
+  const q = (params.q || '').trim()
   const page = Math.max(1, parseInt(params.page || '1', 10))
   const offset = (page - 1) * PAGE_SIZE
   const fields = 'id,name,cover.url,rating,first_release_date,genres.name,total_rating_count'
@@ -126,21 +74,14 @@ export default withErrors(async (req, res) => {
   let hasMore
   let count
 
-  if (rawQ) {
-    const isCyr = hasCyrillic(rawQ)
-    const firstTry = isCyr ? transliterate(rawQ) : rawQ
-
-    let sorted = await searchCandidates(firstTry, fields, clientId, token)
-
-    // Literal transliteration found nothing — try a translation service,
-    // which often recognizes known game/brand names correctly.
-    if (isCyr && sorted.length === 0) {
-      const translated = await translateToEnglish(rawQ)
-      if (translated) {
-        sorted = await searchCandidates(translated, fields, clientId, token)
-      }
-    }
-
+  if (q) {
+    // IGDB's fuzzy "search" matches any title containing the term (lots of
+    // obscure noise). Pull a larger candidate pool once and re-rank it by
+    // popularity so well-known games surface first, then paginate locally.
+    const CANDIDATE_POOL = 200
+    const candidatesBody = `search "${escapeQuery(q)}"; where version_parent = null; fields ${fields}; limit ${CANDIDATE_POOL};`
+    const candidates = await igdbFetch('games', candidatesBody, clientId, token)
+    const sorted = (candidates || []).slice().sort((a, b) => (b.total_rating_count || 0) - (a.total_rating_count || 0))
     games = sorted.slice(offset, offset + PAGE_SIZE)
     count = sorted.length
     hasMore = offset + PAGE_SIZE < sorted.length
