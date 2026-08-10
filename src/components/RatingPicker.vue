@@ -17,6 +17,7 @@ const options = [
 
 const optRefs = ref([])
 const indicator = ref({ left: 0, width: 0 })
+const ready = ref(false)
 
 function setRef(el, i) {
   if (el) optRefs.value[i] = el
@@ -37,7 +38,12 @@ watch(() => props.modelValue, () => nextTick(updateIndicator))
 
 let ro
 onMounted(() => {
-  nextTick(updateIndicator)
+  nextTick(() => {
+    updateIndicator()
+    // let the correct position render once, un-transitioned, before
+    // enabling the slide animation for subsequent (real) changes
+    requestAnimationFrame(() => { ready.value = true })
+  })
   ro = new ResizeObserver(() => updateIndicator())
   optRefs.value.forEach((el) => el && ro.observe(el))
 })
@@ -53,6 +59,7 @@ function choose(opt, event) {
   <div class="rating-picker" role="radiogroup" :aria-label="t('rating.label')">
     <span
       class="indicator"
+      :class="{ ready }"
       :style="{ transform: `translateX(${indicator.left}px)`, width: indicator.width + 'px' }"
     />
     <button
@@ -91,9 +98,12 @@ function choose(opt, event) {
   left: 0;
   border-radius: 999px;
   background: rgba(253, 250, 242, 0.28);
-  transition: transform var(--dur-med) var(--ease-out), width var(--dur-med) var(--ease-out);
+  transition: none;
   pointer-events: none;
   z-index: 0;
+}
+.indicator.ready {
+  transition: transform var(--dur-med) var(--ease-out), width var(--dur-med) var(--ease-out);
 }
 .rate-opt {
   position: relative;
