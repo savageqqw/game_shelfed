@@ -1,6 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="8" fill="#14171f"/>
-  <rect x="8" y="6" width="16" height="20" rx="3" fill="#f2a93b"/>
-  <rect x="12" y="10" width="8" height="4" rx="1.5" fill="#14171f"/>
-  <rect x="12" y="17" width="8" height="3" rx="1.5" fill="#8b6ff0"/>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_0_1)">
+<path d="M24 0H8C3.58172 0 0 3.58172 0 8V24C0 28.4183 3.58172 32 8 32H24C28.4183 32 32 28.4183 32 24V8C32 3.58172 28.4183 0 24 0Z" fill="#35C6D6"/>
+<path d="M21 6H11C9.34315 6 8 7.34315 8 9V23C8 24.6569 9.34315 26 11 26H21C22.6569 26 24 24.6569 24 23V9C24 7.34315 22.6569 6 21 6Z" fill="#14171F"/>
+<path d="M18.5 10H13.5C12.6716 10 12 10.6716 12 11.5V12.5C12 13.3284 12.6716 14 13.5 14H18.5C19.3284 14 20 13.3284 20 12.5V11.5C20 10.6716 19.3284 10 18.5 10Z" fill="#35C6D6"/>
+<path d="M18.5 17H13.5C12.6716 17 12 17.6716 12 18.5C12 19.3284 12.6716 20 13.5 20H18.5C19.3284 20 20 19.3284 20 18.5C20 17.6716 19.3284 17 18.5 17Z" fill="#8B6FF0"/>
+</g>
+<defs>
+<clipPath id="clip0_0_1">
+<rect width="32" height="32" fill="white"/>
+</clipPath>
+</defs>
 </svg>
