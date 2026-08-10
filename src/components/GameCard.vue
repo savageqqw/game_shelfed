@@ -24,10 +24,11 @@ function choose(s) {
 <template>
   <article class="card" :class="{ shelved: !!status }">
     <div class="art">
-      <img v-if="game.cover" :src="game.cover" :alt="game.title" loading="lazy" />
-      <div v-else class="art-fallback mono">{{ game.title.slice(0, 2).toUpperCase() }}</div>
-
-      <div class="scrim" />
+      <div class="art-media">
+        <img v-if="game.cover" :src="game.cover" :alt="game.title" loading="lazy" />
+        <div v-else class="art-fallback mono">{{ game.title.slice(0, 2).toUpperCase() }}</div>
+        <div class="scrim" />
+      </div>
 
       <button
         v-if="status"
@@ -35,20 +36,6 @@ function choose(s) {
         @click.stop="emit('remove')"
         :aria-label="t('status.remove')"
       >✕</button>
-
-      <transition name="fade-slide">
-        <div v-if="menuOpen" class="status-menu" @click.stop>
-          <button
-            v-for="s in STATUSES"
-            :key="s"
-            class="status-opt"
-            :class="[`s-${s}`, { active: s === status }]"
-            @click="choose(s)"
-          >
-            <span class="dot" />{{ t(`status.${s}`) }}
-          </button>
-        </div>
-      </transition>
 
       <div class="info">
         <div class="info-row">
@@ -63,20 +50,62 @@ function choose(s) {
             </p>
           </div>
 
-          <button
-            class="status-badge"
-            :class="status ? `s-${status}` : 'unset'"
-            @click.stop="menuOpen = !menuOpen"
-            :aria-label="status ? t('status.change') : t('status.add')"
-            :title="status ? t(`status.${status}`) : t('status.add')"
-          >
-            <span v-if="status" class="badge-dot" />
-            <span v-else class="badge-plus">+</span>
-          </button>
+          <div v-if="!showRating" class="badge-wrap">
+            <button
+              class="status-badge"
+              :class="status ? `s-${status}` : 'unset'"
+              @click.stop="menuOpen = !menuOpen"
+              :aria-label="status ? t('status.change') : t('status.add')"
+              :title="status ? t(`status.${status}`) : t('status.add')"
+            >
+              <span v-if="status" class="badge-dot" />
+              <span v-else class="badge-plus">+</span>
+            </button>
+
+            <transition name="fade-slide">
+              <div v-if="menuOpen" class="status-menu" @click.stop>
+                <button
+                  v-for="s in STATUSES"
+                  :key="s"
+                  class="status-opt"
+                  :class="[`s-${s}`, { active: s === status }]"
+                  @click="choose(s)"
+                >
+                  <span class="dot" />{{ t(`status.${s}`) }}
+                </button>
+              </div>
+            </transition>
+          </div>
         </div>
 
         <div v-if="status && showRating" class="rate-row">
           <RatingPicker :model-value="userRating" @update:model-value="(r) => emit('set-rating', r)" />
+
+          <div class="badge-wrap">
+            <button
+              class="status-badge"
+              :class="`s-${status}`"
+              @click.stop="menuOpen = !menuOpen"
+              :aria-label="t('status.change')"
+              :title="t(`status.${status}`)"
+            >
+              <span class="badge-dot" />
+            </button>
+
+            <transition name="fade-slide">
+              <div v-if="menuOpen" class="status-menu" @click.stop>
+                <button
+                  v-for="s in STATUSES"
+                  :key="s"
+                  class="status-opt"
+                  :class="[`s-${s}`, { active: s === status }]"
+                  @click="choose(s)"
+                >
+                  <span class="dot" />{{ t(`status.${s}`) }}
+                </button>
+              </div>
+            </transition>
+          </div>
         </div>
       </div>
     </div>
@@ -87,7 +116,7 @@ function choose(s) {
 .card {
   position: relative;
   border-radius: var(--radius-md);
-  overflow: hidden;
+  overflow: visible;
   transition: transform var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out);
 }
 .card:hover {
@@ -98,16 +127,22 @@ function choose(s) {
 .art {
   position: relative;
   aspect-ratio: 3 / 4.9;
+  border-radius: var(--radius-md);
+}
+.art-media {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-md);
   background: var(--bg-2);
   overflow: hidden;
 }
-.art img {
+.art-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform var(--dur-slow) var(--ease-out);
 }
-.card:hover .art img { transform: scale(1.06); }
+.card:hover .art-media img { transform: scale(1.06); }
 
 .art-fallback {
   width: 100%;
@@ -192,6 +227,8 @@ function choose(s) {
 }
 .meta .rating { color: var(--accent-amber-2); font-weight: 700; }
 
+.badge-wrap { position: relative; flex-shrink: 0; }
+
 .status-badge {
   flex-shrink: 0;
   width: 34px;
@@ -217,25 +254,18 @@ function choose(s) {
 
 .rate-row {
   margin-top: 12px;
-  opacity: 0;
-  transform: translateY(6px);
-  pointer-events: none;
-  transition: opacity var(--dur-med) var(--ease-out), transform var(--dur-med) var(--ease-out);
-}
-.card:hover .rate-row,
-.card:focus-within .rate-row {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-@media (hover: none) {
-  .rate-row { opacity: 1; transform: none; pointer-events: auto; }
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
+/* positioned relative to the badge itself now, so it always lands in the
+   right spot whether the badge sits in the title row or the rating row */
 .status-menu {
   position: absolute;
-  right: 14px;
-  bottom: 58px;
+  right: 0;
+  bottom: calc(100% + 8px);
   background: var(--bg-1);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
