@@ -80,9 +80,4 @@ async function submit() {
 
 .switch-line { text-align: center; margin-top: 22px; font-size: 13px; color: var(--text-2); }
 .switch-line a { color: var(--accent-amber-2); font-weight: 700; text-decoration: none; margin-left: 4px; }
-
-@media (max-width: 480px) {
-  .auth-view { padding: 40px 14px 80px; }
-  .auth-card { padding: 24px; }
-}
 </style>
