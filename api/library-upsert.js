@@ -20,8 +20,8 @@ export default withErrors(async (req, res) => {
   const catalogRatingVal = typeof catalog_rating === 'number' ? catalog_rating : null
 
   await db.execute({
-    sql: `INSERT INTO library_items (user_id, game_id, title, cover, status, genres, released, catalog_rating, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    sql: `INSERT INTO library_items (user_id, game_id, title, cover, status, genres, released, catalog_rating, completed_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, CASE WHEN ? = 'completed' THEN datetime('now') ELSE NULL END, datetime('now'))
           ON CONFLICT(user_id, game_id) DO UPDATE SET
             status = excluded.status,
             title = excluded.title,
@@ -29,12 +29,16 @@ export default withErrors(async (req, res) => {
             genres = excluded.genres,
             released = excluded.released,
             catalog_rating = excluded.catalog_rating,
+            completed_at = CASE
+              WHEN excluded.status = 'completed' AND library_items.status != 'completed' THEN datetime('now')
+              ELSE library_items.completed_at
+            END,
             updated_at = datetime('now')`,
-    args: [user.id, String(game_id), title, cover || null, status, genresJson, releasedVal, catalogRatingVal]
+    args: [user.id, String(game_id), title, cover || null, status, genresJson, releasedVal, catalogRatingVal, status]
   })
 
   const result = await db.execute({
-    sql: 'SELECT id, game_id, title, cover, status, rating, genres, released, catalog_rating, updated_at FROM library_items WHERE user_id = ? AND game_id = ?',
+    sql: 'SELECT id, game_id, title, cover, status, rating, genres, released, catalog_rating, completed_at, updated_at FROM library_items WHERE user_id = ? AND game_id = ?',
     args: [user.id, String(game_id)]
   })
 

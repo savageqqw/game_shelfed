@@ -79,6 +79,14 @@
     "memberSince": "Member since",
     "statsTitle": "Your shelf",
     "totalGames": "Total games",
+    "activity": {
+      "title": "Activity",
+      "subtitle": "Games completed by month",
+      "count": "{count} games",
+      "total": "Completed in this period: {count}",
+      "less": "less",
+      "more": "more"
+    },
     "password": {
       "title": "Change password",
       "current": "Current password",

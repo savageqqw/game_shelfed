@@ -21,7 +21,7 @@ export default withErrors(async (req, res) => {
   })
 
   const result = await db.execute({
-    sql: 'SELECT id, game_id, title, cover, status, rating, genres, released, catalog_rating, updated_at FROM library_items WHERE user_id = ? AND game_id = ?',
+    sql: 'SELECT id, game_id, title, cover, status, rating, genres, released, catalog_rating, completed_at, updated_at FROM library_items WHERE user_id = ? AND game_id = ?',
     args: [user.id, String(game_id)]
   })
   if (!result.rows[0]) return sendJson(res, 404, { error: 'Item not found in library' })

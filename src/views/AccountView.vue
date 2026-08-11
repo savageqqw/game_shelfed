@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore, STATUSES } from '../stores/library'
 import { api } from '../utils/api'
+import ActivityHeatmap from '../components/ActivityHeatmap.vue'
 
 const { t, locale } = useI18n()
 const auth = useAuthStore()
@@ -118,6 +119,12 @@ onMounted(() => {
       </ul>
     </section>
 
+    <section v-if="library.items.length" class="card-surface activity-card">
+      <h2>{{ t('account.activity.title') }}</h2>
+      <p class="activity-subtitle">{{ t('account.activity.subtitle') }}</p>
+      <ActivityHeatmap :items="library.items" />
+    </section>
+
     <section class="card-surface password-card">
       <h2>{{ t('account.password.title') }}</h2>
       <form @submit.prevent="submitPasswordChange" class="auth-form">
@@ -158,7 +165,10 @@ onMounted(() => {
 .info-row dd { margin: 0; font-weight: 700; color: var(--text-0); }
 
 .stats-section { margin-bottom: 32px; }
-.stats-section h2, .password-card h2 { font-size: 18px; margin-bottom: 16px; }
+.stats-section h2, .password-card h2, .activity-card h2 { font-size: 18px; margin-bottom: 16px; }
+
+.activity-card { padding: 28px 32px; margin-bottom: 32px; }
+.activity-subtitle { color: var(--text-2); font-size: 13px; margin: -8px 0 20px; }
 
 .stat-row {
   list-style: none;

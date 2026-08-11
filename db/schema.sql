@@ -18,6 +18,11 @@ CREATE TABLE IF NOT EXISTS library_items (
   title TEXT NOT NULL,
   cover TEXT,
   status TEXT NOT NULL, -- planned | playing | completed | dropped
+  rating TEXT, -- like | dislike | mixed | NULL
+  genres TEXT, -- JSON array
+  released TEXT,
+  catalog_rating REAL,
+  completed_at TEXT, -- set the first time status transitions to 'completed'
   updated_at TEXT DEFAULT (datetime('now')),
   UNIQUE(user_id, game_id),
   FOREIGN KEY(user_id) REFERENCES users(id)

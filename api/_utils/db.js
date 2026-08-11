@@ -37,6 +37,7 @@ export async function ensureSchema() {
         genres TEXT,
         released TEXT,
         catalog_rating REAL,
+        completed_at TEXT,
         updated_at TEXT DEFAULT (datetime('now')),
         UNIQUE(user_id, game_id),
         FOREIGN KEY(user_id) REFERENCES users(id)
@@ -49,7 +50,8 @@ export async function ensureSchema() {
     'ALTER TABLE library_items ADD COLUMN rating TEXT',
     'ALTER TABLE library_items ADD COLUMN genres TEXT',
     'ALTER TABLE library_items ADD COLUMN released TEXT',
-    'ALTER TABLE library_items ADD COLUMN catalog_rating REAL'
+    'ALTER TABLE library_items ADD COLUMN catalog_rating REAL',
+    'ALTER TABLE library_items ADD COLUMN completed_at TEXT'
   ]) {
     try {
       await db.execute(stmt)
