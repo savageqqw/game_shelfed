@@ -22,7 +22,7 @@ export default withErrors(async (req, res) => {
   const valid = await bcrypt.compare(password, row.password_hash)
   if (!valid) return sendJson(res, 401, { error: 'Invalid email or password' })
 
-  const user = { id: row.id, username: row.username, email: row.email }
+  const user = { id: Number(row.id), username: row.username, email: row.email }
   const token = signToken(user)
 
   sendJson(res, 200, { token, user })

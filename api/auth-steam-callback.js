@@ -54,6 +54,15 @@ export default withErrors(async (req, res) => {
   const linkToken = query.link_token
   const linkedUser = linkToken ? verifyToken(String(linkToken)) : null
 
+  // A link_token was present but failed to verify (expired session, tampered
+  // value, etc). Fail loudly here instead of silently falling through to the
+  // "normal sign in" branch below, which could otherwise create a brand new
+  // account or swap the user's session without any explanation.
+  if (linkToken && !linkedUser) {
+    console.error('Steam link failed: link_token present but did not verify')
+    return redirectToFrontend(res, origin, '/account', { steamError: 'session_expired' })
+  }
+
   if (!query['openid.claimed_id']) {
     return redirectToFrontend(res, origin, '/auth/steam-callback', { error: 'steam_failed' })
   }
@@ -81,13 +90,28 @@ export default withErrors(async (req, res) => {
 
     // --- linking Steam onto an already-logged-in account ---
     if (linkedUser) {
-      if (existing.rows[0] && Number(existing.rows[0].id) !== Number(linkedUser.id)) {
+      const linkedUserId = Number(linkedUser.id)
+
+      if (existing.rows[0] && Number(existing.rows[0].id) !== linkedUserId) {
         return redirectToFrontend(res, origin, '/account', { steamError: 'already_linked' })
       }
-      await db.execute({
+
+      const updateResult = await db.execute({
         sql: 'UPDATE users SET steam_id = ?, avatar = ? WHERE id = ?',
-        args: [steamId, avatar, linkedUser.id]
+        args: [steamId, avatar, linkedUserId]
       })
+
+      // If nothing was actually updated (stale/mismatched id, deleted user,
+      // etc), don't lie to the user with a success redirect — the previous
+      // version of this code did exactly that, which is why linking looked
+      // like it worked but the account never actually got a steam_id.
+      const rowsAffected = Number(updateResult?.rowsAffected ?? 0)
+      if (rowsAffected < 1) {
+        console.error('Steam link failed: UPDATE affected 0 rows', { linkedUserId, steamId })
+        return redirectToFrontend(res, origin, '/account', { steamError: 'failed' })
+      }
+
+      console.log('Steam linked successfully', { linkedUserId, steamId })
       return redirectToFrontend(res, origin, '/account', { steamLinked: '1' })
     }
 

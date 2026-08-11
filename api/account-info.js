@@ -16,6 +16,7 @@ export default withErrors(async (req, res) => {
   const row = result.rows[0]
   if (!row) return sendJson(res, 404, { error: 'User not found' })
 
+  res.setHeader('Cache-Control', 'no-store')
   sendJson(res, 200, {
     username: row.username,
     email: row.email,

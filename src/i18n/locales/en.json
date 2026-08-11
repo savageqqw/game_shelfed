@@ -89,6 +89,7 @@
     "steamLinkSuccess": "Your Steam account is now linked.",
     "steamLinkFailed": "Couldn't link your Steam account. Please try again.",
     "steamLinkAlreadyUsed": "This Steam account is already linked to another profile.",
+    "steamLinkExpired": "Your session expired while you were signing in with Steam. Please try linking again.",
     "activity": {
       "title": "Activity",
       "subtitle": "Games completed by month",

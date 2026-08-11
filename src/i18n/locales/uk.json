@@ -89,6 +89,7 @@
     "steamLinkSuccess": "Steam-акаунт успішно прив'язано.",
     "steamLinkFailed": "Не вдалося прив'язати Steam. Спробуй ще раз.",
     "steamLinkAlreadyUsed": "Цей Steam-акаунт вже прив'язаний до іншого профілю.",
+    "steamLinkExpired": "Сесія протухла, поки ти логінився в Steam. Спробуй прив'язати ще раз.",
     "activity": {
       "title": "Активність",
       "subtitle": "Скільки ігор пройдено по місяцях",
