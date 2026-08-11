@@ -44,7 +44,8 @@
     "randomEyebrow": "Тобі випало",
     "randomReroll": "Ще раз",
     "randomJump": "Показати на полиці",
-    "randomClose": "Закрити"
+    "randomClose": "Закрити",
+    "steamCta": "Імпорт зі Steam"
   },
   "library": {
     "eyebrow": "Каталог ігор",
@@ -112,6 +113,34 @@
   },
   "theme": {
     "toggle": "Перемкнути тему"
+  },
+  "steamImport": {
+    "title": "Імпорт зі Steam",
+    "subtitle": "Підтягни свою бібліотеку Steam і сам обери, які ігри додати на полицю.",
+    "back": "← Мої ігри",
+    "inputLabel": "Профіль Steam",
+    "inputPlaceholder": "ID64, посилання на профіль або vanity-ім'я",
+    "inputHint": "Наприклад: steamcommunity.com/id/твій_нік, або просто твій_нік",
+    "fetchCta": "Знайти бібліотеку",
+    "fetching": "Шукаємо бібліотеку…",
+    "privacyError": "Не вдалося отримати список ігор. Переконайся, що в налаштуваннях приватності Steam розділ «Ігрові деталі» виставлено на «Загальнодоступний», і спробуй ще раз.",
+    "notFoundError": "Профіль не знайдено. Перевір посилання чи ID і спробуй ще раз.",
+    "genericError": "Щось пішло не так. Спробуй ще раз трохи пізніше.",
+    "foundCount": "Знайдено ігор: {count}",
+    "searchPlaceholder": "Пошук у знайдених іграх…",
+    "selectAll": "Обрати всі",
+    "selectNone": "Зняти всі",
+    "selectedCount": "Обрано: {count}",
+    "statusLabel": "Додати зі статусом",
+    "hoursPlayed": "{hours} год",
+    "notPlayed": "Не запускалась",
+    "importCta": "Додати обрані ({count})",
+    "importing": "Додаємо ігри — це може зайняти хвилину…",
+    "importDone": "Готово! Додано ігор: {count}",
+    "importDoneMatched": "З них знайдено в каталозі з повними даними: {count}",
+    "importDoneCta": "Перейти до моїх ігор",
+    "importAnother": "Імпортувати ще",
+    "emptyResults": "Нічого не знайдено за цим запитом."
   },
   "footer": {
     "tagline": "Полиця для кожної гри, яку ти пройшов."

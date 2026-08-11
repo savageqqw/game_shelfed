@@ -44,7 +44,8 @@
     "randomEyebrow": "Your pick is",
     "randomReroll": "Reroll",
     "randomJump": "Show on shelf",
-    "randomClose": "Close"
+    "randomClose": "Close",
+    "steamCta": "Import from Steam"
   },
   "library": {
     "eyebrow": "Game catalog",
@@ -112,6 +113,34 @@
   },
   "theme": {
     "toggle": "Toggle theme"
+  },
+  "steamImport": {
+    "title": "Import from Steam",
+    "subtitle": "Pull in your Steam library and pick which games to add to your shelf.",
+    "back": "← My Games",
+    "inputLabel": "Steam profile",
+    "inputPlaceholder": "ID64, profile link, or vanity name",
+    "inputHint": "e.g. steamcommunity.com/id/yourname, or just yourname",
+    "fetchCta": "Find my library",
+    "fetching": "Looking up your library…",
+    "privacyError": "Couldn't load your games. Make sure Steam's privacy setting for \"Game details\" is set to Public, then try again.",
+    "notFoundError": "Profile not found. Double-check the link or ID and try again.",
+    "genericError": "Something went wrong. Please try again in a bit.",
+    "foundCount": "Games found: {count}",
+    "searchPlaceholder": "Search the games found…",
+    "selectAll": "Select all",
+    "selectNone": "Select none",
+    "selectedCount": "Selected: {count}",
+    "statusLabel": "Add with status",
+    "hoursPlayed": "{hours} h",
+    "notPlayed": "Never launched",
+    "importCta": "Add selected ({count})",
+    "importing": "Adding games — this can take a minute…",
+    "importDone": "Done! Games added: {count}",
+    "importDoneMatched": "Matched with full catalog data: {count}",
+    "importDoneCta": "Go to My Games",
+    "importAnother": "Import more",
+    "emptyResults": "No games match your search."
   },
   "footer": {
     "tagline": "A shelf for every game you've ever cleared."

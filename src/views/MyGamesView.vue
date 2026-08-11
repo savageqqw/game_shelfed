@@ -123,6 +123,10 @@ onMounted(async () => {
       >
         <span aria-hidden="true">🎲</span> {{ t('myGames.randomCta') }}
       </button>
+
+      <router-link :to="{ name: 'steam-import' }" class="btn btn-ghost steam-btn">
+        <span aria-hidden="true">⇩</span> {{ t('myGames.steamCta') }}
+      </router-link>
     </div>
 
     <div v-if="library.loading && !library.loaded" class="loading-msg mono">{{ t('search.loading') }}</div>
@@ -307,6 +311,15 @@ onMounted(async () => {
   cursor: not-allowed;
 }
 .random-btn:disabled:hover { transform: none; }
+
+.steam-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  text-decoration: none;
+}
 
 .random-overlay {
   position: fixed;

@@ -44,7 +44,8 @@
     "randomEyebrow": "Тебе выпало",
     "randomReroll": "Ещё раз",
     "randomJump": "Показать на полке",
-    "randomClose": "Закрыть"
+    "randomClose": "Закрыть",
+    "steamCta": "Импорт из Steam"
   },
   "library": {
     "eyebrow": "Каталог игр",
@@ -112,6 +113,34 @@
   },
   "theme": {
     "toggle": "Переключить тему"
+  },
+  "steamImport": {
+    "title": "Импорт из Steam",
+    "subtitle": "Подтяни свою библиотеку Steam и сам выбери, какие игры добавить на полку.",
+    "back": "← Мои игры",
+    "inputLabel": "Профиль Steam",
+    "inputPlaceholder": "ID64, ссылка на профиль или vanity-имя",
+    "inputHint": "Например: steamcommunity.com/id/твой_ник, или просто твой_ник",
+    "fetchCta": "Найти библиотеку",
+    "fetching": "Ищем библиотеку…",
+    "privacyError": "Не удалось получить список игр. Убедись, что в настройках приватности Steam раздел «Игровые детали» выставлен на «Открыто», и попробуй снова.",
+    "notFoundError": "Профиль не найден. Проверь ссылку или ID и попробуй снова.",
+    "genericError": "Что-то пошло не так. Попробуй ещё раз чуть позже.",
+    "foundCount": "Найдено игр: {count}",
+    "searchPlaceholder": "Поиск среди найденных игр…",
+    "selectAll": "Выбрать все",
+    "selectNone": "Снять все",
+    "selectedCount": "Выбрано: {count}",
+    "statusLabel": "Добавить со статусом",
+    "hoursPlayed": "{hours} ч",
+    "notPlayed": "Не запускалась",
+    "importCta": "Добавить выбранные ({count})",
+    "importing": "Добавляем игры — это может занять минуту…",
+    "importDone": "Готово! Добавлено игр: {count}",
+    "importDoneMatched": "Из них найдено в каталоге с полными данными: {count}",
+    "importDoneCta": "Перейти к моим играм",
+    "importAnother": "Импортировать ещё",
+    "emptyResults": "По этому запросу ничего не найдено."
   },
   "footer": {
     "tagline": "Полка для каждой игры, которую ты прошёл."
