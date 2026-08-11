@@ -85,6 +85,10 @@
     "statsTitle": "Твоя полиця",
     "totalGames": "Усього ігор",
     "steamLinked": "Пов'язано зі Steam",
+    "linkSteamCta": "Прив'язати Steam",
+    "steamLinkSuccess": "Steam-акаунт успішно прив'язано.",
+    "steamLinkFailed": "Не вдалося прив'язати Steam. Спробуй ще раз.",
+    "steamLinkAlreadyUsed": "Цей Steam-акаунт вже прив'язаний до іншого профілю.",
     "activity": {
       "title": "Активність",
       "subtitle": "Скільки ігор пройдено по місяцях",

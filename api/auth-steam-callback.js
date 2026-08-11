@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto'
 import bcrypt from 'bcryptjs'
 import { getClient, ensureSchema } from './_utils/db.js'
-import { signToken } from './_utils/auth.js'
+import { signToken, verifyToken } from './_utils/auth.js'
 import { withErrors } from './_utils/response.js'
 
 function siteOrigin(req) {
@@ -10,9 +10,9 @@ function siteOrigin(req) {
   return `${proto}://${host}`
 }
 
-function redirectToFrontend(res, origin, params) {
+function redirectToFrontend(res, origin, path, params) {
   res.statusCode = 302
-  res.setHeader('Location', `${origin}/auth/steam-callback?${new URLSearchParams(params).toString()}`)
+  res.setHeader('Location', `${origin}${path}?${new URLSearchParams(params).toString()}`)
   res.end()
 }
 
@@ -51,17 +51,20 @@ export default withErrors(async (req, res) => {
   }
 
   const query = req.query || {}
+  const linkToken = query.link_token
+  const linkedUser = linkToken ? verifyToken(String(linkToken)) : null
+
   if (!query['openid.claimed_id']) {
-    return redirectToFrontend(res, origin, { error: 'steam_failed' })
+    return redirectToFrontend(res, origin, '/auth/steam-callback', { error: 'steam_failed' })
   }
 
   try {
     const valid = await verifyAssertion(query)
-    if (!valid) return redirectToFrontend(res, origin, { error: 'steam_failed' })
+    if (!valid) return redirectToFrontend(res, origin, '/auth/steam-callback', { error: 'steam_failed' })
 
     const match = String(query['openid.claimed_id']).match(/(\d{17})$/)
     const steamId = match?.[1]
-    if (!steamId) return redirectToFrontend(res, origin, { error: 'steam_failed' })
+    if (!steamId) return redirectToFrontend(res, origin, '/auth/steam-callback', { error: 'steam_failed' })
 
     const apiKey = process.env.STEAM_API_KEY
     const profile = apiKey ? await fetchSteamProfile(steamId, apiKey) : null
@@ -76,6 +79,19 @@ export default withErrors(async (req, res) => {
       args: [steamId]
     })
 
+    // --- linking Steam onto an already-logged-in account ---
+    if (linkedUser) {
+      if (existing.rows[0] && Number(existing.rows[0].id) !== Number(linkedUser.id)) {
+        return redirectToFrontend(res, origin, '/account', { steamError: 'already_linked' })
+      }
+      await db.execute({
+        sql: 'UPDATE users SET steam_id = ?, avatar = ? WHERE id = ?',
+        args: [steamId, avatar, linkedUser.id]
+      })
+      return redirectToFrontend(res, origin, '/account', { steamLinked: '1' })
+    }
+
+    // --- normal sign in / sign up via Steam ---
     let user
     if (existing.rows[0]) {
       await db.execute({
@@ -94,7 +110,7 @@ export default withErrors(async (req, res) => {
     }
 
     const token = signToken(user)
-    redirectToFrontend(res, origin, {
+    redirectToFrontend(res, origin, '/auth/steam-callback', {
       token,
       id: String(user.id),
       username: user.username,
@@ -103,6 +119,8 @@ export default withErrors(async (req, res) => {
     })
   } catch (e) {
     console.error('Steam auth failed:', e)
-    redirectToFrontend(res, origin, { error: 'steam_failed' })
+    const path = linkedUser ? '/account' : '/auth/steam-callback'
+    const params = linkedUser ? { steamError: 'failed' } : { error: 'steam_failed' }
+    redirectToFrontend(res, origin, path, params)
   }
 })

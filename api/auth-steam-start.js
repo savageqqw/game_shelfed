@@ -1,4 +1,5 @@
 import { withErrors } from './_utils/response.js'
+import { verifyToken } from './_utils/auth.js'
 
 function siteOrigin(req) {
   const proto = req.headers['x-forwarded-proto'] || 'https'
@@ -13,7 +14,15 @@ export default withErrors(async (req, res) => {
   }
 
   const origin = siteOrigin(req)
-  const returnTo = `${origin}/api/auth-steam-callback`
+
+  // Linking Steam to an already-logged-in account: the session token travels
+  // through Steam's redirect as a query param so the callback can identify
+  // which existing user is asking to link, instead of logging in as someone new.
+  const linkToken = req.query?.link_token
+  const linkedUser = linkToken ? verifyToken(String(linkToken)) : null
+
+  let returnTo = `${origin}/api/auth-steam-callback`
+  if (linkedUser) returnTo += `?link_token=${encodeURIComponent(String(linkToken))}`
 
   const params = new URLSearchParams({
     'openid.ns': 'http://specs.openid.net/auth/2.0',

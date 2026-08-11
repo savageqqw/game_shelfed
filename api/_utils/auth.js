@@ -12,6 +12,15 @@ export function signToken(user) {
   })
 }
 
+export function verifyToken(rawToken) {
+  try {
+    const payload = jwt.verify(rawToken, getSecret())
+    return { id: payload.sub, username: payload.username, email: payload.email }
+  } catch {
+    return null
+  }
+}
+
 export function requireUser(req) {
   const header = req.headers.authorization || req.headers.Authorization
   if (!header || !header.startsWith('Bearer ')) {
@@ -19,12 +28,11 @@ export function requireUser(req) {
     err.statusCode = 401
     throw err
   }
-  try {
-    const payload = jwt.verify(header.slice(7), getSecret())
-    return { id: payload.sub, username: payload.username, email: payload.email }
-  } catch {
+  const user = verifyToken(header.slice(7))
+  if (!user) {
     const err = new Error('Invalid or expired session')
     err.statusCode = 401
     throw err
   }
+  return user
 }
