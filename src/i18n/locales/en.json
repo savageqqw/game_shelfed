@@ -85,7 +85,13 @@
       "count": "{count} games",
       "total": "Completed in this period: {count}",
       "less": "less",
-      "more": "more"
+      "more": "more",
+      "periods": {
+        "m6": "6 mo",
+        "m12": "12 mo",
+        "m24": "24 mo",
+        "all": "All time"
+      }
     },
     "password": {
       "title": "Change password",

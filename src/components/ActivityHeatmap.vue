@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
@@ -17,10 +17,39 @@ function parseDate(raw) {
   return Number.isNaN(d.getTime()) ? null : d
 }
 
-const cells = computed(() => {
+const periods = [
+  { key: 'm6', months: 6 },
+  { key: 'm12', months: 12 },
+  { key: 'm24', months: 24 },
+  { key: 'all', months: null }
+]
+const selectedPeriod = ref('m12')
+
+const earliestCompleted = computed(() => {
+  let min = null
+  for (const item of props.items) {
+    const d = parseDate(item.completed_at)
+    if (d && (!min || d < min)) min = d
+  }
+  return min
+})
+
+const effectiveMonths = computed(() => {
+  const p = periods.find((p) => p.key === selectedPeriod.value)
+  if (p?.months) return p.months
+  // "all time" — span from the earliest completion to the current month
+  if (!earliestCompleted.value) return props.months
   const now = new Date()
+  const span = (now.getFullYear() - earliestCompleted.value.getFullYear()) * 12
+    + (now.getMonth() - earliestCompleted.value.getMonth()) + 1
+  return Math.max(1, span)
+})
+
+const bars = computed(() => {
+  const now = new Date()
+  const total = effectiveMonths.value
   const buckets = []
-  for (let i = props.months - 1; i >= 0; i--) {
+  for (let i = total - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
     buckets.push({ key: `${d.getFullYear()}-${d.getMonth()}`, year: d.getFullYear(), month: d.getMonth(), count: 0 })
   }
@@ -36,115 +65,213 @@ const cells = computed(() => {
   return buckets
 })
 
-const maxCount = computed(() => Math.max(1, ...cells.value.map((c) => c.count)))
+const maxCount = computed(() => Math.max(1, ...bars.value.map((b) => b.count)))
 
-function level(count) {
+// nice round number for the top gridline (1, 2, 5, 10, 20, 25, 50...)
+const axisMax = computed(() => {
+  const m = maxCount.value
+  const steps = [1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 25, 30, 40, 50, 75, 100]
+  return steps.find((s) => s >= m) || Math.ceil(m / 10) * 10
+})
+
+const gridLines = computed(() => {
+  const top = axisMax.value
+  return [top, Math.round(top * 0.75), Math.round(top * 0.5), Math.round(top * 0.25), 0]
+})
+
+function heightPct(count) {
   if (!count) return 0
-  const ratio = count / maxCount.value
-  if (ratio > 0.75) return 4
-  if (ratio > 0.5) return 3
-  if (ratio > 0.25) return 2
-  return 1
+  return Math.max(4, (count / axisMax.value) * 100)
 }
 
-function monthLabel(cell) {
-  const d = new Date(cell.year, cell.month, 1)
+function monthLabel(bar) {
+  const d = new Date(bar.year, bar.month, 1)
   return d.toLocaleDateString(localeMap[locale.value] || undefined, { month: 'short' })
 }
 
-function fullLabel(cell) {
-  const d = new Date(cell.year, cell.month, 1)
+function fullLabel(bar) {
+  const d = new Date(bar.year, bar.month, 1)
   const label = d.toLocaleDateString(localeMap[locale.value] || undefined, { month: 'long', year: 'numeric' })
-  return `${label} — ${t('account.activity.count', { count: cell.count })}`
+  return `${label} — ${t('account.activity.count', { count: bar.count })}`
 }
 
-const totalCompleted = computed(() => cells.value.reduce((sum, c) => sum + c.count, 0))
+const totalCompleted = computed(() => bars.value.reduce((sum, b) => sum + b.count, 0))
+
+// animate bars growing in from 0, both on mount and whenever the period changes
+const grown = ref(false)
+function replay() {
+  grown.value = false
+  nextTick(() => requestAnimationFrame(() => requestAnimationFrame(() => { grown.value = true })))
+}
+onMounted(replay)
+watch(selectedPeriod, replay)
 </script>
 
 <template>
-  <div class="heatmap">
-    <div class="heatmap-grid">
-      <div
-        v-for="cell in cells"
-        :key="cell.key"
-        class="heatmap-cell"
-        :class="`lvl-${level(cell.count)}`"
-        :title="fullLabel(cell)"
-      >
-        <span class="cell-count mono">{{ cell.count || '' }}</span>
-        <span class="cell-label mono">{{ monthLabel(cell) }}</span>
+  <div class="chart">
+    <div class="period-row">
+      <button
+        v-for="p in periods"
+        :key="p.key"
+        class="period-btn"
+        :class="{ active: selectedPeriod === p.key }"
+        @click="selectedPeriod = p.key"
+      >{{ t(`account.activity.periods.${p.key}`) }}</button>
+    </div>
+
+    <div class="chart-plot-wrap">
+      <div class="chart-plot" :style="{ minWidth: bars.length > 14 ? bars.length * 40 + 'px' : '100%' }">
+        <div class="grid-lines">
+          <div v-for="g in gridLines" :key="g" class="grid-line">
+            <span class="grid-value mono">{{ g }}</span>
+          </div>
+        </div>
+
+        <div class="bars">
+          <div v-for="bar in bars" :key="bar.key" class="bar-col" :title="fullLabel(bar)">
+            <span class="bar-value mono" :class="{ show: bar.count > 0 }">{{ bar.count }}</span>
+            <div class="bar-track">
+              <div
+                class="bar-fill"
+                :class="{ empty: !bar.count }"
+                :style="{ height: grown ? heightPct(bar.count) + '%' : 0 }"
+              />
+            </div>
+            <span class="bar-label mono">{{ monthLabel(bar) }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="heatmap-footer">
-      <span class="total-line">{{ t('account.activity.total', { count: totalCompleted }) }}</span>
-      <span class="legend">
-        <span class="legend-label">{{ t('account.activity.less') }}</span>
-        <span class="legend-cell lvl-0" />
-        <span class="legend-cell lvl-1" />
-        <span class="legend-cell lvl-2" />
-        <span class="legend-cell lvl-3" />
-        <span class="legend-cell lvl-4" />
-        <span class="legend-label">{{ t('account.activity.more') }}</span>
-      </span>
-    </div>
+    <p class="chart-total">{{ t('account.activity.total', { count: totalCompleted }) }}</p>
   </div>
 </template>
 
 <style scoped>
-.heatmap-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
-  gap: 8px;
+.period-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.period-btn {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-1);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+}
+.period-btn:hover { color: var(--text-0); border-color: var(--border-strong); }
+.period-btn.active {
+  color: var(--card-completed);
+  border-color: var(--card-completed);
+  background: rgba(34, 197, 94, 0.12);
 }
 
-.heatmap-cell {
+.chart-plot-wrap { overflow-x: auto; }
+
+.chart-plot {
+  position: relative;
+  display: flex;
+  height: 200px;
+  padding-left: 30px;
+}
+
+.grid-lines {
+  position: absolute;
+  inset: 0 0 26px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.grid-line {
+  position: relative;
+  border-top: 1px dashed var(--border-soft);
+}
+.grid-line:last-child { border-top: 1px solid var(--border-strong); }
+.grid-value {
+  position: absolute;
+  left: -30px;
+  top: -6px;
+  width: 26px;
+  text-align: right;
+  font-size: 10px;
+  color: var(--text-2);
+}
+
+.bars {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(4px, 1vw, 12px);
+  padding-bottom: 26px;
+}
+
+.bar-col {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  aspect-ratio: 1;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-soft);
-  background: var(--bg-1);
-  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast);
+  justify-content: flex-end;
+  position: relative;
 }
-.heatmap-cell:hover { transform: translateY(-2px); border-color: var(--border-strong); }
 
-.cell-count { font-size: 15px; font-weight: 700; color: var(--text-0); line-height: 1; }
-.cell-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-2); }
+.bar-value {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-0);
+  margin-bottom: 4px;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.bar-value.show { opacity: 1; }
 
-.heatmap-cell.lvl-0 { background: var(--bg-1); }
-.heatmap-cell.lvl-0 .cell-label { color: var(--text-2); }
-.heatmap-cell.lvl-1 { background: rgba(34, 197, 94, 0.18); border-color: rgba(34, 197, 94, 0.25); }
-.heatmap-cell.lvl-2 { background: rgba(34, 197, 94, 0.36); border-color: rgba(34, 197, 94, 0.4); }
-.heatmap-cell.lvl-3 { background: rgba(34, 197, 94, 0.58); border-color: rgba(34, 197, 94, 0.6); }
-.heatmap-cell.lvl-4 { background: rgba(34, 197, 94, 0.85); border-color: rgba(34, 197, 94, 0.9); }
-.heatmap-cell.lvl-3 .cell-count, .heatmap-cell.lvl-4 .cell-count { color: #0a1f12; }
-.heatmap-cell.lvl-3 .cell-label, .heatmap-cell.lvl-4 .cell-label { color: rgba(10, 31, 18, 0.75); }
-
-.heatmap-footer {
+.bar-track {
+  width: 100%;
+  max-width: 34px;
+  height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 16px;
+  align-items: flex-end;
 }
-.total-line { font-size: 13px; color: var(--text-2); }
 
-.legend { display: flex; align-items: center; gap: 5px; }
-.legend-label { font-size: 11px; color: var(--text-2); }
-.legend-cell {
-  width: 13px;
-  height: 13px;
-  border-radius: 4px;
-  border: 1px solid var(--border-soft);
+.bar-fill {
+  width: 100%;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, #4ade80 0%, var(--card-completed) 100%);
+  box-shadow: 0 0 14px -4px rgba(34, 197, 94, 0.6);
+  transition: height 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.legend-cell.lvl-0 { background: var(--bg-1); }
-.legend-cell.lvl-1 { background: rgba(34, 197, 94, 0.18); }
-.legend-cell.lvl-2 { background: rgba(34, 197, 94, 0.36); }
-.legend-cell.lvl-3 { background: rgba(34, 197, 94, 0.58); }
-.legend-cell.lvl-4 { background: rgba(34, 197, 94, 0.85); }
+.bar-fill.empty {
+  background: var(--bg-2);
+  box-shadow: none;
+  height: 3px !important;
+}
+
+.bar-col:hover .bar-fill:not(.empty) {
+  filter: brightness(1.15);
+}
+
+.bar-label {
+  position: absolute;
+  bottom: 0;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-2);
+}
+
+.chart-total {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--text-2);
+  text-align: right;
+}
 </style>

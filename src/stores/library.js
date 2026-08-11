@@ -11,6 +11,13 @@ export const STATUS_ICONS = {
   planned: '▤'
 }
 
+function parseDbDate(raw) {
+  if (!raw) return 0
+  const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T') + 'Z'
+  const t = new Date(normalized).getTime()
+  return Number.isNaN(t) ? 0 : t
+}
+
 export const useLibraryStore = defineStore('library', {
   state: () => ({
     items: [],   // [{ id, game_id, title, cover, status, rating, updated_at }]
@@ -18,7 +25,18 @@ export const useLibraryStore = defineStore('library', {
     loading: false
   }),
   getters: {
-    byStatus: (state) => (status) => state.items.filter((i) => i.status === status),
+    byStatus: (state) => (status) => {
+      const list = state.items.filter((i) => i.status === status)
+      if (status === 'completed') {
+        // most recently completed first, not just most recently touched
+        return [...list].sort((a, b) => {
+          const bd = parseDbDate(b.completed_at) || parseDbDate(b.updated_at)
+          const ad = parseDbDate(a.completed_at) || parseDbDate(a.updated_at)
+          return bd - ad
+        })
+      }
+      return list
+    },
     entryFor: (state) => (gameId) => state.items.find((i) => String(i.game_id) === String(gameId)),
     counts: (state) => {
       const c = { planned: 0, playing: 0, completed: 0, dropped: 0 }
