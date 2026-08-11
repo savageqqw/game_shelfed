@@ -2,7 +2,14 @@ import { defineStore } from 'pinia'
 import { api } from '../utils/api'
 import { useAuthStore } from './auth'
 
-export const STATUSES = ['planned', 'playing', 'completed', 'dropped']
+export const STATUSES = ['completed', 'playing', 'dropped', 'planned']
+
+export const STATUS_ICONS = {
+  completed: '✓',
+  playing: '▶',
+  dropped: '✕',
+  planned: '▤'
+}
 
 export const useLibraryStore = defineStore('library', {
   state: () => ({

@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { STATUSES } from '../stores/library'
+import { STATUSES, STATUS_ICONS } from '../stores/library'
 import RatingPicker from './RatingPicker.vue'
 
 const props = defineProps({
@@ -58,7 +58,7 @@ function choose(s) {
               :aria-label="status ? t('status.change') : t('status.add')"
               :title="status ? t(`status.${status}`) : t('status.add')"
             >
-              <span v-if="status" class="badge-dot" />
+              <span v-if="status" class="badge-icon mono">{{ STATUS_ICONS[status] }}</span>
               <span v-else class="badge-plus">+</span>
             </button>
 
@@ -89,7 +89,7 @@ function choose(s) {
               :aria-label="t('status.change')"
               :title="t(`status.${status}`)"
             >
-              <span class="badge-dot" />
+              <span class="badge-icon mono">{{ STATUS_ICONS[status] }}</span>
             </button>
 
             <transition name="fade-slide">
@@ -122,6 +122,14 @@ function choose(s) {
 .card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-card);
+}
+.card.is-highlighted {
+  animation: card-highlight-pulse 1.8s var(--ease-out);
+}
+@keyframes card-highlight-pulse {
+  0% { box-shadow: 0 0 0 3px var(--accent-amber), var(--shadow-card); transform: translateY(-4px); }
+  70% { box-shadow: 0 0 0 3px var(--accent-amber), var(--shadow-card); transform: translateY(-4px); }
+  100% { box-shadow: none; transform: translateY(0); }
 }
 
 .art {
@@ -238,6 +246,7 @@ function choose(s) {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #fdfaf2;
   box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.5);
 }
 .status-badge.unset {
@@ -246,7 +255,7 @@ function choose(s) {
   backdrop-filter: blur(4px);
 }
 .badge-plus { font-size: 18px; font-weight: 700; line-height: 1; }
-.badge-dot { width: 10px; height: 10px; border-radius: 3px; background: #fdfaf2; }
+.badge-icon { font-size: 14px; font-weight: 700; line-height: 1; }
 .status-badge.s-completed { background: var(--card-completed); }
 .status-badge.s-planned { background: var(--card-planned); }
 .status-badge.s-playing { background: var(--card-playing); }

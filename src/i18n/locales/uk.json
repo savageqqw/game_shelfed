@@ -35,7 +35,16 @@
       "dropped": "Кинуто"
     },
     "signInPrompt": "Увійдіть, щоб вести власну полицю ігор.",
-    "stat": "{count} ігор"
+    "stat": "{count} ігор",
+    "searchPlaceholder": "Пошук у вашій бібліотеці…",
+    "searchClear": "Очистити пошук",
+    "noResults": "Нічого не знайдено за цим запитом.",
+    "randomCta": "Випадкова гра",
+    "randomEmpty": "Немає ігор у статусі «В планах»",
+    "randomEyebrow": "Тобі випало",
+    "randomReroll": "Ще раз",
+    "randomJump": "Показати на полиці",
+    "randomClose": "Закрити"
   },
   "library": {
     "eyebrow": "Каталог ігор",

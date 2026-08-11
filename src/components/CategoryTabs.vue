@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { STATUSES } from '../stores/library'
 
 const props = defineProps({
   modelValue: { type: String, default: 'all' },
@@ -9,7 +10,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 const { t } = useI18n()
 
-const tabs = ['all', 'planned', 'playing', 'completed', 'dropped']
+const tabs = [...STATUSES, 'all']
 
 const tabRefs = ref([])
 const indicator = ref({ left: 0, width: 0 })

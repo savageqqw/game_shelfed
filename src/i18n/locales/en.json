@@ -35,7 +35,16 @@
       "dropped": "Dropped"
     },
     "signInPrompt": "Sign in to build your own shelf of games.",
-    "stat": "{count} titles"
+    "stat": "{count} titles",
+    "searchPlaceholder": "Search your library…",
+    "searchClear": "Clear search",
+    "noResults": "No games match your search.",
+    "randomCta": "Random game",
+    "randomEmpty": "No games in Planned",
+    "randomEyebrow": "Your pick is",
+    "randomReroll": "Reroll",
+    "randomJump": "Show on shelf",
+    "randomClose": "Close"
   },
   "library": {
     "eyebrow": "Game catalog",

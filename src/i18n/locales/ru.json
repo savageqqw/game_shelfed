@@ -35,7 +35,16 @@
       "dropped": "Брошено"
     },
     "signInPrompt": "Войдите, чтобы вести собственную полку игр.",
-    "stat": "{count} игр"
+    "stat": "{count} игр",
+    "searchPlaceholder": "Поиск по вашей библиотеке…",
+    "searchClear": "Очистить поиск",
+    "noResults": "По этому запросу ничего не найдено.",
+    "randomCta": "Случайная игра",
+    "randomEmpty": "Нет игр в статусе «В планах»",
+    "randomEyebrow": "Тебе выпало",
+    "randomReroll": "Ещё раз",
+    "randomJump": "Показать на полке",
+    "randomClose": "Закрыть"
   },
   "library": {
     "eyebrow": "Каталог игр",
