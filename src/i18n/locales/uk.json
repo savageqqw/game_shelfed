@@ -70,7 +70,11 @@
     "noAccount": "Ще немає акаунта?",
     "haveAccount": "Вже маєте акаунт?",
     "switchToRegister": "Зареєструватися",
-    "switchToLogin": "Увійти"
+    "switchToLogin": "Увійти",
+    "orDivider": "або",
+    "steamCta": "Увійти через Steam",
+    "steamConnecting": "З'єднуємось зі Steam…",
+    "steamFailed": "Не вдалося увійти через Steam. Спробуй ще раз."
   },
   "account": {
     "title": "Акаунт",
@@ -80,6 +84,7 @@
     "memberSince": "Акаунт створено",
     "statsTitle": "Твоя полиця",
     "totalGames": "Усього ігор",
+    "steamLinked": "Пов'язано зі Steam",
     "activity": {
       "title": "Активність",
       "subtitle": "Скільки ігор пройдено по місяцях",

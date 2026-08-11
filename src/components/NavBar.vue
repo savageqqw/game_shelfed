@@ -49,7 +49,10 @@ function logout() {
         <LangSwitcher />
         <ThemeToggle />
         <template v-if="auth.isAuthed">
-          <router-link :to="{ name: 'account' }" class="user-chip">{{ auth.user?.username }}</router-link>
+          <router-link :to="{ name: 'account' }" class="user-chip">
+            <img v-if="auth.user?.avatar" :src="auth.user.avatar" alt="" class="user-avatar" />
+            {{ auth.user?.username }}
+          </router-link>
           <button class="btn btn-ghost" @click="logout">{{ t('nav.logout') }}</button>
         </template>
         <template v-else>
@@ -166,13 +169,17 @@ function logout() {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-1);
-  padding: 8px 12px;
+  padding: 6px 12px 6px 6px;
   border-radius: 999px;
   background: var(--bg-2);
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   transition: background var(--dur-fast), color var(--dur-fast);
 }
 .user-chip:hover { background: var(--bg-3); color: var(--text-0); }
+.user-avatar { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; }
 
 .burger { display: none; }
 

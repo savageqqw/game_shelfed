@@ -89,20 +89,26 @@ onMounted(() => {
     <section class="card-surface info-card">
       <div v-if="infoLoading" class="loading-msg mono">{{ t('search.loading') }}</div>
       <p v-else-if="infoError" class="error-msg">{{ infoError }}</p>
-      <dl v-else class="info-grid">
-        <div class="info-row">
-          <dt>{{ t('account.username') }}</dt>
-          <dd>{{ info.username }}</dd>
+      <template v-else>
+        <div v-if="info.avatar || info.steamLinked" class="identity-row">
+          <img v-if="info.avatar" :src="info.avatar" alt="" class="account-avatar" />
+          <span v-if="info.steamLinked" class="steam-badge">{{ t('account.steamLinked') }}</span>
         </div>
-        <div class="info-row">
-          <dt>{{ t('account.email') }}</dt>
-          <dd>{{ info.email }}</dd>
-        </div>
-        <div class="info-row">
-          <dt>{{ t('account.memberSince') }}</dt>
-          <dd>{{ formatDate(info.createdAt) }}</dd>
-        </div>
-      </dl>
+        <dl class="info-grid">
+          <div class="info-row">
+            <dt>{{ t('account.username') }}</dt>
+            <dd>{{ info.username }}</dd>
+          </div>
+          <div class="info-row">
+            <dt>{{ t('account.email') }}</dt>
+            <dd>{{ info.email }}</dd>
+          </div>
+          <div class="info-row">
+            <dt>{{ t('account.memberSince') }}</dt>
+            <dd>{{ formatDate(info.createdAt) }}</dd>
+          </div>
+        </dl>
+      </template>
     </section>
 
     <section class="stats-section">
@@ -125,7 +131,7 @@ onMounted(() => {
       <ActivityHeatmap :items="library.items" />
     </section>
 
-    <section class="card-surface password-card">
+    <section v-if="!infoLoading && !info?.steamLinked" class="card-surface password-card">
       <h2>{{ t('account.password.title') }}</h2>
       <form @submit.prevent="submitPasswordChange" class="auth-form">
         <label>
@@ -159,6 +165,17 @@ onMounted(() => {
 .subtitle { color: var(--text-2); font-size: 14px; margin-top: 8px; }
 
 .info-card { padding: 28px 32px; margin-bottom: 32px; }
+.identity-row { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.account-avatar { width: 52px; height: 52px; border-radius: 14px; }
+.steam-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #66c0f4;
+  background: rgba(102, 192, 244, 0.14);
+  border: 1px solid rgba(102, 192, 244, 0.3);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
 .info-grid { display: flex; flex-direction: column; gap: 14px; }
 .info-row { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .info-row dt { color: var(--text-2); font-size: 13px; font-weight: 600; }

@@ -10,11 +10,17 @@ export default withErrors(async (req, res) => {
   const db = getClient()
 
   const result = await db.execute({
-    sql: 'SELECT username, email, created_at FROM users WHERE id = ?',
+    sql: 'SELECT username, email, avatar, steam_id, created_at FROM users WHERE id = ?',
     args: [user.id]
   })
   const row = result.rows[0]
   if (!row) return sendJson(res, 404, { error: 'User not found' })
 
-  sendJson(res, 200, { username: row.username, email: row.email, createdAt: row.created_at })
+  sendJson(res, 200, {
+    username: row.username,
+    email: row.email,
+    avatar: row.avatar || null,
+    steamLinked: !!row.steam_id,
+    createdAt: row.created_at
+  })
 })

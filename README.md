@@ -30,7 +30,7 @@ Vercel не хостить постійний Express-сервер — тому 
 
 3. **JWT_SECRET** — будь-який довгий випадковий рядок (наприклад `openssl rand -hex 32`).
 
-4. **STEAM_API_KEY** (опційно, для імпорту бібліотеки зі Steam) — безкоштовно й миттєво на [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey), домен можна вказати будь-який (наприклад `localhost`).
+4. **STEAM_API_KEY** (для входу через Steam і для імпорту бібліотеки) — безкоштовно й миттєво на [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey), домен можна вказати будь-який (наприклад `localhost`).
 
 ## Локальний запуск
 
@@ -47,7 +47,7 @@ vercel dev                   # піднімає і фронт, і функції
 
 1. Заливаєш репозиторій на GitHub.
 2. На [vercel.com](https://vercel.com): **Add New → Project**, обираєш репозиторій. Vercel сам розпізнає Vite-проєкт і підхопить `vercel.json` (build command, output directory, SPA-редіректи, функції з `api/`).
-3. В **Project Settings → Environment Variables** додаєш змінні з `.env.example`: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `JWT_SECRET`, `IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`, і опційно `STEAM_API_KEY` (для імпорту зі Steam).
+3. В **Project Settings → Environment Variables** додаєш змінні з `.env.example`: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `JWT_SECRET`, `IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`, `STEAM_API_KEY`.
 4. Деплой → готово. SPA-роутинг (сторінки `/my-games`, `/login` тощо при прямому переході) вже налаштований через `rewrites` у `vercel.json`.
 
 Безкоштовний план Vercel (Hobby) не потребує картки і повністю покриває цей проєкт: статичний хостинг, serverless-функції з щедрими лімітами запитів, автодеплой з GitHub.

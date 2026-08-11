@@ -70,7 +70,11 @@
     "noAccount": "No account yet?",
     "haveAccount": "Already have an account?",
     "switchToRegister": "Sign up",
-    "switchToLogin": "Log in"
+    "switchToLogin": "Log in",
+    "orDivider": "or",
+    "steamCta": "Sign in with Steam",
+    "steamConnecting": "Connecting to Steam…",
+    "steamFailed": "Steam sign-in failed. Please try again."
   },
   "account": {
     "title": "Account",
@@ -80,6 +84,7 @@
     "memberSince": "Member since",
     "statsTitle": "Your shelf",
     "totalGames": "Total games",
+    "steamLinked": "Linked with Steam",
     "activity": {
       "title": "Activity",
       "subtitle": "Games completed by month",

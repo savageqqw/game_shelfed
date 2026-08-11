@@ -70,7 +70,11 @@
     "noAccount": "Ещё нет аккаунта?",
     "haveAccount": "Уже есть аккаунт?",
     "switchToRegister": "Зарегистрироваться",
-    "switchToLogin": "Войти"
+    "switchToLogin": "Войти",
+    "orDivider": "или",
+    "steamCta": "Войти через Steam",
+    "steamConnecting": "Соединяемся со Steam…",
+    "steamFailed": "Не удалось войти через Steam. Попробуй ещё раз."
   },
   "account": {
     "title": "Аккаунт",
@@ -80,6 +84,7 @@
     "memberSince": "Аккаунт создан",
     "statsTitle": "Твоя полка",
     "totalGames": "Всего игр",
+    "steamLinked": "Связано со Steam",
     "activity": {
       "title": "Активность",
       "subtitle": "Сколько игр пройдено по месяцам",

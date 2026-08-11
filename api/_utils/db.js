@@ -24,6 +24,8 @@ export async function ensureSchema() {
         username TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
+        steam_id TEXT,
+        avatar TEXT,
         created_at TEXT DEFAULT (datetime('now'))
       )`,
       `CREATE TABLE IF NOT EXISTS library_items (
@@ -51,13 +53,22 @@ export async function ensureSchema() {
     'ALTER TABLE library_items ADD COLUMN genres TEXT',
     'ALTER TABLE library_items ADD COLUMN released TEXT',
     'ALTER TABLE library_items ADD COLUMN catalog_rating REAL',
-    'ALTER TABLE library_items ADD COLUMN completed_at TEXT'
+    'ALTER TABLE library_items ADD COLUMN completed_at TEXT',
+    'ALTER TABLE users ADD COLUMN steam_id TEXT',
+    'ALTER TABLE users ADD COLUMN avatar TEXT'
   ]) {
     try {
       await db.execute(stmt)
     } catch (e) {
       if (!/duplicate column/i.test(e.message || '')) throw e
     }
+  }
+  // Partial unique index — allows unlimited NULLs (password-only accounts)
+  // while still preventing two accounts from linking the same Steam ID.
+  try {
+    await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_steam_id ON users(steam_id) WHERE steam_id IS NOT NULL')
+  } catch (e) {
+    console.error('Failed to create steam_id index:', e)
   }
   ensured = true
 }
