@@ -1,4 +1,5 @@
 import { requireUser } from './_utils/auth.js'
+import { getClient, ensureSchema } from './_utils/db.js'
 import { sendJson, withErrors } from './_utils/response.js'
 
 function extractSteamInput(raw) {
@@ -27,7 +28,7 @@ async function resolveVanity(vanity, apiKey) {
 
 export default withErrors(async (req, res) => {
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' })
-  requireUser(req)
+  const user = requireUser(req)
 
   const apiKey = process.env.STEAM_API_KEY
   if (!apiKey) {
@@ -37,10 +38,18 @@ export default withErrors(async (req, res) => {
   }
 
   const raw = (req.query?.steamid || '').trim()
-  if (!raw) return sendJson(res, 400, { error: 'steamid is required' })
+  let steamId
 
-  const parsed = extractSteamInput(raw)
-  let steamId = parsed.kind === 'id64' ? parsed.value : await resolveVanity(parsed.value, apiKey)
+  if (raw) {
+    const parsed = extractSteamInput(raw)
+    steamId = parsed.kind === 'id64' ? parsed.value : await resolveVanity(parsed.value, apiKey)
+  } else {
+    // No profile typed in — use the Steam account already linked to this login.
+    await ensureSchema()
+    const db = getClient()
+    const own = await db.execute({ sql: 'SELECT steam_id FROM users WHERE id = ?', args: [user.id] })
+    steamId = own.rows[0]?.steam_id || null
+  }
 
   if (!steamId) return sendJson(res, 404, { error: 'not-found' })
 

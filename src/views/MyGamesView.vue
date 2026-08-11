@@ -98,8 +98,8 @@ onMounted(async () => {
       </button>
     </div>
 
-    <div v-if="library.items.length" class="tools-row">
-      <div class="search-wrap">
+    <div class="tools-row">
+      <div v-if="library.items.length" class="search-wrap">
         <span class="search-icon" aria-hidden="true">⌕</span>
         <input
           v-model="searchQuery"
@@ -116,6 +116,7 @@ onMounted(async () => {
       </div>
 
       <button
+        v-if="library.items.length"
         class="btn btn-ghost random-btn"
         :disabled="!library.counts.planned"
         :title="library.counts.planned ? t('myGames.randomCta') : t('myGames.randomEmpty')"
@@ -124,7 +125,7 @@ onMounted(async () => {
         <span aria-hidden="true">🎲</span> {{ t('myGames.randomCta') }}
       </button>
 
-      <router-link :to="{ name: 'steam-import' }" class="btn btn-ghost steam-btn">
+      <router-link :to="{ name: 'steam-import' }" class="btn btn-ghost steam-btn" :class="{ 'steam-btn-alone': !library.items.length }">
         <span aria-hidden="true">⇩</span> {{ t('myGames.steamCta') }}
       </router-link>
     </div>
@@ -133,7 +134,9 @@ onMounted(async () => {
 
     <div v-else-if="!library.items.length" class="empty-state">
       <p>{{ t('myGames.empty') }}</p>
-      <router-link :to="{ name: 'library' }" class="btn btn-primary">{{ t('myGames.emptyCta') }}</router-link>
+      <div class="empty-actions">
+        <router-link :to="{ name: 'library' }" class="btn btn-primary">{{ t('myGames.emptyCta') }}</router-link>
+      </div>
     </div>
 
     <div v-else-if="!filtered.length" class="empty-state">
@@ -320,6 +323,7 @@ onMounted(async () => {
   white-space: nowrap;
   text-decoration: none;
 }
+.steam-btn-alone { margin: 0 auto; }
 
 .random-overlay {
   position: fixed;
@@ -412,6 +416,12 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   gap: 16px;
+}
+.empty-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .loading-msg { color: var(--text-2); text-align: center; padding: 60px 0; }

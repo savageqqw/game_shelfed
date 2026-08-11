@@ -1,15 +1,17 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore, STATUSES, STATUS_ICONS } from '../stores/library'
 import { api } from '../utils/api'
 
 const { t } = useI18n()
-const router = useRouter()
 const auth = useAuthStore()
 const library = useLibraryStore()
+
+// linked accounts (signed in via Steam) skip the manual profile step entirely
+const isSteamLinked = ref(false)
+const checkingAccount = ref(true)
 
 // step 1 — profile lookup
 const steamInput = ref('')
@@ -28,12 +30,11 @@ const importError = ref(null)
 const importResult = ref(null)
 
 async function fetchLibrary() {
-  if (!steamInput.value.trim()) return
   fetching.value = true
   fetchError.value = null
   games.value = null
   try {
-    const res = await api.get('/steam-library', auth.token, { steamid: steamInput.value.trim() })
+    const res = await api.get('/steam-library', auth.token, steamInput.value.trim() ? { steamid: steamInput.value.trim() } : {})
     if (res.privacyBlocked || !res.games?.length) {
       fetchError.value = t('steamImport.privacyError')
       games.value = []
@@ -48,6 +49,27 @@ async function fetchLibrary() {
     fetching.value = false
   }
 }
+
+onMounted(async () => {
+  try {
+    const info = await api.get('/account-info', auth.token)
+    isSteamLinked.value = !!info.steamLinked
+  } catch {
+    isSteamLinked.value = false
+  } finally {
+    checkingAccount.value = false
+  }
+  if (isSteamLinked.value) fetchLibrary()
+})
+
+const phase = computed(() => {
+  if (checkingAccount.value) return 'checking'
+  if (importResult.value) return 'done'
+  if (fetching.value) return 'loading'
+  if (fetchError.value) return 'error'
+  if (games.value?.length) return 'picker'
+  return isSteamLinked.value ? 'loading' : 'input'
+})
 
 const filteredGames = computed(() => {
   if (!games.value) return []
@@ -116,8 +138,12 @@ function startOver() {
       <p class="subtitle">{{ t('steamImport.subtitle') }}</p>
     </header>
 
-    <!-- step 1: find the profile -->
-    <section v-if="!games" class="card-surface lookup-card">
+    <!-- step 1: find the profile (only for accounts not signed in via Steam) -->
+    <section v-if="phase === 'checking' || phase === 'loading'" class="loading-block mono">
+      {{ t('steamImport.fetching') }}
+    </section>
+
+    <section v-else-if="phase === 'input'" class="card-surface lookup-card">
       <form @submit.prevent="fetchLibrary" class="lookup-form">
         <label>
           <span>{{ t('steamImport.inputLabel') }}</span>
@@ -130,15 +156,24 @@ function startOver() {
           />
           <span class="input-hint">{{ t('steamImport.inputHint') }}</span>
         </label>
-        <p v-if="fetchError" class="error-msg">{{ fetchError }}</p>
-        <button class="btn btn-primary submit-btn" type="submit" :disabled="fetching || !steamInput.trim()">
-          {{ fetching ? t('steamImport.fetching') : t('steamImport.fetchCta') }}
+        <button class="btn btn-primary submit-btn" type="submit" :disabled="!steamInput.trim()">
+          {{ t('steamImport.fetchCta') }}
         </button>
       </form>
     </section>
 
+    <section v-else-if="phase === 'error'" class="card-surface lookup-card">
+      <p class="error-msg">{{ fetchError }}</p>
+      <button class="btn btn-primary submit-btn" type="button" @click="fetchLibrary">
+        {{ t('steamImport.fetchCta') }}
+      </button>
+      <button v-if="!isSteamLinked" class="btn btn-ghost submit-btn" type="button" @click="startOver">
+        {{ t('steamImport.tryAnother') }}
+      </button>
+    </section>
+
     <!-- step 2: pick games -->
-    <section v-else-if="!importResult" class="picker">
+    <section v-else-if="phase === 'picker'" class="picker">
       <div class="picker-toolbar">
         <p class="found-count mono">{{ t('steamImport.foundCount', { count: games.length }) }}</p>
 
@@ -220,6 +255,8 @@ function startOver() {
 .subtitle { color: var(--text-2); font-size: 14px; margin-top: 8px; max-width: 520px; }
 
 .lookup-card { max-width: 480px; padding: 32px; }
+.lookup-card .submit-btn + .submit-btn { margin-top: 10px; }
+.loading-block { color: var(--text-2); font-size: 14px; padding: 40px 0; text-align: center; }
 .lookup-form { display: flex; flex-direction: column; gap: 16px; }
 .lookup-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-1); font-weight: 600; }
 .input-hint { font-size: 12px; color: var(--text-2); font-weight: 400; }

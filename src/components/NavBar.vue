@@ -56,6 +56,11 @@ function logout() {
           <button class="btn btn-ghost" @click="logout">{{ t('nav.logout') }}</button>
         </template>
         <template v-else>
+          <a href="/api/auth-steam-start" class="steam-icon-btn" :aria-label="t('auth.steamCta')" :title="t('auth.steamCta')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2C6.99 2 2.87 5.8 2.14 10.73l5.15 2.13a2.7 2.7 0 0 1 1.53-.47c.05 0 .1 0 .15.01l2.29-3.32v-.05a3.65 3.65 0 1 1 3.65 3.65h-.08l-3.27 2.33v.13a2.7 2.7 0 0 1-4.34 2.14L2.5 15.8C3.79 19.42 7.6 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2ZM8.3 17.5l-1.18-.49a1.98 1.98 0 0 0 1.02.9 2.02 2.02 0 0 0 2.63-1.1 2 2 0 0 0-1.09-2.62 2 2 0 0 0-1.52-.01l1.22.5a1.47 1.47 0 1 1-1.08 2.72v.1Zm7.65-6.34a2.44 2.44 0 1 1 0-4.87 2.44 2.44 0 0 1 0 4.87Zm0-.73a1.7 1.7 0 1 0 0-3.41 1.7 1.7 0 0 0 0 3.41Z" />
+            </svg>
+          </a>
           <router-link :to="{ name: 'login' }" class="btn btn-ghost">{{ t('nav.login') }}</router-link>
           <router-link :to="{ name: 'register' }" class="btn btn-primary">{{ t('nav.register') }}</router-link>
         </template>
@@ -79,6 +84,7 @@ function logout() {
           <button class="btn btn-ghost" @click="logout">{{ t('nav.logout') }}</button>
         </template>
         <template v-else>
+          <a href="/api/auth-steam-start" class="btn btn-steam-mobile" @click="mobileOpen = false">{{ t('auth.steamCta') }}</a>
           <router-link :to="{ name: 'login' }" class="btn btn-ghost" @click="mobileOpen = false">{{ t('nav.login') }}</router-link>
           <router-link :to="{ name: 'register' }" class="btn btn-primary" @click="mobileOpen = false">{{ t('nav.register') }}</router-link>
         </template>
@@ -180,6 +186,32 @@ function logout() {
 }
 .user-chip:hover { background: var(--bg-3); color: var(--text-0); }
 .user-avatar { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; }
+
+.steam-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #1b2838;
+  color: #fdfaf2;
+  flex-shrink: 0;
+  transition: filter var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.steam-icon-btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+
+.btn-steam-mobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: #1b2838;
+  color: #fdfaf2;
+  font-weight: 700;
+  text-decoration: none;
+}
 
 .burger { display: none; }
 

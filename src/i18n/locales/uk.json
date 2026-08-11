@@ -145,6 +145,7 @@
     "importDoneMatched": "З них знайдено в каталозі з повними даними: {count}",
     "importDoneCta": "Перейти до моїх ігор",
     "importAnother": "Імпортувати ще",
+    "tryAnother": "Спробувати інший профіль",
     "emptyResults": "Нічого не знайдено за цим запитом."
   },
   "footer": {

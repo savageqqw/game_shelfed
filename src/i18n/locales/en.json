@@ -145,6 +145,7 @@
     "importDoneMatched": "Matched with full catalog data: {count}",
     "importDoneCta": "Go to My Games",
     "importAnother": "Import more",
+    "tryAnother": "Try a different profile",
     "emptyResults": "No games match your search."
   },
   "footer": {
