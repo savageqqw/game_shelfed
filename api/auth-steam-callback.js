@@ -4,22 +4,12 @@ import { getClient, ensureSchema } from './_utils/db.js'
 import { signToken, verifyToken } from './_utils/auth.js'
 import { withErrors } from './_utils/response.js'
 
-// STEAM-LINK-REWRITE-v2
-// Full rewrite: every branch logs what it's doing, and a successful "link"
-// is only ever reported to the user after re-reading the row back from the
-// database to confirm steam_id actually stuck.
-
-// Runs once per cold start -- surfaces missing env vars immediately in
-// Runtime Logs instead of only failing deep inside a request.
-;(function checkEnvOnColdStart() {
-  const missing = ['JWT_SECRET', 'TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN', 'STEAM_API_KEY']
-    .filter((key) => !process.env[key])
-  if (missing.length) {
-    console.error('[steam-callback] COLD START WARNING -- missing env vars:', missing.join(', '))
-  } else {
-    console.log('[steam-callback] cold start OK, all required env vars present')
-  }
-})()
+// STEAM-LINK-REWRITE-v3
+// Every failure branch now carries its OWN distinct steamError code, and the
+// linking success/failure redirect carries a `debug` param with the raw
+// facts (linkedUserId, steamId, rowsAffected, persisted). This makes the
+// failure visible directly on the /account page -- no more digging through
+// Vercel's dashboard to find out what happened.
 
 function siteOrigin(req) {
   const proto = req.headers['x-forwarded-proto'] || 'https'
@@ -77,50 +67,32 @@ export default withErrors(async (req, res) => {
   const query = req.query || {}
   const rawLinkToken = query.link_token ? String(query.link_token) : null
   const linkedUser = rawLinkToken ? verifyToken(rawLinkToken) : null
+  const isLinkFlow = !!rawLinkToken
 
-  console.log('[steam-callback] invoked', {
-    hasLinkToken: !!rawLinkToken,
-    linkTokenVerified: !!linkedUser,
-    hasClaimedId: !!query['openid.claimed_id']
-  })
+  const fail = (code, extra = {}) => {
+    const params = { steamError: code, ...extra }
+    return isLinkFlow
+      ? redirectTo(res, origin, '/account', params)
+      : redirectTo(res, origin, '/auth/steam-callback', { error: code })
+  }
 
-  // auth-steam-start.js already checks the link_token before sending the
-  // person to Steam, so getting here with a token that fails to verify means
-  // it expired mid-flow. Fail loudly instead of silently falling into the
-  // "normal sign in" branch below, which would create/swap accounts.
   if (rawLinkToken && !linkedUser) {
-    console.error('[steam-callback] link_token present but invalid/expired')
-    return redirectTo(res, origin, '/account', { steamError: 'session_expired' })
+    return fail('link_token_invalid')
   }
 
   if (!query['openid.claimed_id']) {
-    console.error('[steam-callback] missing openid.claimed_id -- user likely cancelled on Steam')
-    return linkedUser
-      ? redirectTo(res, origin, '/account', { steamError: 'failed' })
-      : redirectTo(res, origin, '/auth/steam-callback', { error: 'steam_failed' })
+    return fail('no_claimed_id')
   }
 
   try {
     const valid = await verifyAssertion(query)
-    console.log('[steam-callback] openid assertion valid?', valid)
-    if (!valid) {
-      return linkedUser
-        ? redirectTo(res, origin, '/account', { steamError: 'failed' })
-        : redirectTo(res, origin, '/auth/steam-callback', { error: 'steam_failed' })
-    }
+    if (!valid) return fail('openid_not_valid')
 
     const match = String(query['openid.claimed_id']).match(/(\d{17})$/)
     const steamId = match?.[1]
-    console.log('[steam-callback] resolved steamId', steamId)
-    if (!steamId) {
-      return linkedUser
-        ? redirectTo(res, origin, '/account', { steamError: 'failed' })
-        : redirectTo(res, origin, '/auth/steam-callback', { error: 'steam_failed' })
-    }
+    if (!steamId) return fail('no_steamid_in_claimed_id')
 
     const apiKey = process.env.STEAM_API_KEY
-    if (!apiKey) console.error('[steam-callback] STEAM_API_KEY is not set -- profile name/avatar will be skipped')
-
     const profile = await fetchSteamProfile(steamId, apiKey)
     const displayName = profile?.personaname?.trim() || `Steamer${steamId.slice(-6)}`
     const avatar = profile?.avatarfull || null
@@ -132,43 +104,40 @@ export default withErrors(async (req, res) => {
       sql: 'SELECT id, username, email, steam_id FROM users WHERE steam_id = ?',
       args: [steamId]
     })
-    console.log('[steam-callback] existing user with this steamId?', existing.rows[0]?.id ?? null)
 
     // --- linking Steam onto an already-logged-in account ---
     if (linkedUser) {
       const linkedUserId = Number(linkedUser.id)
 
       if (existing.rows[0] && Number(existing.rows[0].id) !== linkedUserId) {
-        console.error('[steam-callback] this Steam account is already linked to a different user', {
-          steamId, existingUserId: existing.rows[0].id, linkedUserId
-        })
-        return redirectTo(res, origin, '/account', { steamError: 'already_linked' })
+        return fail('already_linked', { debug: `existing=${existing.rows[0].id},me=${linkedUserId}` })
       }
 
-      const updateResult = await db.execute({
-        sql: 'UPDATE users SET steam_id = ?, avatar = ? WHERE id = ?',
-        args: [steamId, avatar, linkedUserId]
-      })
-      console.log('[steam-callback] link UPDATE result', { rowsAffected: updateResult?.rowsAffected })
+      let updateResult
+      try {
+        updateResult = await db.execute({
+          sql: 'UPDATE users SET steam_id = ?, avatar = ? WHERE id = ?',
+          args: [steamId, avatar, linkedUserId]
+        })
+      } catch (dbErr) {
+        return fail('update_threw', { debug: String(dbErr.message || dbErr).slice(0, 120) })
+      }
 
-      // Belt and suspenders: re-read the row instead of trusting rowsAffected
-      // alone, so a false "success" can never reach the user again.
+      const rowsAffected = Number(updateResult?.rowsAffected ?? -1)
+
       const verify = await db.execute({
-        sql: 'SELECT steam_id FROM users WHERE id = ?',
+        sql: 'SELECT id, steam_id FROM users WHERE id = ?',
         args: [linkedUserId]
       })
-      const persisted = verify.rows[0]?.steam_id === steamId
-      console.log('[steam-callback] post-update verification', {
-        persisted,
-        storedValue: verify.rows[0]?.steam_id
-      })
+      const foundRow = verify.rows[0]
+      const persisted = foundRow?.steam_id === steamId
 
       if (!persisted) {
-        console.error('[steam-callback] steam_id did NOT persist after UPDATE', { linkedUserId, steamId })
-        return redirectTo(res, origin, '/account', { steamError: 'failed' })
+        return fail('update_did_not_persist', {
+          debug: `uid=${linkedUserId},rows=${rowsAffected},found=${foundRow ? 'yes' : 'no'},storedSteamId=${foundRow?.steam_id || 'null'}`
+        })
       }
 
-      console.log('[steam-callback] Steam linked successfully', { linkedUserId, steamId })
       return redirectTo(res, origin, '/account', { steamLinked: '1' })
     }
 
@@ -191,7 +160,6 @@ export default withErrors(async (req, res) => {
     }
 
     const token = signToken(user)
-    console.log('[steam-callback] signed in via Steam as user', user.id)
     redirectTo(res, origin, '/auth/steam-callback', {
       token,
       id: String(user.id),
@@ -201,8 +169,6 @@ export default withErrors(async (req, res) => {
     })
   } catch (e) {
     console.error('[steam-callback] unhandled error', e)
-    const path = linkedUser ? '/account' : '/auth/steam-callback'
-    const params = linkedUser ? { steamError: 'failed' } : { error: 'steam_failed' }
-    redirectTo(res, origin, path, params)
+    return fail('unhandled', { debug: String(e.message || e).slice(0, 120) })
   }
 })

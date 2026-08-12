@@ -88,9 +88,12 @@ onMounted(() => {
   } else if (route.query.steamError) {
     const errorKeys = {
       already_linked: 'account.steamLinkAlreadyUsed',
-      session_expired: 'account.steamLinkExpired'
+      session_expired: 'account.steamLinkExpired',
+      link_token_invalid: 'account.steamLinkExpired'
     }
-    linkNotice.value = { type: 'error', text: t(errorKeys[route.query.steamError] || 'account.steamLinkFailed') }
+    const knownText = errorKeys[route.query.steamError] ? t(errorKeys[route.query.steamError]) : t('account.steamLinkFailed')
+    const debugSuffix = route.query.debug ? ` [${route.query.steamError}: ${route.query.debug}]` : ` [${route.query.steamError}]`
+    linkNotice.value = { type: 'error', text: knownText + debugSuffix }
     router.replace({ query: {} })
   }
 })
