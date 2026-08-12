@@ -43,6 +43,14 @@ function choose(s) {
         :aria-label="t('status.remove')"
       >✕</button>
 
+      <span v-if="game.playtimeMinutes" class="playtime-badge mono">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+          <path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        {{ formatPlaytime(game.playtimeMinutes) }}
+      </span>
+
       <div class="info">
         <div class="info-row">
           <div class="text-col">
@@ -51,7 +59,6 @@ function choose(s) {
               <span class="meta-line1">
                 <span v-if="game.rating" class="rating mono">★ {{ game.rating.toFixed(1) }}</span>
                 <span v-if="game.released" class="mono">{{ game.released.slice(0, 4) }}</span>
-                <span v-if="game.playtimeMinutes" class="playtime mono">{{ formatPlaytime(game.playtimeMinutes) }}</span>
               </span>
               <span v-if="game.genres?.length" class="meta-line2">{{ game.genres[0] }}</span>
             </p>
@@ -196,6 +203,26 @@ function choose(s) {
   z-index: 2;
 }
 
+.playtime-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px 5px 7px;
+  border-radius: 999px;
+  background: var(--accent-amber);
+  color: #17131a;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px -3px rgba(0, 0, 0, 0.55);
+}
+.playtime-badge svg { flex-shrink: 0; }
+
 .info {
   position: absolute;
   left: 0;
@@ -241,7 +268,6 @@ function choose(s) {
   text-overflow: ellipsis;
 }
 .meta .rating { color: var(--accent-amber-2); font-weight: 700; }
-.meta .playtime { color: rgba(253, 250, 242, 0.6); }
 
 .badge-wrap { position: relative; flex-shrink: 0; }
 
