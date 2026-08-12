@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/auth'
 import { useLibraryStore } from '../stores/library'
 import ThemeToggle from './ThemeToggle.vue'
 import LangSwitcher from './LangSwitcher.vue'
+import logoUrl from '../assets/logo.svg'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -26,13 +27,7 @@ function logout() {
   <header class="nav">
     <div class="shell nav-row">
       <router-link :to="{ name: 'library' }" class="brand" @click="mobileOpen = false">
-        <svg width="20" height="20" viewBox="0 0 32 32" class="brand-icon" aria-hidden="true">
-          <rect width="32" height="32" rx="8" fill="var(--accent-amber)" />
-          <rect x="8" y="6" width="16" height="20" rx="3" fill="var(--bg-0)" />
-          <rect x="12" y="10" width="8" height="4" rx="1.5" fill="var(--accent-amber)" />
-          <rect x="12" y="17" width="8" height="3" rx="1.5" fill="var(--accent-violet)" />
-        </svg>
-        GAME SHELF<em>ed</em>
+        <img :src="logoUrl" alt="Game Shelfed" class="brand-logo" />
       </router-link>
 
       <nav class="tabs" aria-label="primary">
@@ -111,19 +106,13 @@ function logout() {
 .brand {
   display: flex;
   align-items: center;
-  gap: 9px;
-  font-family: var(--font-display);
-  font-size: 16px;
-  text-decoration: none;
-  color: var(--text-0);
-  letter-spacing: 0.01em;
   white-space: nowrap;
 }
-.brand em {
-  font-style: normal;
-  color: var(--accent-amber);
+.brand-logo {
+  height: 26px;
+  width: auto;
+  display: block;
 }
-.brand-icon { flex-shrink: 0; }
 
 .tabs {
   display: flex;

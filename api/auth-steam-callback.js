@@ -110,7 +110,28 @@ export default withErrors(async (req, res) => {
       const linkedUserId = Number(linkedUser.id)
 
       if (existing.rows[0] && Number(existing.rows[0].id) !== linkedUserId) {
-        return fail('already_linked', { debug: `existing=${existing.rows[0].id},me=${linkedUserId}` })
+        const orphanId = existing.rows[0].id
+        const orphanEmail = existing.rows[0].email || ''
+        const looksAutoCreated = orphanEmail === `steam-${steamId}@steamusers.local`
+
+        let orphanIsEmpty = false
+        if (looksAutoCreated) {
+          const orphanLib = await db.execute({
+            sql: 'SELECT COUNT(*) as cnt FROM library_items WHERE user_id = ?',
+            args: [orphanId]
+          })
+          orphanIsEmpty = Number(orphanLib.rows[0]?.cnt || 0) === 0
+        }
+
+        if (looksAutoCreated && orphanIsEmpty) {
+          // This is a throwaway account that got created automatically the
+          // first time this Steam profile was used to "Sign in with Steam"
+          // (before the person ever linked it to their real account here).
+          // It has no library data, so it's safe to free up the steam_id.
+          await db.execute({ sql: 'UPDATE users SET steam_id = NULL WHERE id = ?', args: [orphanId] })
+        } else {
+          return fail('already_linked', { debug: `existing=${orphanId},me=${linkedUserId}` })
+        }
       }
 
       let updateResult
