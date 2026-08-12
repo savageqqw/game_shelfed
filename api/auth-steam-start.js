@@ -1,6 +1,8 @@
 import { withErrors } from './_utils/response.js'
 import { verifyToken } from './_utils/auth.js'
 
+// STEAM-LINK-REWRITE-v2
+
 function siteOrigin(req) {
   const proto = req.headers['x-forwarded-proto'] || 'https'
   const host = req.headers['x-forwarded-host'] || req.headers.host
@@ -18,11 +20,25 @@ export default withErrors(async (req, res) => {
   // Linking Steam to an already-logged-in account: the session token travels
   // through Steam's redirect as a query param so the callback can identify
   // which existing user is asking to link, instead of logging in as someone new.
-  const linkToken = req.query?.link_token
-  const linkedUser = linkToken ? verifyToken(String(linkToken)) : null
+  const rawLinkToken = req.query?.link_token ? String(req.query.link_token) : null
+
+  console.log('[steam-start] invoked', { hasLinkToken: !!rawLinkToken })
+
+  if (rawLinkToken) {
+    const linkedUser = verifyToken(rawLinkToken)
+    if (!linkedUser) {
+      // Fail here, BEFORE sending the person to Steam at all -- no point
+      // making them log in there just to bounce back to an error.
+      console.error('[steam-start] link_token failed to verify -- aborting before Steam redirect')
+      res.statusCode = 302
+      res.setHeader('Location', `${origin}/account?steamError=session_expired`)
+      return res.end()
+    }
+    console.log('[steam-start] link_token verified for user', linkedUser.id)
+  }
 
   let returnTo = `${origin}/api/auth-steam-callback`
-  if (linkedUser) returnTo += `?link_token=${encodeURIComponent(String(linkToken))}`
+  if (rawLinkToken) returnTo += `?link_token=${encodeURIComponent(rawLinkToken)}`
 
   const params = new URLSearchParams({
     'openid.ns': 'http://specs.openid.net/auth/2.0',

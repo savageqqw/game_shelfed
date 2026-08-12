@@ -16,6 +16,8 @@ export default withErrors(async (req, res) => {
   const row = result.rows[0]
   if (!row) return sendJson(res, 404, { error: 'User not found' })
 
+  console.log('[account-info]', { userId: user.id, steamLinked: !!row.steam_id })
+
   res.setHeader('Cache-Control', 'no-store')
   sendJson(res, 200, {
     username: row.username,

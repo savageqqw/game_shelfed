@@ -49,9 +49,12 @@ export default withErrors(async (req, res) => {
     const db = getClient()
     const own = await db.execute({ sql: 'SELECT steam_id FROM users WHERE id = ?', args: [user.id] })
     steamId = own.rows[0]?.steam_id || null
+    console.log('[steam-library] using linked account', { userId: user.id, steamId })
   }
 
   if (!steamId) return sendJson(res, 404, { error: 'not-found' })
+
+  res.setHeader('Cache-Control', 'no-store')
 
   const gamesUrl = new URL('https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/')
   gamesUrl.searchParams.set('key', apiKey)
