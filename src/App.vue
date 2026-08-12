@@ -3,6 +3,7 @@ import NavBar from './components/NavBar.vue'
 import AppBackground from './components/AppBackground.vue'
 import { STATUSES } from './stores/library'
 import { useI18n } from 'vue-i18n'
+import logoUrl from './assets/logo.svg'
 const { t } = useI18n()
 </script>
 
@@ -20,7 +21,7 @@ const { t } = useI18n()
     <footer class="app-footer">
       <div class="shell footer-row">
         <div class="footer-brand">
-          <span class="brand-mark">GAME SHELF<em>ed</em></span>
+          <img :src="logoUrl" alt="Game Shelfed" class="footer-logo" />
           <span class="tagline">{{ t('footer.tagline') }}</span>
         </div>
         <ul class="legend">
@@ -67,15 +68,10 @@ const { t } = useI18n()
   flex-direction: column;
   gap: 4px;
 }
-.brand-mark {
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--text-1);
-}
-.brand-mark em {
-  font-style: normal;
-  color: var(--accent-amber-2);
+.footer-logo {
+  height: 22px;
+  width: auto;
+  display: block;
 }
 .tagline {
   color: var(--text-2);

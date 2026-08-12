@@ -15,6 +15,12 @@ const emit = defineEmits(['set-status', 'remove', 'set-rating'])
 const { t } = useI18n()
 const menuOpen = ref(false)
 
+function formatPlaytime(minutes) {
+  const hours = minutes / 60
+  const rounded = hours >= 10 ? Math.round(hours) : Math.round(hours * 10) / 10
+  return t('steamImport.hoursPlayed', { hours: rounded })
+}
+
 function choose(s) {
   emit('set-status', s)
   menuOpen.value = false
@@ -45,6 +51,7 @@ function choose(s) {
               <span class="meta-line1">
                 <span v-if="game.rating" class="rating mono">★ {{ game.rating.toFixed(1) }}</span>
                 <span v-if="game.released" class="mono">{{ game.released.slice(0, 4) }}</span>
+                <span v-if="game.playtimeMinutes" class="playtime mono">{{ formatPlaytime(game.playtimeMinutes) }}</span>
               </span>
               <span v-if="game.genres?.length" class="meta-line2">{{ game.genres[0] }}</span>
             </p>
@@ -234,6 +241,7 @@ function choose(s) {
   text-overflow: ellipsis;
 }
 .meta .rating { color: var(--accent-amber-2); font-weight: 700; }
+.meta .playtime { color: rgba(253, 250, 242, 0.6); }
 
 .badge-wrap { position: relative; flex-shrink: 0; }
 

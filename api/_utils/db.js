@@ -54,6 +54,7 @@ export async function ensureSchema() {
     'ALTER TABLE library_items ADD COLUMN released TEXT',
     'ALTER TABLE library_items ADD COLUMN catalog_rating REAL',
     'ALTER TABLE library_items ADD COLUMN completed_at TEXT',
+    'ALTER TABLE library_items ADD COLUMN playtime_minutes INTEGER',
     'ALTER TABLE users ADD COLUMN steam_id TEXT',
     'ALTER TABLE users ADD COLUMN avatar TEXT'
   ]) {

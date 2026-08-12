@@ -46,7 +46,8 @@ export default withErrors(async (req, res) => {
       status,
       genres: match?.genres || null,
       released: match?.released || null,
-      catalogRating: match?.rating ?? null
+      catalogRating: match?.rating ?? null,
+      playtimeMinutes: typeof g.playtimeMinutes === 'number' ? g.playtimeMinutes : null
     })
     items.push(item)
   }

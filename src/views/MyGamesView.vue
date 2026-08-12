@@ -30,7 +30,8 @@ function toCardGame(item) {
     cover: item.cover,
     genres,
     released: item.released || null,
-    rating: item.catalog_rating ?? null
+    rating: item.catalog_rating ?? null,
+    playtimeMinutes: typeof item.playtime_minutes === 'number' ? item.playtime_minutes : null
   }
 }
 

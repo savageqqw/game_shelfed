@@ -104,7 +104,7 @@ function hoursLabel(minutes) {
 }
 
 async function runImport() {
-  const picked = games.value.filter((g) => selected.value.has(g.appid)).map((g) => ({ appid: g.appid, title: g.title }))
+  const picked = games.value.filter((g) => selected.value.has(g.appid)).map((g) => ({ appid: g.appid, title: g.title, playtimeMinutes: g.playtimeMinutes }))
   if (!picked.length) return
   importing.value = true
   importError.value = null
