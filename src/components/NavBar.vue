@@ -109,7 +109,7 @@ function logout() {
   white-space: nowrap;
 }
 .brand-logo {
-  height: 26px;
+  height: 34px;
   width: auto;
   display: block;
 }

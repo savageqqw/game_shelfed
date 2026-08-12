@@ -38,15 +38,15 @@
   --accent-amber: #35c6d6;
   --accent-amber-2: #7fe3ee;
   --accent-red: #ff5f6d;
-  --accent-violet: #a37bff;
+  --accent-violet: #6366f1;
   --accent-teal: #e8a33d;
 
   /* Fixed status colors for GameCard badges — the card art is always a
      dark overlay regardless of site theme, so these stay constant instead
      of switching between the light/dark theme status-* variables. */
-  --card-completed: #22c55e;
+  --card-completed: #4ade80;
   --card-planned: #eab308;
-  --card-playing: #8b5cf6;
+  --card-playing: #6366f1;
   --card-dropped: #ef4444;
 }
 
@@ -63,13 +63,13 @@
   --text-2: #8b8779;
   --shadow-card: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
   --scrim: rgba(10, 11, 16, 0.72);
-  --status-completed: #34d399;
+  --status-completed: #4ade80;
   --status-planned: var(--accent-teal);
   --status-playing: var(--accent-violet);
   --status-dropped: var(--accent-red);
   --wallpaper-ink: rgba(245, 241, 230, 0.045);
   --glow-amber: rgba(53, 198, 214, 0.20);
-  --glow-violet: rgba(163, 123, 255, 0.14);
+  --glow-violet: rgba(99, 102, 241, 0.16);
 }
 
 /* ---------------- Light theme ---------------- */
@@ -89,11 +89,11 @@
   --scrim: rgba(36, 31, 22, 0.5);
   --status-completed: #157347;
   --status-planned: #8a5a12;
-  --status-playing: #6c4de0;
+  --status-playing: #4f46e5;
   --status-dropped: #c23f2c;
   --wallpaper-ink: rgba(36, 31, 22, 0.05);
   --glow-amber: rgba(53, 198, 214, 0.22);
-  --glow-violet: rgba(163, 123, 255, 0.12);
+  --glow-violet: rgba(99, 102, 241, 0.14);
 }
 
 * { box-sizing: border-box; }
