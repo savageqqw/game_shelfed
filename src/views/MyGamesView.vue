@@ -1,11 +1,14 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '../stores/auth'
 import { useLibraryStore, STATUSES, STATUS_ICONS } from '../stores/library'
+import { api } from '../utils/api'
 import GameCard from '../components/GameCard.vue'
 import CategoryTabs from '../components/CategoryTabs.vue'
 
 const { t } = useI18n()
+const auth = useAuthStore()
 const library = useLibraryStore()
 const activeTab = ref('all')
 const searchQuery = ref('')
@@ -16,6 +19,57 @@ const filtered = computed(() => {
   if (q) list = list.filter((i) => i.title.toLowerCase().includes(q))
   return list
 })
+
+// --- live Steam playtime (only for accounts with Steam linked/registered-via-Steam) ---
+// Keyed two ways: by Steam appid (exact, for items imported straight from Steam)
+// and by normalized title (best-effort match for items matched to the IGDB
+// catalog, whose game_id is the IGDB id rather than the Steam appid).
+const steamPlaytimeByAppId = new Map()
+const steamPlaytimeByTitle = new Map()
+const steamPlaytimeLoaded = ref(false)
+
+function normalizeTitle(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9а-яіїєґ]+/gi, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+}
+
+async function loadSteamPlaytime() {
+  if (!auth.isAuthed) return
+  try {
+    const info = await api.get('/account-info', auth.token)
+    if (!info.steamLinked) return
+
+    const res = await api.get('/steam-library', auth.token)
+    if (res.privacyBlocked || !res.games?.length) return
+
+    for (const g of res.games) {
+      if (g.appid != null) steamPlaytimeByAppId.set(String(g.appid), g.playtimeMinutes)
+      const key = normalizeTitle(g.title)
+      if (key) steamPlaytimeByTitle.set(key, g.playtimeMinutes)
+    }
+  } catch {
+    // No Steam data available (privacy, expired session, etc) -- cards just
+    // show no playtime, same as for games Steam has no record of.
+  } finally {
+    steamPlaytimeLoaded.value = true
+  }
+}
+
+function steamPlaytimeFor(item) {
+  // touch the ref so this function re-runs (and the template re-renders)
+  // once the async Steam fetch above finishes populating the plain Maps
+  void steamPlaytimeLoaded.value
+  if (String(item.game_id || '').startsWith('steam:')) {
+    const appid = String(item.game_id).slice('steam:'.length)
+    const byAppId = steamPlaytimeByAppId.get(appid)
+    if (typeof byAppId === 'number') return byAppId
+  }
+  const byTitle = steamPlaytimeByTitle.get(normalizeTitle(item.title))
+  return typeof byTitle === 'number' ? byTitle : null
+}
 
 function toCardGame(item) {
   let genres = null
@@ -31,7 +85,7 @@ function toCardGame(item) {
     genres,
     released: item.released || null,
     rating: item.catalog_rating ?? null,
-    playtimeMinutes: typeof item.playtime_minutes === 'number' ? item.playtime_minutes : null
+    playtimeMinutes: steamPlaytimeFor(item)
   }
 }
 
@@ -70,6 +124,7 @@ async function jumpToRandom() {
 onMounted(async () => {
   if (!library.loaded) await library.fetchAll()
   library.backfillMeta()
+  loadSteamPlaytime()
 })
 </script>
 

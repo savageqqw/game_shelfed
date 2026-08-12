@@ -1,17 +1,19 @@
 import { sendJson, withErrors } from './_utils/response.js'
-import { igdbFetch, escapeIgdbQuery, mapIgdbGame } from './_utils/igdb.js'
+import { igdbFetch } from './_utils/igdb.js'
 import { getClient, ensureSchema } from './_utils/db.js'
 import { verifyToken } from './_utils/auth.js'
 
 const FIELDS = 'id,name,cover.url,rating,first_release_date,genres.name,total_rating_count'
-const POOL_SIZE = 40
 const RESULT_SIZE = 12
+// Games are pulled from several random offsets instead of one big sorted
+// pool, so the mix of "quality tiers" varies between loads too, not just
+// which exact titles show up.
+const BATCH_COUNT = 4
+const BATCH_SIZE = 10
+// Minimum vote count so we don't surface completely obscure/junk entries,
+// while still leaving a huge pool (tens of thousands of games) to sample from.
+const BASE_WHERE = 'version_parent = null & total_rating_count > 10'
 
-// Not full-blown ML -- just: look at genres the person already plays/finished,
-// pull a bigger-than-needed pool of well-rated games in those genres, and
-// return a random slice of it. Randomizing the slice (instead of always the
-// top N by rating) is what keeps the row from showing identical tiles on
-// every visit.
 function shuffle(arr) {
   const a = arr.slice()
   for (let i = a.length - 1; i > 0; i--) {
@@ -19,6 +21,17 @@ function shuffle(arr) {
     ;[a[i], a[j]] = [a[j], a[i]]
   }
   return a
+}
+
+function mapGame(g) {
+  return {
+    id: g.id,
+    title: g.name,
+    cover: g.cover?.url ? 'https:' + g.cover.url.replace('t_thumb', 't_cover_big') : null,
+    rating: g.rating ? Number((g.rating / 20).toFixed(1)) : null,
+    released: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10) : null,
+    genres: (g.genres || []).map((x) => x.name)
+  }
 }
 
 function optionalUser(req) {
@@ -31,54 +44,45 @@ export default withErrors(async (req, res) => {
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' })
 
   const user = optionalUser(req)
-  let topGenres = []
   let excludeIds = new Set()
 
   if (user) {
     await ensureSchema()
     const db = getClient()
-    const rows = await db.execute({
-      sql: `SELECT game_id, genres FROM library_items WHERE user_id = ? AND status IN ('completed', 'playing')`,
-      args: [user.id]
-    })
-
     const allLib = await db.execute({ sql: 'SELECT game_id FROM library_items WHERE user_id = ?', args: [user.id] })
     excludeIds = new Set(allLib.rows.map((r) => String(r.game_id)))
+  }
 
-    const genreCounts = new Map()
-    for (const row of rows.rows) {
-      let list = []
-      try {
-        list = row.genres ? JSON.parse(row.genres) : []
-      } catch {
-        list = []
+  const countRes = await igdbFetch('games/count', `where ${BASE_WHERE};`)
+  const total = countRes?.count || 0
+
+  const candidates = []
+  const seen = new Set()
+
+  if (total > 0) {
+    const maxOffset = Math.max(0, total - BATCH_SIZE)
+    const offsets = Array.from({ length: BATCH_COUNT }, () => Math.floor(Math.random() * (maxOffset + 1)))
+
+    const batches = await Promise.all(
+      offsets.map((offset) =>
+        igdbFetch(
+          'games',
+          `fields ${FIELDS}; where ${BASE_WHERE}; sort id asc; offset ${offset}; limit ${BATCH_SIZE};`
+        ).catch(() => [])
+      )
+    )
+
+    for (const batch of batches) {
+      for (const g of batch || []) {
+        if (seen.has(g.id)) continue
+        seen.add(g.id)
+        candidates.push(g)
       }
-      for (const g of list) genreCounts.set(g, (genreCounts.get(g) || 0) + 1)
-    }
-    topGenres = [...genreCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([name]) => name)
-  }
-
-  let candidates = []
-
-  if (topGenres.length) {
-    const genreClause = topGenres.map((g) => `"${escapeIgdbQuery(g)}"`).join(',')
-    const body = `fields ${FIELDS}; where version_parent = null & genres.name = (${genreClause}) & total_rating_count > 20; sort total_rating_count desc; limit ${POOL_SIZE};`
-    candidates = (await igdbFetch('games', body)) || []
-  }
-
-  // Not enough genre-matched candidates (new account, obscure taste, etc)
-  // -- top up with generally popular titles instead of returning a short row.
-  if (candidates.length < RESULT_SIZE) {
-    const body = `fields ${FIELDS}; where version_parent = null; sort total_rating_count desc; limit ${POOL_SIZE};`
-    const popular = (await igdbFetch('games', body)) || []
-    const seen = new Set(candidates.map((c) => c.id))
-    for (const g of popular) {
-      if (!seen.has(g.id)) candidates.push(g)
     }
   }
 
   const filtered = candidates.filter((g) => !excludeIds.has(String(g.id)))
-  const picked = shuffle(filtered).slice(0, RESULT_SIZE).map(mapIgdbGame)
+  const picked = shuffle(filtered).slice(0, RESULT_SIZE).map(mapGame)
 
-  sendJson(res, 200, { results: picked, basedOnGenres: topGenres })
+  sendJson(res, 200, { results: picked })
 })
