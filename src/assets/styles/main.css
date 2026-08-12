@@ -35,8 +35,8 @@
      Cyan is the primary brand accent (an arcade-marquee neon),
      with amber demoted to one of four status colors so the page
      isn't monochrome. */
-  --accent-amber: #4ade80;
-  --accent-amber-2: #86efac;
+  --accent-amber: #6366f1;
+  --accent-amber-2: #a5b4fc;
   --accent-red: #ff5f6d;
   --accent-violet: #6366f1;
   --accent-teal: #e8a33d;
@@ -56,8 +56,8 @@
   --bg-1: #1c202b;
   --bg-2: #242a38;
   --bg-3: #2e3547;
-  --border-soft: rgba(74, 222, 128, 0.14);
-  --border-strong: rgba(74, 222, 128, 0.30);
+  --border-soft: rgba(99, 102, 241, 0.14);
+  --border-strong: rgba(99, 102, 241, 0.30);
   --text-0: #f5f1e6;
   --text-1: #c9c4b4;
   --text-2: #8b8779;
@@ -68,7 +68,7 @@
   --status-playing: var(--accent-violet);
   --status-dropped: var(--accent-red);
   --wallpaper-ink: rgba(245, 241, 230, 0.045);
-  --glow-amber: rgba(74, 222, 128, 0.20);
+  --glow-amber: rgba(99, 102, 241, 0.20);
   --glow-violet: rgba(99, 102, 241, 0.16);
 }
 
@@ -80,8 +80,8 @@
   --bg-1: #f6f1e3;
   --bg-2: #ece3cd;
   --bg-3: #ded1b0;
-  --border-soft: rgba(21, 128, 61, 0.16);
-  --border-strong: rgba(21, 128, 61, 0.30);
+  --border-soft: rgba(67, 56, 202, 0.16);
+  --border-strong: rgba(67, 56, 202, 0.30);
   --text-0: #241f16;
   --text-1: #4c4432;
   --text-2: #786c53;
@@ -92,7 +92,7 @@
   --status-playing: #4f46e5;
   --status-dropped: #c23f2c;
   --wallpaper-ink: rgba(36, 31, 22, 0.05);
-  --glow-amber: rgba(74, 222, 128, 0.22);
+  --glow-amber: rgba(99, 102, 241, 0.22);
   --glow-violet: rgba(99, 102, 241, 0.14);
 }
 
@@ -167,13 +167,13 @@ button { font-family: var(--font-body); cursor: pointer; }
 .btn:active { transform: translateY(0); }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-amber), #22b563);
+  background: linear-gradient(135deg, var(--accent-amber), #4338ca);
   border-color: transparent;
   color: #04262b;
-  box-shadow: 0 8px 20px -8px rgba(74, 222, 128, 0.55);
+  box-shadow: 0 8px 20px -8px rgba(99, 102, 241, 0.55);
   transition: filter var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
-.btn-primary:hover { filter: brightness(1.12) saturate(1.15); box-shadow: 0 10px 26px -8px rgba(74, 222, 128, 0.7); }
+.btn-primary:hover { filter: brightness(1.12) saturate(1.15); box-shadow: 0 10px 26px -8px rgba(99, 102, 241, 0.7); }
 
 .btn-ghost {
   background: transparent;
@@ -193,7 +193,7 @@ button { font-family: var(--font-body); cursor: pointer; }
 }
 .input:focus {
   border-color: var(--accent-amber);
-  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.18);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
   outline: none;
 }
 

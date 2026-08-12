@@ -20,6 +20,21 @@ const error = ref(null)
 const catalogCount = ref(null)
 let debounceHandle = null
 
+const recommended = ref([])
+const recLoading = ref(false)
+
+async function loadRecommendations() {
+  recLoading.value = true
+  try {
+    const res = await api.get('/recommendations', auth.token || null)
+    recommended.value = res.results || []
+  } catch {
+    recommended.value = []
+  } finally {
+    recLoading.value = false
+  }
+}
+
 function formatCount(n) {
   if (!n) return null
   if (n >= 1000) return `${Math.floor(n / 1000)}k+`
@@ -63,10 +78,14 @@ async function setStatus(game, status) {
 
 onMounted(() => {
   loadPage(true)
+  loadRecommendations()
   if (auth.isAuthed && !library.loaded) library.fetchAll()
 })
 
-watch(() => auth.isAuthed, (v) => { if (v && !library.loaded) library.fetchAll() })
+watch(() => auth.isAuthed, (v) => {
+  if (v && !library.loaded) library.fetchAll()
+  loadRecommendations()
+})
 </script>
 
 <template>
@@ -139,6 +158,33 @@ watch(() => auth.isAuthed, (v) => { if (v && !library.loaded) library.fetchAll()
     <p v-else-if="searched && !loading && games.length === 0" class="status-msg">
       {{ t('search.noResults', { query }) }}
     </p>
+
+    <section v-if="!query && recommended.length" class="rec-section">
+      <div class="rec-head">
+        <h2>{{ t('library.recommended') }}</h2>
+        <button class="rec-shuffle" type="button" :disabled="recLoading" @click="loadRecommendations">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" :class="{ spinning: recLoading }">
+            <path d="M4 4v6h6M20 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 10a8 8 0 0 1 14.9-3.5M20 14a8 8 0 0 1-14.9 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          {{ t('library.shuffle') }}
+        </button>
+      </div>
+      <div class="game-grid rec-grid">
+        <GameCard
+          v-for="g in recommended"
+          :key="'rec-' + g.id"
+          :game="g"
+          :status="library.entryFor(g.id)?.status"
+          :user-rating="library.entryFor(g.id)?.rating"
+          @set-status="(s) => setStatus(g, s)"
+          @set-rating="(r) => library.rate(g.id, r)"
+          @remove="library.remove(g.id)"
+        />
+      </div>
+    </section>
+
+    <h2 v-if="!query && recommended.length" class="rec-head-plain">{{ t('library.allGames') }}</h2>
 
     <transition-group tag="div" name="grid-fade" class="game-grid">
       <GameCard
@@ -299,6 +345,40 @@ watch(() => auth.isAuthed, (v) => { if (v && !library.loaded) library.fetchAll()
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 20px;
 }
+
+.rec-section { margin-bottom: 44px; }
+.rec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 18px;
+}
+.rec-head h2, .rec-head-plain {
+  font-family: var(--font-display);
+  font-size: 19px;
+  color: var(--text-0);
+  margin: 0;
+}
+.rec-head-plain { margin: 0 0 18px; }
+.rec-shuffle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: transparent;
+  border: 1px solid var(--border-soft);
+  color: var(--text-2);
+  border-radius: var(--radius-sm);
+  padding: 7px 13px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.rec-shuffle:hover:not(:disabled) { border-color: var(--accent-amber); color: var(--accent-amber); }
+.rec-shuffle:disabled { opacity: 0.6; cursor: default; }
+.rec-shuffle svg.spinning { animation: rec-spin 0.7s linear infinite; }
+@keyframes rec-spin { to { transform: rotate(360deg); } }
+.rec-grid { margin-bottom: 4px; }
 
 .load-more-row {
   display: flex;
