@@ -311,12 +311,12 @@ function choose(s) {
   position: absolute;
   right: 0;
   bottom: calc(100% + 8px);
-  background: color-mix(in srgb, var(--bg-1) 78%, transparent);
-  backdrop-filter: blur(16px) saturate(1.3);
-  -webkit-backdrop-filter: blur(16px) saturate(1.3);
-  border: 1px solid var(--border-strong);
+  background: color-mix(in srgb, var(--bg-1) 60%, transparent);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-card), inset 0 1px 0 var(--glass-highlight);
   padding: 6px;
   z-index: 5;
   display: flex;

@@ -2,6 +2,7 @@
   <div class="app-bg" aria-hidden="true">
     <div class="glow glow-amber" />
     <div class="glow glow-violet" />
+    <div class="nav-glow-strip" />
     <svg class="wallpaper" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
       <defs>
         <pattern id="shelf-wallpaper" width="220" height="220" patternUnits="userSpaceOnUse" patternTransform="rotate(-8)">
@@ -65,5 +66,16 @@
   bottom: -12vw;
   right: -6vw;
   background: var(--glow-violet);
+}
+
+.nav-glow-strip {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  right: 0;
+  height: 140px;
+  background: linear-gradient(90deg, var(--glow-amber), var(--glow-violet) 55%, var(--glow-amber));
+  opacity: 0.55;
+  filter: blur(50px);
 }
 </style>

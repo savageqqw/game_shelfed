@@ -106,10 +106,11 @@ function logout() {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: color-mix(in srgb, var(--bg-0) 78%, transparent);
-  backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  border-bottom: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--bg-0) 65%, transparent);
+  backdrop-filter: blur(22px) saturate(1.6);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
 }
 .nav-row {
   height: var(--nav-h);
@@ -157,9 +158,10 @@ function logout() {
 .tab:hover { color: var(--text-0); background: var(--bg-2); }
 .tab.active {
   color: var(--text-0);
-  background: color-mix(in srgb, var(--bg-2) 80%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--bg-2) 65%, transparent);
+  backdrop-filter: blur(10px) saturate(1.4);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
 }
 .tab.active::after {
   content: '';
@@ -190,9 +192,10 @@ function logout() {
   color: var(--text-1);
   padding: 6px 12px 6px 6px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-2) 82%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--bg-2) 65%, transparent);
+  backdrop-filter: blur(10px) saturate(1.4);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
