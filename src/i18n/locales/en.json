@@ -119,7 +119,13 @@
       "label": "Minimum discount",
       "submit": "Save",
       "success": "Threshold saved.",
-      "invalid": "Enter a number between 1 and 90."
+      "invalid": "Enter a number between 1 and 90.",
+      "pushTitle": "Browser notifications",
+      "pushDesc": "Arrives even when the site is closed (as long as your browser is running).",
+      "pushEnable": "Enable",
+      "pushDisable": "Disable",
+      "pushDenied": "Notification permission is blocked in your browser.",
+      "pushUnsupported": "This browser doesn't support push notifications."
     }
   },
   "rating": {

@@ -57,7 +57,22 @@ export async function ensureSchema() {
     'ALTER TABLE library_items ADD COLUMN playtime_minutes INTEGER',
     'ALTER TABLE users ADD COLUMN steam_id TEXT',
     'ALTER TABLE users ADD COLUMN avatar TEXT',
-    'ALTER TABLE users ADD COLUMN deal_threshold_percent INTEGER'
+    'ALTER TABLE users ADD COLUMN deal_threshold_percent INTEGER',
+    `CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      endpoint TEXT NOT NULL UNIQUE,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE TABLE IF NOT EXISTS notified_deals (
+      user_id INTEGER NOT NULL,
+      appid INTEGER NOT NULL,
+      discount_percent INTEGER NOT NULL,
+      notified_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (user_id, appid)
+    )`
   ]) {
     try {
       await db.execute(stmt)

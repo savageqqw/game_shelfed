@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/auth'
 import { useLibraryStore, STATUSES } from '../stores/library'
 import { useDealsStore } from '../stores/deals'
 import { api } from '../utils/api'
+import { getPushStatus, subscribeToPush, unsubscribeFromPush } from '../utils/push'
 import ActivityHeatmap from '../components/ActivityHeatmap.vue'
 
 const { t, locale } = useI18n()
@@ -32,6 +33,34 @@ const dealThreshold = ref(20)
 const dealLoading = ref(false)
 const dealError = ref(null)
 const dealSuccess = ref(false)
+
+const pushStatus = ref('unsubscribed') // unsubscribed | subscribed | denied | unsupported
+const pushBusy = ref(false)
+const pushError = ref(null)
+
+async function enablePush() {
+  pushError.value = null
+  pushBusy.value = true
+  try {
+    await subscribeToPush(auth.token)
+    pushStatus.value = 'subscribed'
+  } catch (e) {
+    pushStatus.value = e.message === 'permission-denied' ? 'denied' : await getPushStatus()
+    pushError.value = e.message === 'permission-denied' ? t('account.deals.pushDenied') : e.message
+  } finally {
+    pushBusy.value = false
+  }
+}
+
+async function disablePush() {
+  pushBusy.value = true
+  try {
+    await unsubscribeFromPush(auth.token)
+    pushStatus.value = 'unsubscribed'
+  } finally {
+    pushBusy.value = false
+  }
+}
 
 async function submitDealThreshold() {
   dealError.value = null
@@ -111,6 +140,7 @@ async function submitPasswordChange() {
 onMounted(() => {
   loadInfo()
   if (!library.loaded) library.fetchAll()
+  getPushStatus().then((s) => { pushStatus.value = s })
 
   if (route.query.steamLinked) {
     linkNotice.value = { type: 'success', text: t('account.steamLinkSuccess') }
@@ -211,6 +241,34 @@ onMounted(() => {
           {{ t('account.deals.submit') }}
         </button>
       </form>
+
+      <div class="push-row">
+        <div class="push-text">
+          <span class="push-title">{{ t('account.deals.pushTitle') }}</span>
+          <span class="push-desc">{{ t('account.deals.pushDesc') }}</span>
+        </div>
+        <button
+          v-if="pushStatus === 'subscribed'"
+          type="button"
+          class="btn btn-ghost push-btn"
+          :disabled="pushBusy"
+          @click="disablePush"
+        >
+          {{ t('account.deals.pushDisable') }}
+        </button>
+        <button
+          v-else-if="pushStatus === 'unsubscribed'"
+          type="button"
+          class="btn btn-primary push-btn"
+          :disabled="pushBusy"
+          @click="enablePush"
+        >
+          {{ t('account.deals.pushEnable') }}
+        </button>
+        <span v-else-if="pushStatus === 'denied'" class="push-denied">{{ t('account.deals.pushDenied') }}</span>
+        <span v-else class="push-denied">{{ t('account.deals.pushUnsupported') }}</span>
+      </div>
+      <p v-if="pushError" class="error-msg">{{ pushError }}</p>
     </section>
 
     <section v-if="!infoLoading && !info?.steamLinked" class="card-surface password-card">
@@ -349,6 +407,20 @@ onMounted(() => {
   font-size: 14px;
   pointer-events: none;
 }
+.push-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-soft);
+}
+.push-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.push-title { font-size: 13px; font-weight: 600; color: var(--text-1); }
+.push-desc { font-size: 12px; color: var(--text-2); }
+.push-btn { flex-shrink: 0; white-space: nowrap; }
+.push-denied { font-size: 12px; color: var(--text-2); flex-shrink: 0; }
 .submit-btn { width: 100%; padding: 12px; margin-top: 6px; }
 .error-msg { color: var(--status-dropped); font-size: 13px; margin: 0; }
 .success-msg { color: var(--status-completed); font-size: 13px; margin: 0; }
