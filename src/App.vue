@@ -3,7 +3,8 @@ import NavBar from './components/NavBar.vue'
 import AppBackground from './components/AppBackground.vue'
 import { STATUSES } from './stores/library'
 import { useI18n } from 'vue-i18n'
-import logoUrl from './assets/logo.svg'
+import logoIconUrl from './assets/logo-icon.svg'
+import logoWordmarkUrl from './assets/logo-wordmark.svg'
 const { t } = useI18n()
 </script>
 
@@ -21,7 +22,10 @@ const { t } = useI18n()
     <footer class="app-footer">
       <div class="shell footer-row">
         <div class="footer-brand">
-          <img :src="logoUrl" alt="Game Shelfed" class="footer-logo" />
+          <div class="footer-brand-row">
+            <img :src="logoIconUrl" alt="" class="footer-icon" />
+            <img :src="logoWordmarkUrl" alt="Game Shelfed" class="footer-logo" />
+          </div>
           <span class="tagline">{{ t('footer.tagline') }}</span>
         </div>
         <ul class="legend">
@@ -68,8 +72,19 @@ const { t } = useI18n()
   flex-direction: column;
   gap: 4px;
 }
+.footer-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.footer-icon {
+  height: 20px;
+  width: auto;
+  display: block;
+  flex-shrink: 0;
+}
 .footer-logo {
-  height: 22px;
+  height: 15px;
   width: auto;
   display: block;
 }

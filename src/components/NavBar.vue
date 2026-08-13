@@ -6,7 +6,8 @@ import { useAuthStore } from '../stores/auth'
 import { useLibraryStore } from '../stores/library'
 import ThemeToggle from './ThemeToggle.vue'
 import LangSwitcher from './LangSwitcher.vue'
-import logoUrl from '../assets/logo.svg'
+import logoIconUrl from '../assets/logo-icon.svg'
+import logoWordmarkUrl from '../assets/logo-wordmark.svg'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -27,7 +28,8 @@ function logout() {
   <header class="nav">
     <div class="shell nav-row">
       <router-link :to="{ name: 'library' }" class="brand" @click="mobileOpen = false">
-        <img :src="logoUrl" alt="Game Shelfed" class="brand-logo" />
+        <img :src="logoIconUrl" alt="" class="brand-icon" />
+        <img :src="logoWordmarkUrl" alt="Game Shelfed" class="brand-word" />
       </router-link>
 
       <nav class="tabs" aria-label="primary">
@@ -106,10 +108,17 @@ function logout() {
 .brand {
   display: flex;
   align-items: center;
+  gap: 9px;
   white-space: nowrap;
 }
-.brand-logo {
-  height: 34px;
+.brand-icon {
+  height: 30px;
+  width: auto;
+  display: block;
+  flex-shrink: 0;
+}
+.brand-word {
+  height: 19px;
   width: auto;
   display: block;
 }
