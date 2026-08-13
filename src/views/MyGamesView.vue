@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore, STATUSES, STATUS_ICONS } from '../stores/library'
 import { useSteamPlaytimeStore } from '../stores/steamPlaytime'
+import { useSteamAchievementsStore } from '../stores/steamAchievements'
 import GameCard from '../components/GameCard.vue'
 import CategoryTabs from '../components/CategoryTabs.vue'
 
@@ -11,6 +12,7 @@ const { t } = useI18n()
 const auth = useAuthStore()
 const library = useLibraryStore()
 const steamPlaytime = useSteamPlaytimeStore()
+const steamAchievements = useSteamAchievementsStore()
 const activeTab = ref('all')
 const searchQuery = ref('')
 
@@ -28,6 +30,7 @@ function toCardGame(item) {
   } catch {
     genres = null
   }
+  const appid = steamPlaytime.appIdFor(item.game_id, item.title)
   return {
     id: item.game_id,
     title: item.title,
@@ -35,8 +38,17 @@ function toCardGame(item) {
     genres,
     released: item.released || null,
     rating: item.catalog_rating ?? null,
-    playtimeMinutes: steamPlaytime.playtimeFor(item.game_id, item.title)
+    playtimeMinutes: steamPlaytime.playtimeFor(item.game_id, item.title),
+    achievementPercent: steamAchievements.percentFor(appid)
   }
+}
+
+async function loadAchievements() {
+  await steamPlaytime.ensureLoaded()
+  const appids = library.items
+    .map((item) => steamPlaytime.appIdFor(item.game_id, item.title))
+    .filter((id) => id != null)
+  if (appids.length) steamAchievements.ensureLoadedFor(appids)
 }
 
 // --- random pick from "planned" ---
@@ -76,6 +88,7 @@ onMounted(() => {
   ;(async () => {
     if (!library.loaded) await library.fetchAll()
     library.backfillMeta()
+    loadAchievements()
   })()
 })
 </script>

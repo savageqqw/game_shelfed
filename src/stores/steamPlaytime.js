@@ -14,6 +14,7 @@ export const useSteamPlaytimeStore = defineStore('steamPlaytime', {
   state: () => ({
     byAppId: {},
     byTitle: {},
+    appIdByTitle: {},
     loaded: false,
     loading: false,
     fetchPromise: null
@@ -35,13 +36,18 @@ export const useSteamPlaytimeStore = defineStore('steamPlaytime', {
           if (res.privacyBlocked || !res.games?.length) return
           const byAppId = {}
           const byTitle = {}
+          const appIdByTitle = {}
           for (const g of res.games) {
             if (g.appid != null) byAppId[String(g.appid)] = g.playtimeMinutes
             const key = normalizeTitle(g.title)
-            if (key) byTitle[key] = g.playtimeMinutes
+            if (key) {
+              byTitle[key] = g.playtimeMinutes
+              if (g.appid != null) appIdByTitle[key] = g.appid
+            }
           }
           this.byAppId = byAppId
           this.byTitle = byTitle
+          this.appIdByTitle = appIdByTitle
         })
         .catch(() => {
           // Not linked, Steam unreachable, expired session, etc -- cards
@@ -62,9 +68,20 @@ export const useSteamPlaytimeStore = defineStore('steamPlaytime', {
       const byTitle = this.byTitle[normalizeTitle(title)]
       return typeof byTitle === 'number' ? byTitle : null
     },
+    // Resolves the Steam appid for a library item, regardless of whether it
+    // was matched to the IGDB catalog (game_id = IGDB id) or imported
+    // straight from Steam (game_id = "steam:<appid>").
+    appIdFor(gameId, title) {
+      if (String(gameId || '').startsWith('steam:')) {
+        return parseInt(String(gameId).slice('steam:'.length), 10)
+      }
+      const appid = this.appIdByTitle[normalizeTitle(title)]
+      return typeof appid === 'number' ? appid : null
+    },
     reset() {
       this.byAppId = {}
       this.byTitle = {}
+      this.appIdByTitle = {}
       this.loaded = false
       this.loading = false
       this.fetchPromise = null

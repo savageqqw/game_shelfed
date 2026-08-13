@@ -5,6 +5,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore } from '../stores/library'
 import { useSteamPlaytimeStore } from '../stores/steamPlaytime'
+import { useSteamAchievementsStore } from '../stores/steamAchievements'
 import ThemeToggle from './ThemeToggle.vue'
 import LangSwitcher from './LangSwitcher.vue'
 import logoIconUrl from '../assets/logo-icon.svg'
@@ -16,6 +17,7 @@ const route = useRoute()
 const auth = useAuthStore()
 const library = useLibraryStore()
 const steamPlaytime = useSteamPlaytimeStore()
+const steamAchievements = useSteamAchievementsStore()
 const mobileOpen = ref(false)
 
 // Kick this off as soon as the app shell mounts (present on every page),
@@ -30,6 +32,7 @@ function logout() {
   auth.logout()
   library.reset()
   steamPlaytime.reset()
+  steamAchievements.reset()
   mobileOpen.value = false
   router.push({ name: 'library' })
 }

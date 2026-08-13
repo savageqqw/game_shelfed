@@ -51,6 +51,19 @@ function choose(s) {
         {{ formatPlaytime(game.playtimeMinutes) }}
       </span>
 
+      <span
+        v-if="game.achievementPercent != null"
+        class="achievement-badge mono"
+        :class="{ 'is-complete': game.achievementPercent >= 100 }"
+        :style="{ top: game.playtimeMinutes ? '38px' : '10px' }"
+      >
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M7 5H4a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4M17 5h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        {{ game.achievementPercent }}%
+      </span>
+
       <div class="info">
         <div class="info-row">
           <div class="text-col">
@@ -224,6 +237,29 @@ function choose(s) {
   box-shadow: 0 4px 12px -3px rgba(0, 0, 0, 0.55);
 }
 .playtime-badge svg { flex-shrink: 0; }
+
+.achievement-badge {
+  position: absolute;
+  top: 38px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px 5px 7px;
+  border-radius: 999px;
+  background: rgba(10, 11, 16, 0.68);
+  border: 1px solid rgba(253, 250, 242, 0.14);
+  backdrop-filter: blur(4px);
+  color: #9ec6ff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px -3px rgba(0, 0, 0, 0.55);
+}
+.achievement-badge.is-complete { color: #ffd75e; }
+.achievement-badge svg { flex-shrink: 0; }
 
 .info {
   position: absolute;
