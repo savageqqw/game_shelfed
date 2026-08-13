@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore, STATUSES } from '../stores/library'
+import { useDealsStore } from '../stores/deals'
 import { api } from '../utils/api'
 import ActivityHeatmap from '../components/ActivityHeatmap.vue'
 
@@ -12,6 +13,7 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const library = useLibraryStore()
+const deals = useDealsStore()
 
 const info = ref(null)
 const infoLoading = ref(true)
@@ -25,6 +27,33 @@ const confirmPassword = ref('')
 const pwLoading = ref(false)
 const pwError = ref(null)
 const pwSuccess = ref(false)
+
+const dealThreshold = ref(20)
+const dealLoading = ref(false)
+const dealError = ref(null)
+const dealSuccess = ref(false)
+
+async function submitDealThreshold() {
+  dealError.value = null
+  dealSuccess.value = false
+  if (!Number.isFinite(dealThreshold.value) || dealThreshold.value < 1 || dealThreshold.value > 90) {
+    dealError.value = t('account.deals.invalid')
+    return
+  }
+  dealLoading.value = true
+  try {
+    await api.post('/account-deal-threshold', { percent: dealThreshold.value }, auth.token)
+    dealSuccess.value = true
+    // Re-check with the new threshold right away instead of waiting for
+    // the next session/page load.
+    deals.reset()
+    deals.ensureChecked()
+  } catch (e) {
+    dealError.value = e.message
+  } finally {
+    dealLoading.value = false
+  }
+}
 
 const localeMap = { uk: 'uk-UA', en: 'en-US', ru: 'ru-RU' }
 
@@ -45,6 +74,7 @@ async function loadInfo() {
   infoError.value = null
   try {
     info.value = await api.get('/account-info', auth.token)
+    if (info.value?.dealThresholdPercent) dealThreshold.value = info.value.dealThresholdPercent
   } catch (e) {
     infoError.value = e.message
   } finally {
@@ -164,6 +194,25 @@ onMounted(() => {
       <ActivityHeatmap :items="library.items" />
     </section>
 
+    <section class="card-surface deal-card">
+      <h2>{{ t('account.deals.title') }}</h2>
+      <p class="deal-subtitle">{{ t('account.deals.subtitle') }}</p>
+      <form @submit.prevent="submitDealThreshold" class="deal-form">
+        <label class="deal-label">
+          <span>{{ t('account.deals.label') }}</span>
+          <div class="deal-input-wrap">
+            <input v-model.number="dealThreshold" type="number" min="1" max="90" class="input deal-input" />
+            <span class="deal-percent">%</span>
+          </div>
+        </label>
+        <p v-if="dealSuccess" class="success-msg">{{ t('account.deals.success') }}</p>
+        <p v-if="dealError" class="error-msg">{{ dealError }}</p>
+        <button class="btn btn-primary submit-btn" :disabled="dealLoading" type="submit">
+          {{ t('account.deals.submit') }}
+        </button>
+      </form>
+    </section>
+
     <section v-if="!infoLoading && !info?.steamLinked" class="card-surface password-card">
       <h2>{{ t('account.password.title') }}</h2>
       <form @submit.prevent="submitPasswordChange" class="auth-form">
@@ -241,7 +290,7 @@ onMounted(() => {
 .link-steam-btn { margin-top: 20px; }
 
 .stats-section { margin-bottom: 32px; }
-.stats-section h2, .password-card h2, .activity-card h2 { font-size: 18px; margin-bottom: 16px; }
+.stats-section h2, .password-card h2, .activity-card h2, .deal-card h2 { font-size: 18px; margin-bottom: 16px; }
 
 .activity-card { padding: 28px 32px; margin-bottom: 32px; }
 .activity-subtitle { color: var(--text-2); font-size: 13px; margin: -8px 0 20px; }
@@ -284,6 +333,22 @@ onMounted(() => {
 .password-card { padding: 28px 32px; max-width: 440px; }
 .auth-form { display: flex; flex-direction: column; gap: 16px; }
 .auth-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-1); font-weight: 600; }
+
+.deal-card { padding: 28px 32px; max-width: 440px; margin-bottom: 32px; }
+.deal-subtitle { color: var(--text-2); font-size: 13px; margin: -8px 0 20px; }
+.deal-form { display: flex; flex-direction: column; gap: 16px; }
+.deal-label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-1); font-weight: 600; }
+.deal-input-wrap { position: relative; max-width: 140px; }
+.deal-input { padding-right: 32px; }
+.deal-percent {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-2);
+  font-size: 14px;
+  pointer-events: none;
+}
 .submit-btn { width: 100%; padding: 12px; margin-top: 6px; }
 .error-msg { color: var(--status-dropped); font-size: 13px; margin: 0; }
 .success-msg { color: var(--status-completed); font-size: 13px; margin: 0; }

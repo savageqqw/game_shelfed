@@ -2,16 +2,35 @@
 import NavBar from './components/NavBar.vue'
 import AppBackground from './components/AppBackground.vue'
 import { STATUSES } from './stores/library'
+import { useDealsStore } from './stores/deals'
 import { useI18n } from 'vue-i18n'
 import logoIconUrl from './assets/logo-icon.svg'
 import logoWordmarkUrl from './assets/logo-wordmark.svg'
 const { t } = useI18n()
+const deals = useDealsStore()
 </script>
 
 <template>
   <AppBackground />
   <div class="app-shell">
     <NavBar />
+
+    <div v-if="deals.deals.length && !deals.dismissed" class="deals-banner">
+      <div class="shell deals-banner-row">
+        <p class="deals-text">
+          <span aria-hidden="true">🔥</span>
+          {{ t('deals.bannerPrefix', { count: deals.deals.length, threshold: deals.threshold }) }}
+          <span class="deals-list">
+            <span v-for="(d, i) in deals.deals.slice(0, 4)" :key="d.game_id" class="deals-item">
+              {{ d.title }} <b>-{{ d.discountPercent }}%</b><template v-if="i < Math.min(deals.deals.length, 4) - 1">, </template>
+            </span>
+            <span v-if="deals.deals.length > 4">{{ t('deals.andMore', { count: deals.deals.length - 4 }) }}</span>
+          </span>
+        </p>
+        <button class="deals-close" @click="deals.dismiss()" :aria-label="t('deals.dismiss')">✕</button>
+      </div>
+    </div>
+
     <main class="app-main">
       <router-view v-slot="{ Component, route }">
         <transition name="fade-slide" mode="out-in">
@@ -55,6 +74,41 @@ const { t } = useI18n()
   position: relative;
   padding-top: 24px;
 }
+.deals-banner {
+  background: color-mix(in srgb, var(--accent-teal) 14%, var(--bg-0));
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-teal) 35%, transparent);
+}
+.deals-banner-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+}
+.deals-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--text-1);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.deals-list { color: var(--text-0); }
+.deals-item b { color: var(--accent-teal); font-weight: 700; }
+.deals-close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+.deals-close:hover { background: var(--bg-2); color: var(--text-0); }
 .app-footer {
   border-top: 1px solid var(--border-soft);
   padding: 28px 0;

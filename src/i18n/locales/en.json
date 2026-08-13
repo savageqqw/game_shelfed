@@ -21,8 +21,7 @@
     "dropped": "Dropped",
     "add": "Add to library",
     "change": "Change status",
-    "remove": "Remove from my games",
-    "storyCompleteHint": "Looks like the main story is finished (based on a final achievement), even though not all achievements are unlocked"
+    "remove": "Remove from my games"
   },
   "myGames": {
     "title": "My Games",
@@ -113,6 +112,14 @@
       "submit": "Update password",
       "success": "Password updated.",
       "mismatch": "New passwords don't match."
+    },
+    "deals": {
+      "title": "Sale notifications",
+      "subtitle": "We'll show a banner when a game from your \"planned\" list drops in price on Steam by more than this percentage.",
+      "label": "Minimum discount",
+      "submit": "Save",
+      "success": "Threshold saved.",
+      "invalid": "Enter a number between 1 and 90."
     }
   },
   "rating": {
@@ -156,5 +163,10 @@
   },
   "footer": {
     "tagline": "A shelf for every game you've ever cleared."
+  },
+  "deals": {
+    "bannerPrefix": "{count} games from your plans are on sale ≥{threshold}%: ",
+    "andMore": "and {count} more",
+    "dismiss": "Dismiss"
   }
 }

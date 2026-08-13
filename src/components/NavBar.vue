@@ -5,7 +5,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore } from '../stores/library'
 import { useSteamPlaytimeStore } from '../stores/steamPlaytime'
-import { useSteamAchievementsStore } from '../stores/steamAchievements'
+import { useDealsStore } from '../stores/deals'
 import ThemeToggle from './ThemeToggle.vue'
 import LangSwitcher from './LangSwitcher.vue'
 import logoIconUrl from '../assets/logo-icon.svg'
@@ -17,22 +17,28 @@ const route = useRoute()
 const auth = useAuthStore()
 const library = useLibraryStore()
 const steamPlaytime = useSteamPlaytimeStore()
-const steamAchievements = useSteamAchievementsStore()
+const deals = useDealsStore()
 const mobileOpen = ref(false)
 
 // Kick this off as soon as the app shell mounts (present on every page),
 // well before the person ever opens My Games, so by the time they click
 // that tab the data is usually already sitting in the store.
-if (auth.isAuthed) steamPlaytime.ensureLoaded()
+if (auth.isAuthed) {
+  steamPlaytime.ensureLoaded()
+  deals.ensureChecked()
+}
 watch(() => auth.isAuthed, (v) => {
-  if (v) steamPlaytime.ensureLoaded()
+  if (v) {
+    steamPlaytime.ensureLoaded()
+    deals.ensureChecked()
+  }
 })
 
 function logout() {
   auth.logout()
   library.reset()
   steamPlaytime.reset()
-  steamAchievements.reset()
+  deals.reset()
   mobileOpen.value = false
   router.push({ name: 'library' })
 }

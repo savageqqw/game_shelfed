@@ -10,7 +10,7 @@ export default withErrors(async (req, res) => {
   const db = getClient()
 
   const result = await db.execute({
-    sql: 'SELECT username, email, avatar, steam_id, created_at FROM users WHERE id = ?',
+    sql: 'SELECT username, email, avatar, steam_id, created_at, deal_threshold_percent FROM users WHERE id = ?',
     args: [user.id]
   })
   const row = result.rows[0]
@@ -24,6 +24,7 @@ export default withErrors(async (req, res) => {
     email: row.email,
     avatar: row.avatar || null,
     steamLinked: !!row.steam_id,
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    dealThresholdPercent: row.deal_threshold_percent ?? 20
   })
 })
