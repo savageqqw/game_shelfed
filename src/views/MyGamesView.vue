@@ -39,7 +39,8 @@ function toCardGame(item) {
     released: item.released || null,
     rating: item.catalog_rating ?? null,
     playtimeMinutes: steamPlaytime.playtimeFor(item.game_id, item.title),
-    achievementPercent: steamAchievements.percentFor(appid)
+    achievementPercent: steamAchievements.percentFor(appid),
+    achievementStoryComplete: steamAchievements.storyCompleteFor(appid)
   }
 }
 

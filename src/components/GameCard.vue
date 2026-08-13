@@ -54,10 +54,14 @@ function choose(s) {
       <span
         v-if="game.achievementPercent != null"
         class="achievement-badge mono"
-        :class="{ 'is-complete': game.achievementPercent >= 100 }"
+        :class="{ 'is-complete': game.achievementPercent >= 100 || game.achievementStoryComplete }"
         :style="{ top: game.playtimeMinutes ? '38px' : '10px' }"
+        :title="game.achievementStoryComplete && game.achievementPercent < 100 ? t('status.storyCompleteHint') : null"
       >
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <svg v-if="game.achievementStoryComplete && game.achievementPercent < 100" width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M7 5H4a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4M17 5h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>

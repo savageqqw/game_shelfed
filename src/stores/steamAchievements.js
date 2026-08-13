@@ -36,6 +36,12 @@ export const useSteamAchievementsStore = defineStore('steamAchievements', {
       const entry = this.byAppId[appid]
       return entry ? entry.percent : null
     },
+    // True when an achieved achievement's text reads like a "you beat the
+    // game" moment, even if the overall % is below 100 (side/MP achievements).
+    storyCompleteFor(appid) {
+      if (appid == null) return false
+      return !!this.byAppId[appid]?.storyComplete
+    },
     reset() {
       this.byAppId = {}
       this.requestedAppIds = new Set()

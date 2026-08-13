@@ -21,7 +21,8 @@
     "dropped": "Dropped",
     "add": "Add to library",
     "change": "Change status",
-    "remove": "Remove from my games"
+    "remove": "Remove from my games",
+    "storyCompleteHint": "Looks like the main story is finished (based on a final achievement), even though not all achievements are unlocked"
   },
   "myGames": {
     "title": "My Games",
