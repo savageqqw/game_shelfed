@@ -45,6 +45,7 @@ export default withErrors(async (req, res) => {
   let games
   let hasMore
   let count
+  let catalogTotal = null
 
   if (q) {
     // IGDB's fuzzy "search" matches any title containing the term (lots of
@@ -63,11 +64,19 @@ export default withErrors(async (req, res) => {
     // doesn't repeat games, but different on every fresh visit/reload.
     const seed = String(params.seed || 'static')
     const poolBody = `fields ${FIELDS}; where ${POPULAR_WHERE}; sort total_rating_count desc; limit ${POPULAR_POOL_SIZE};`
-    const pool = await igdbFetch('games', poolBody)
+    const totalCountBody = 'where version_parent = null;'
+    const [pool, totalCountRes] = await Promise.all([
+      igdbFetch('games', poolBody),
+      igdbFetch('games/count', totalCountBody)
+    ])
     const shuffled = seededShuffle(pool || [], seed)
     games = shuffled.slice(offset, offset + PAGE_SIZE)
     count = shuffled.length
     hasMore = offset + PAGE_SIZE < shuffled.length
+    // This is the real size of the whole IGDB catalog (hundreds of
+    // thousands), separate from the 400-game pool we shuffle for display --
+    // that pool size should never leak into the "games in catalog" stat.
+    catalogTotal = totalCountRes?.count || null
   }
 
   const results = (games || []).map((g) => ({
@@ -79,5 +88,5 @@ export default withErrors(async (req, res) => {
     genres: (g.genres || []).map((x) => x.name)
   }))
 
-  sendJson(res, 200, { results, hasMore, count })
+  sendJson(res, 200, { results, hasMore, count, catalogTotal })
 })

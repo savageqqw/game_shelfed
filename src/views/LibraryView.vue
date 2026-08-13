@@ -45,7 +45,7 @@ async function loadPage(reset = false) {
     hasMore.value = !!res.hasMore
     page.value = (reset ? 1 : page.value) + 1
     searched.value = true
-    if (!query.value && res.count) catalogCount.value = res.count
+    if (!query.value && res.catalogTotal) catalogCount.value = res.catalogTotal
   } catch (e) {
     error.value = e.message
     if (reset) games.value = []

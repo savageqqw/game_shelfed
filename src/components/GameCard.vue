@@ -311,7 +311,9 @@ function choose(s) {
   position: absolute;
   right: 0;
   bottom: calc(100% + 8px);
-  background: var(--bg-1);
+  background: color-mix(in srgb, var(--bg-1) 78%, transparent);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-card);
