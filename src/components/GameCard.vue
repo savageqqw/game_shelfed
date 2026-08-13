@@ -213,8 +213,10 @@ function choose(s) {
   gap: 5px;
   padding: 5px 9px 5px 7px;
   border-radius: 999px;
-  background: var(--accent-amber);
-  color: #17131a;
+  background: rgba(10, 11, 16, 0.68);
+  border: 1px solid rgba(253, 250, 242, 0.14);
+  backdrop-filter: blur(4px);
+  color: var(--accent-teal);
   font-size: 11px;
   font-weight: 700;
   line-height: 1;

@@ -55,10 +55,7 @@
       "games": "games in the catalog",
       "statuses": "progress statuses",
       "ratings": "ways to rate a game"
-    },
-    "recommended": "Random picks",
-    "shuffle": "Shuffle",
-    "allGames": "All games"
+    }
   },
   "auth": {
     "loginTitle": "Welcome back",

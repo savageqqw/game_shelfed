@@ -39,9 +39,9 @@ function normalizeTitle(s) {
 async function loadSteamPlaytime() {
   if (!auth.isAuthed) return
   try {
-    const info = await api.get('/account-info', auth.token)
-    if (!info.steamLinked) return
-
+    // No separate "is Steam linked" check -- if nothing is linked this just
+    // 404s and we quietly skip, same as an account with Steam linked but no
+    // matching game. Saves a whole extra round trip before badges can show.
     const res = await api.get('/steam-library', auth.token)
     if (res.privacyBlocked || !res.games?.length) return
 
@@ -51,7 +51,7 @@ async function loadSteamPlaytime() {
       if (key) steamPlaytimeByTitle.set(key, g.playtimeMinutes)
     }
   } catch {
-    // No Steam data available (privacy, expired session, etc) -- cards just
+    // Not linked, Steam unreachable, expired session, etc -- cards just
     // show no playtime, same as for games Steam has no record of.
   } finally {
     steamPlaytimeLoaded.value = true
@@ -121,10 +121,12 @@ async function jumpToRandom() {
   highlightTimer = setTimeout(() => { highlightId.value = null }, 1800)
 }
 
-onMounted(async () => {
-  if (!library.loaded) await library.fetchAll()
-  library.backfillMeta()
+onMounted(() => {
   loadSteamPlaytime()
+  ;(async () => {
+    if (!library.loaded) await library.fetchAll()
+    library.backfillMeta()
+  })()
 })
 </script>
 

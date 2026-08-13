@@ -3,6 +3,36 @@ import { igdbFetch, escapeIgdbQuery } from './_utils/igdb.js'
 
 const PAGE_SIZE = 24
 const FIELDS = 'id,name,cover.url,rating,first_release_date,genres.name,total_rating_count'
+// Pool of currently-popular games to shuffle the default (no-query) listing
+// from. Kept well-rated/well-known only, not the entire catalog.
+const POPULAR_POOL_SIZE = 400
+const POPULAR_WHERE = 'version_parent = null & total_rating_count > 20'
+
+// Small deterministic PRNG so the same seed always produces the same shuffle
+// order (needed so "load more" pagination doesn't repeat/skip games within
+// one page load), while a fresh seed (new page load) gives a fresh order.
+function seededShuffle(arr, seed) {
+  let h = 1779033703 ^ seed.length
+  for (let i = 0; i < seed.length; i++) {
+    h = Math.imul(h ^ seed.charCodeAt(i), 3432918353)
+    h = (h << 13) | (h >>> 19)
+  }
+  let state = h >>> 0
+  function rand() {
+    state |= 0
+    state = (state + 0x6d2b79f5) | 0
+    let t = Math.imul(state ^ (state >>> 15), 1 | state)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
 
 export default withErrors(async (req, res) => {
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' })
@@ -28,15 +58,16 @@ export default withErrors(async (req, res) => {
     count = sorted.length
     hasMore = offset + PAGE_SIZE < sorted.length
   } else {
-    const gamesBody = `fields ${FIELDS}; where version_parent = null; sort total_rating_count desc; limit ${PAGE_SIZE}; offset ${offset};`
-    const countBody = 'where version_parent = null;'
-    const [gamesRes, countRes] = await Promise.all([
-      igdbFetch('games', gamesBody),
-      igdbFetch('games/count', countBody)
-    ])
-    games = gamesRes
-    count = countRes?.count || 0
-    hasMore = offset + PAGE_SIZE < count
+    // Default catalog view: a random order over currently-popular games,
+    // stable for the duration of one page load (same seed) so "load more"
+    // doesn't repeat games, but different on every fresh visit/reload.
+    const seed = String(params.seed || 'static')
+    const poolBody = `fields ${FIELDS}; where ${POPULAR_WHERE}; sort total_rating_count desc; limit ${POPULAR_POOL_SIZE};`
+    const pool = await igdbFetch('games', poolBody)
+    const shuffled = seededShuffle(pool || [], seed)
+    games = shuffled.slice(offset, offset + PAGE_SIZE)
+    count = shuffled.length
+    hasMore = offset + PAGE_SIZE < shuffled.length
   }
 
   const results = (games || []).map((g) => ({

@@ -110,6 +110,7 @@ function logout() {
   align-items: center;
   gap: 9px;
   white-space: nowrap;
+  transform: translateY(-2px);
 }
 .brand-icon {
   height: 30px;

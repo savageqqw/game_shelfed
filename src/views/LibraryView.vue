@@ -20,20 +20,10 @@ const error = ref(null)
 const catalogCount = ref(null)
 let debounceHandle = null
 
-const recommended = ref([])
-const recLoading = ref(false)
-
-async function loadRecommendations() {
-  recLoading.value = true
-  try {
-    const res = await api.get('/recommendations', auth.token || null)
-    recommended.value = res.results || []
-  } catch {
-    recommended.value = []
-  } finally {
-    recLoading.value = false
-  }
-}
+// Regenerated on every page load so the default (no-query) catalog view
+// shows a fresh shuffle of currently-popular games each visit, while
+// "load more" pagination within one visit stays consistent (same seed).
+const seed = Math.random().toString(36).slice(2)
 
 function formatCount(n) {
   if (!n) return null
@@ -48,7 +38,8 @@ async function loadPage(reset = false) {
   try {
     const res = await api.get('/games-search', null, {
       q: query.value,
-      page: reset ? 1 : page.value
+      page: reset ? 1 : page.value,
+      seed
     })
     games.value = reset ? res.results : [...games.value, ...res.results]
     hasMore.value = !!res.hasMore
@@ -78,13 +69,11 @@ async function setStatus(game, status) {
 
 onMounted(() => {
   loadPage(true)
-  loadRecommendations()
   if (auth.isAuthed && !library.loaded) library.fetchAll()
 })
 
 watch(() => auth.isAuthed, (v) => {
   if (v && !library.loaded) library.fetchAll()
-  loadRecommendations()
 })
 </script>
 
@@ -159,28 +148,6 @@ watch(() => auth.isAuthed, (v) => {
       {{ t('search.noResults', { query }) }}
     </p>
 
-    <div v-if="!query && recommended.length" class="rec-grid game-grid">
-      <GameCard
-        v-for="g in recommended"
-        :key="'rec-' + g.id"
-        :game="g"
-        :status="library.entryFor(g.id)?.status"
-        :user-rating="library.entryFor(g.id)?.rating"
-        @set-status="(s) => setStatus(g, s)"
-        @set-rating="(r) => library.rate(g.id, r)"
-        @remove="library.remove(g.id)"
-      />
-    </div>
-
-    <div v-if="!query && recommended.length" class="rec-reshuffle-row">
-      <button class="rec-shuffle" type="button" :disabled="recLoading" @click="loadRecommendations" :aria-label="t('library.shuffle')" :title="t('library.shuffle')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" :class="{ spinning: recLoading }">
-          <path d="M4 4v6h6M20 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M4 10a8 8 0 0 1 14.9-3.5M20 14a8 8 0 0 1-14.9 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
-    </div>
-
     <transition-group tag="div" name="grid-fade" class="game-grid">
       <GameCard
         v-for="g in games"
@@ -209,9 +176,9 @@ watch(() => auth.isAuthed, (v) => {
 .hero {
   display: grid;
   grid-template-columns: 1.3fr 0.9fr;
-  gap: 32px;
+  gap: 24px;
   align-items: center;
-  padding: 30px 0 40px;
+  padding: 16px 0 20px;
 }
 .hero-copy { min-width: 0; }
 .call-number {
@@ -219,22 +186,22 @@ watch(() => auth.isAuthed, (v) => {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--accent-amber);
-  margin: 0 0 14px;
+  margin: 0 0 8px;
 }
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(26px, 3.6vw, 40px);
+  font-size: clamp(22px, 2.6vw, 30px);
   line-height: 1.15;
   letter-spacing: 0;
 }
-.subtitle { color: var(--text-2); margin: 14px 0 24px; font-size: 15px; max-width: 520px; }
+.subtitle { color: var(--text-2); margin: 8px 0 16px; font-size: 14px; max-width: 520px; }
 
 .stat-chips {
   list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 32px;
-  margin: 26px 0 0;
+  gap: 24px;
+  margin: 16px 0 0;
   padding: 0;
 }
 .chip {
@@ -284,12 +251,12 @@ watch(() => auth.isAuthed, (v) => {
   display: flex;
   justify-content: center;
 }
-.tag-stack { width: 100%; max-width: 260px; height: auto; }
+.tag-stack { width: 100%; max-width: 190px; height: auto; }
 
 .cover-stack {
   position: relative;
   width: 100%;
-  max-width: 280px;
+  max-width: 210px;
   aspect-ratio: 1 / 1;
   padding: 6px;
 }
@@ -340,30 +307,6 @@ watch(() => auth.isAuthed, (v) => {
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 20px;
 }
-
-.rec-grid { margin-bottom: 4px; }
-.rec-reshuffle-row {
-  display: flex;
-  justify-content: flex-end;
-  margin: 6px 0 40px;
-}
-.rec-shuffle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  background: transparent;
-  border: none;
-  color: var(--text-2);
-  cursor: pointer;
-  opacity: 0.55;
-  transition: opacity 0.15s, color 0.15s;
-}
-.rec-shuffle:hover:not(:disabled) { opacity: 1; color: var(--accent-amber); }
-.rec-shuffle:disabled { opacity: 0.3; cursor: default; }
-.rec-shuffle svg.spinning { animation: rec-spin 0.7s linear infinite; }
-@keyframes rec-spin { to { transform: rotate(360deg); } }
 
 .load-more-row {
   display: flex;
