@@ -8,7 +8,8 @@ const props = defineProps({
   game: { type: Object, required: true }, // { id, title, cover, rating, released, genres }
   status: { type: String, default: null },
   userRating: { type: String, default: null }, // null | 'like' | 'dislike' | 'mixed'
-  showRating: { type: Boolean, default: false }
+  showRating: { type: Boolean, default: false },
+  readonly: { type: Boolean, default: false } // true when viewing someone else's public shelf
 })
 const emit = defineEmits(['set-status', 'remove', 'set-rating'])
 
@@ -37,7 +38,7 @@ function choose(s) {
       </div>
 
       <button
-        v-if="status"
+        v-if="status && !readonly"
         class="remove-btn"
         @click.stop="emit('remove')"
         :aria-label="t('status.remove')"
@@ -64,20 +65,20 @@ function choose(s) {
             </p>
           </div>
 
-          <div v-if="!showRating" class="badge-wrap">
+          <div v-if="!showRating && (status || !readonly)" class="badge-wrap">
             <button
               class="status-badge"
-              :class="status ? `s-${status}` : 'unset'"
-              @click.stop="menuOpen = !menuOpen"
+              :class="[status ? `s-${status}` : 'unset', { 'is-readonly': readonly }]"
+              @click.stop="!readonly && (menuOpen = !menuOpen)"
               :aria-label="status ? t('status.change') : t('status.add')"
               :title="status ? t(`status.${status}`) : t('status.add')"
             >
               <span v-if="status" class="badge-icon mono">{{ STATUS_ICONS[status] }}</span>
-              <span v-else class="badge-plus">+</span>
+              <span v-else-if="!readonly" class="badge-plus">+</span>
             </button>
 
             <transition name="fade-slide">
-              <div v-if="menuOpen" class="status-menu" @click.stop>
+              <div v-if="menuOpen && !readonly" class="status-menu" @click.stop>
                 <button
                   v-for="s in STATUSES"
                   :key="s"
@@ -285,6 +286,7 @@ function choose(s) {
   color: #fdfaf2;
   box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.5);
 }
+.status-badge.is-readonly { cursor: default; }
 .status-badge.unset {
   background: rgba(253, 250, 242, 0.18);
   color: #fdfaf2;

@@ -60,6 +60,9 @@ function logout() {
           {{ t('nav.myGames') }}
           <span v-if="auth.isAuthed && library.items.length" class="tab-count mono">{{ library.items.length }}</span>
         </router-link>
+        <router-link v-if="auth.isAuthed" :to="{ name: 'users' }" class="tab" :class="{ active: route.name === 'users' || route.name === 'user-profile' }">
+          {{ t('nav.users') }}
+        </router-link>
       </nav>
 
       <div class="controls">
@@ -92,6 +95,7 @@ function logout() {
       <div v-if="mobileOpen" class="mobile-panel shell">
         <router-link :to="{ name: 'library' }" @click="mobileOpen = false">{{ t('nav.library') }}</router-link>
         <router-link :to="{ name: 'my-games' }" @click="mobileOpen = false">{{ t('nav.myGames') }}</router-link>
+        <router-link v-if="auth.isAuthed" :to="{ name: 'users' }" @click="mobileOpen = false">{{ t('nav.users') }}</router-link>
         <div class="mobile-controls">
           <LangSwitcher />
           <ThemeToggle />

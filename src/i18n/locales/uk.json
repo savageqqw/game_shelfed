@@ -2,6 +2,7 @@
   "nav": {
     "library": "Бібліотека",
     "myGames": "Мої ігри",
+    "users": "Юзери",
     "login": "Увійти",
     "register": "Реєстрація",
     "logout": "Вийти",
@@ -174,5 +175,13 @@
     "bannerPrefix": "{count} ігор з твоїх планів на знижці ≥{threshold}%: ",
     "andMore": "і ще {count}",
     "dismiss": "Закрити"
+  },
+  "users": {
+    "eyebrow": "Спільнота",
+    "title": "Юзери",
+    "subtitle": "Переглянь полиці інших гравців.",
+    "empty": "Поки що тут нікого нема.",
+    "gameCount": "{count} ігор",
+    "profileEmpty": "У цього юзера ще порожня полиця."
   }
 }

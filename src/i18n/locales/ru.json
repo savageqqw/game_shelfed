@@ -2,6 +2,7 @@
   "nav": {
     "library": "Библиотека",
     "myGames": "Мои игры",
+    "users": "Юзеры",
     "login": "Войти",
     "register": "Регистрация",
     "logout": "Выйти",
@@ -174,5 +175,13 @@
     "bannerPrefix": "{count} игр из твоих планов сейчас со скидкой ≥{threshold}%: ",
     "andMore": "и ещё {count}",
     "dismiss": "Закрыть"
+  },
+  "users": {
+    "eyebrow": "Сообщество",
+    "title": "Юзеры",
+    "subtitle": "Посмотри полки других игроков.",
+    "empty": "Пока здесь никого нет.",
+    "gameCount": "{count} игр",
+    "profileEmpty": "У этого юзера пока пустая полка."
   }
 }

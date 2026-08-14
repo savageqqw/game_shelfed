@@ -2,6 +2,7 @@
   "nav": {
     "library": "Library",
     "myGames": "My Games",
+    "users": "Users",
     "login": "Log in",
     "register": "Sign up",
     "logout": "Log out",
@@ -174,5 +175,13 @@
     "bannerPrefix": "{count} games from your plans are on sale ≥{threshold}%: ",
     "andMore": "and {count} more",
     "dismiss": "Dismiss"
+  },
+  "users": {
+    "eyebrow": "Community",
+    "title": "Users",
+    "subtitle": "Browse other players' shelves.",
+    "empty": "Nobody here yet.",
+    "gameCount": "{count} games",
+    "profileEmpty": "This user's shelf is still empty."
   }
 }
