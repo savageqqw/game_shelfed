@@ -182,6 +182,8 @@
     "subtitle": "Browse other players' shelves.",
     "empty": "Nobody here yet.",
     "gameCount": "{count} games",
-    "profileEmpty": "This user's shelf is still empty."
+    "profileEmpty": "This user's shelf is still empty.",
+    "joined": "Joined {date}",
+    "statTotal": "Total"
   }
 }
