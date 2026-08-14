@@ -440,4 +440,12 @@ onMounted(() => {
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 20px;
 }
+
+@media (max-width: 900px) {
+  .game-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+}
+
+@media (max-width: 560px) {
+  .game-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
 </style>

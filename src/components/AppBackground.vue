@@ -43,9 +43,9 @@
   width: 100%;
   height: 100%;
   color: var(--text-0);
-  opacity: 0.05;
+  opacity: 0.16;
 }
-[data-theme='light'] .wallpaper { opacity: 0.07; }
+[data-theme='light'] .wallpaper { opacity: 0.20; }
 
 .glow {
   position: absolute;

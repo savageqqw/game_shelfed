@@ -351,4 +351,16 @@ function choose(s) {
   opacity: 0;
   transform: translateY(-6px);
 }
+
+@media (max-width: 560px) {
+  .title { font-size: 13px; }
+  .meta { font-size: 9.5px; }
+  .status-badge { width: 26px; height: 26px; border-radius: 8px; }
+  .badge-icon { font-size: 12px; }
+  .badge-plus { font-size: 14px; }
+  .remove-btn { width: 21px; height: 21px; font-size: 10px; }
+  .playtime-badge { font-size: 9px; padding: 3px 7px 3px 5px; gap: 3px; }
+  .playtime-badge svg { width: 9px; height: 9px; }
+  .info { padding: 20px 8px 8px; }
+}
 </style>

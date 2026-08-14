@@ -106,6 +106,10 @@ html, body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   transition: background var(--dur-med) var(--ease-out), color var(--dur-med) var(--ease-out);
+  /* Stops iOS Safari's rubber-band bounce at the top/bottom of the page,
+     which otherwise makes the sticky nav visually detach from the fixed
+     background wallpaper and leave a blank gap while overscrolling. */
+  overscroll-behavior-y: none;
 }
 
 #app { min-height: 100vh; }
@@ -144,6 +148,10 @@ button { font-family: var(--font-body); cursor: pointer; }
   max-width: var(--shell-max);
   margin: 0 auto;
   padding: 0 24px;
+}
+
+@media (max-width: 560px) {
+  .shell { padding: 0 14px; }
 }
 
 .mono { font-family: var(--font-mono); }
