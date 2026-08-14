@@ -4,17 +4,17 @@
     <div class="glow glow-violet" />
     <svg class="wallpaper" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
       <defs>
-        <pattern id="shelf-wallpaper" width="220" height="220" patternUnits="userSpaceOnUse" patternTransform="rotate(-8)">
+        <pattern id="shelf-wallpaper" width="300" height="300" patternUnits="userSpaceOnUse" patternTransform="rotate(-8)">
           <!-- controller -->
-          <g transform="translate(18,26)" fill="currentColor">
+          <g transform="translate(24,35) scale(1.35)" fill="currentColor">
             <path d="M8 10 h34 a10 10 0 0 1 10 11 l-2 14 a8 8 0 0 1-14 5 l-6-6 h-16 l-6 6 a8 8 0 0 1-14-5 l-2-14 a10 10 0 0 1 10-11 z" fill-opacity="0.9" />
           </g>
           <!-- cartridge -->
-          <g transform="translate(130,120) rotate(14)" fill="currentColor">
+          <g transform="translate(177,163) rotate(14) scale(1.35)" fill="currentColor">
             <rect x="0" y="0" width="30" height="40" rx="4" />
           </g>
           <!-- d-pad / dice pip cluster -->
-          <g transform="translate(150,20)" fill="currentColor">
+          <g transform="translate(204,27) scale(1.35)" fill="currentColor">
             <circle cx="0" cy="0" r="3.4" />
             <circle cx="16" cy="0" r="3.4" />
             <circle cx="0" cy="16" r="3.4" />
@@ -43,9 +43,9 @@
   width: 100%;
   height: 100%;
   color: var(--text-0);
-  opacity: 0.16;
+  opacity: 0.26;
 }
-[data-theme='light'] .wallpaper { opacity: 0.20; }
+[data-theme='light'] .wallpaper { opacity: 0.30; }
 
 .glow {
   position: absolute;
