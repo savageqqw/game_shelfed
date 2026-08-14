@@ -184,6 +184,7 @@
     "gameCount": "{count} games",
     "profileEmpty": "This user's shelf is still empty.",
     "joined": "Joined {date}",
-    "statTotal": "Total"
+    "statTotal": "Total",
+    "admin": "Admin"
   }
 }

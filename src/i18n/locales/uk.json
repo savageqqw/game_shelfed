@@ -184,6 +184,7 @@
     "gameCount": "{count} ігор",
     "profileEmpty": "У цього юзера ще порожня полиця.",
     "joined": "На сайті з {date}",
-    "statTotal": "Всього"
+    "statTotal": "Всього",
+    "admin": "Адмін"
   }
 }

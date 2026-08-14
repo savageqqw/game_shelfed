@@ -2,6 +2,8 @@ import { getClient, ensureSchema } from './_utils/db.js'
 import { requireUser } from './_utils/auth.js'
 import { sendJson, withErrors } from './_utils/response.js'
 
+const ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'hellraiser').toLowerCase()
+
 export default withErrors(async (req, res) => {
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' })
   requireUser(req) // must be logged in to browse the user directory
@@ -22,7 +24,8 @@ export default withErrors(async (req, res) => {
     username: r.username,
     avatar: r.avatar || null,
     createdAt: r.created_at,
-    gameCount: r.game_count
+    gameCount: r.game_count,
+    isAdmin: r.username.toLowerCase() === ADMIN_USERNAME
   }))
 
   sendJson(res, 200, { users })

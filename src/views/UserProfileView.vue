@@ -6,7 +6,7 @@ import { useAuthStore } from '../stores/auth'
 import { STATUSES, STATUS_ICONS } from '../stores/library'
 import { api } from '../utils/api'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const auth = useAuthStore()
 
@@ -30,10 +30,13 @@ function initials(name) {
   return (name || '?').slice(0, 2).toUpperCase()
 }
 
+const LOCALE_TAGS = { uk: 'uk-UA', en: 'en-US', ru: 'ru-RU' }
+
 function formatDate(iso) {
   if (!iso) return ''
   try {
-    return new Date(iso.replace(' ', 'T') + 'Z').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+    const tag = LOCALE_TAGS[locale.value] || 'en-US'
+    return new Date(iso.replace(' ', 'T') + 'Z').toLocaleDateString(tag, { year: 'numeric', month: 'long', day: 'numeric' })
   } catch {
     return iso
   }
@@ -79,7 +82,10 @@ onMounted(load)
             <span v-else class="profile-avatar-fallback mono">{{ initials(profile.username) }}</span>
           </div>
           <div>
-            <h1>{{ profile.username }}</h1>
+            <h1>
+              {{ profile.username }}
+              <span v-if="profile.isAdmin" class="admin-badge mono">{{ t('users.admin') }}</span>
+            </h1>
             <p class="joined mono">{{ t('users.joined', { date: formatDate(profile.createdAt) }) }}</p>
           </div>
         </div>
@@ -157,7 +163,17 @@ onMounted(load)
 }
 .profile-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .profile-avatar-fallback { font-size: 16px; font-weight: 700; color: var(--text-2); }
-.banner-who h1 { font-size: clamp(20px, 2.8vw, 26px); margin: 0; }
+.banner-who h1 { font-size: clamp(20px, 2.8vw, 26px); margin: 0; display: flex; align-items: center; gap: 10px; }
+.admin-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #17131a;
+  background: var(--accent-amber-2);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
 .joined { color: var(--text-2); font-size: 12px; margin-top: 4px; }
 
 .banner-stats {

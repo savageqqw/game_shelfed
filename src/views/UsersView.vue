@@ -43,21 +43,20 @@ onMounted(load)
     <p v-else-if="error" class="status-msg error-msg">{{ error }}</p>
     <p v-else-if="!users.length" class="status-msg">{{ t('users.empty') }}</p>
 
-    <div v-else class="users-grid">
+    <div v-else class="users-list">
       <router-link
         v-for="u in users"
         :key="u.username"
         :to="{ name: 'user-profile', params: { username: u.username } }"
-        class="user-card"
+        class="user-row"
       >
         <div class="user-avatar">
           <img v-if="u.avatar" :src="u.avatar" :alt="u.username" />
           <span v-else class="user-avatar-fallback mono">{{ initials(u.username) }}</span>
         </div>
-        <div class="user-info">
-          <span class="user-name">{{ u.username }}</span>
-          <span class="user-count mono">{{ t('users.gameCount', { count: u.gameCount }) }}</span>
-        </div>
+        <span class="user-name">{{ u.username }}</span>
+        <span v-if="u.isAdmin" class="admin-badge mono">{{ t('users.admin') }}</span>
+        <span class="user-count mono">{{ t('users.gameCount', { count: u.gameCount }) }}</span>
       </router-link>
     </div>
   </div>
@@ -78,29 +77,27 @@ onMounted(load)
 
 .status-msg { color: var(--text-2); text-align: center; padding: 60px 0; }
 
-.users-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
+.users-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border-soft);
 }
 
-.user-card {
+.user-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
-  border-radius: var(--radius-md);
-  background: var(--bg-1);
-  border: 1px solid var(--border-soft);
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--border-soft);
   text-decoration: none;
-  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast);
+  transition: background var(--dur-fast);
 }
-.user-card:hover { transform: translateY(-2px); border-color: var(--border-strong); }
+.user-row:hover { background: var(--bg-1); }
 
 .user-avatar {
   flex-shrink: 0;
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   overflow: hidden;
   background: var(--bg-2);
@@ -109,9 +106,28 @@ onMounted(load)
   justify-content: center;
 }
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.user-avatar-fallback { font-size: 14px; font-weight: 700; color: var(--text-2); }
+.user-avatar-fallback { font-size: 13px; font-weight: 700; color: var(--text-2); }
 
-.user-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.user-name { font-size: 14px; font-weight: 600; color: var(--text-0); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.user-count { font-size: 12px; color: var(--text-2); }
+.user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #17131a;
+  background: var(--accent-amber-2);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.user-count { flex-shrink: 0; margin-left: auto; font-size: 12px; color: var(--text-2); }
 </style>

@@ -2,6 +2,8 @@ import { getClient, ensureSchema } from './_utils/db.js'
 import { requireUser } from './_utils/auth.js'
 import { sendJson, withErrors } from './_utils/response.js'
 
+const ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'hellraiser').toLowerCase()
+
 export default withErrors(async (req, res) => {
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' })
   requireUser(req)
@@ -29,6 +31,7 @@ export default withErrors(async (req, res) => {
     username: userRow.username,
     avatar: userRow.avatar || null,
     createdAt: userRow.created_at,
+    isAdmin: userRow.username.toLowerCase() === ADMIN_USERNAME,
     items: itemsRes.rows
   })
 })
