@@ -4,9 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore, STATUSES } from '../stores/library'
-import { useDealsStore } from '../stores/deals'
 import { api } from '../utils/api'
-import { getPushStatus, subscribeToPush, unsubscribeFromPush } from '../utils/push'
 import ActivityHeatmap from '../components/ActivityHeatmap.vue'
 
 const { t, locale } = useI18n()
@@ -14,7 +12,6 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const library = useLibraryStore()
-const deals = useDealsStore()
 
 const info = ref(null)
 const infoLoading = ref(true)
@@ -28,61 +25,6 @@ const confirmPassword = ref('')
 const pwLoading = ref(false)
 const pwError = ref(null)
 const pwSuccess = ref(false)
-
-const dealThreshold = ref(20)
-const dealLoading = ref(false)
-const dealError = ref(null)
-const dealSuccess = ref(false)
-
-const pushStatus = ref('unsubscribed') // unsubscribed | subscribed | denied | unsupported
-const pushBusy = ref(false)
-const pushError = ref(null)
-
-async function enablePush() {
-  pushError.value = null
-  pushBusy.value = true
-  try {
-    await subscribeToPush(auth.token)
-    pushStatus.value = 'subscribed'
-  } catch (e) {
-    pushStatus.value = e.message === 'permission-denied' ? 'denied' : await getPushStatus()
-    pushError.value = e.message === 'permission-denied' ? t('account.deals.pushDenied') : e.message
-  } finally {
-    pushBusy.value = false
-  }
-}
-
-async function disablePush() {
-  pushBusy.value = true
-  try {
-    await unsubscribeFromPush(auth.token)
-    pushStatus.value = 'unsubscribed'
-  } finally {
-    pushBusy.value = false
-  }
-}
-
-async function submitDealThreshold() {
-  dealError.value = null
-  dealSuccess.value = false
-  if (!Number.isFinite(dealThreshold.value) || dealThreshold.value < 1 || dealThreshold.value > 90) {
-    dealError.value = t('account.deals.invalid')
-    return
-  }
-  dealLoading.value = true
-  try {
-    await api.post('/account-deal-threshold', { percent: dealThreshold.value }, auth.token)
-    dealSuccess.value = true
-    // Re-check with the new threshold right away instead of waiting for
-    // the next session/page load.
-    deals.reset()
-    deals.ensureChecked()
-  } catch (e) {
-    dealError.value = e.message
-  } finally {
-    dealLoading.value = false
-  }
-}
 
 const localeMap = { uk: 'uk-UA', en: 'en-US', ru: 'ru-RU' }
 
@@ -103,7 +45,6 @@ async function loadInfo() {
   infoError.value = null
   try {
     info.value = await api.get('/account-info', auth.token)
-    if (info.value?.dealThresholdPercent) dealThreshold.value = info.value.dealThresholdPercent
   } catch (e) {
     infoError.value = e.message
   } finally {
@@ -140,7 +81,6 @@ async function submitPasswordChange() {
 onMounted(() => {
   loadInfo()
   if (!library.loaded) library.fetchAll()
-  getPushStatus().then((s) => { pushStatus.value = s })
 
   if (route.query.steamLinked) {
     linkNotice.value = { type: 'success', text: t('account.steamLinkSuccess') }
@@ -224,53 +164,6 @@ onMounted(() => {
       <ActivityHeatmap :items="library.items" />
     </section>
 
-    <section class="card-surface deal-card">
-      <h2>{{ t('account.deals.title') }}</h2>
-      <p class="deal-subtitle">{{ t('account.deals.subtitle') }}</p>
-      <form @submit.prevent="submitDealThreshold" class="deal-form">
-        <label class="deal-label">
-          <span>{{ t('account.deals.label') }}</span>
-          <div class="deal-input-wrap">
-            <input v-model.number="dealThreshold" type="number" min="1" max="90" class="input deal-input" />
-            <span class="deal-percent">%</span>
-          </div>
-        </label>
-        <p v-if="dealSuccess" class="success-msg">{{ t('account.deals.success') }}</p>
-        <p v-if="dealError" class="error-msg">{{ dealError }}</p>
-        <button class="btn btn-primary submit-btn" :disabled="dealLoading" type="submit">
-          {{ t('account.deals.submit') }}
-        </button>
-      </form>
-
-      <div class="push-row">
-        <div class="push-text">
-          <span class="push-title">{{ t('account.deals.pushTitle') }}</span>
-          <span class="push-desc">{{ t('account.deals.pushDesc') }}</span>
-        </div>
-        <button
-          v-if="pushStatus === 'subscribed'"
-          type="button"
-          class="btn btn-ghost push-btn"
-          :disabled="pushBusy"
-          @click="disablePush"
-        >
-          {{ t('account.deals.pushDisable') }}
-        </button>
-        <button
-          v-else-if="pushStatus === 'unsubscribed'"
-          type="button"
-          class="btn btn-primary push-btn"
-          :disabled="pushBusy"
-          @click="enablePush"
-        >
-          {{ t('account.deals.pushEnable') }}
-        </button>
-        <span v-else-if="pushStatus === 'denied'" class="push-denied">{{ t('account.deals.pushDenied') }}</span>
-        <span v-else class="push-denied">{{ t('account.deals.pushUnsupported') }}</span>
-      </div>
-      <p v-if="pushError" class="error-msg">{{ pushError }}</p>
-    </section>
-
     <section v-if="!infoLoading && !info?.steamLinked" class="card-surface password-card">
       <h2>{{ t('account.password.title') }}</h2>
       <form @submit.prevent="submitPasswordChange" class="auth-form">
@@ -348,7 +241,7 @@ onMounted(() => {
 .link-steam-btn { margin-top: 20px; }
 
 .stats-section { margin-bottom: 32px; }
-.stats-section h2, .password-card h2, .activity-card h2, .deal-card h2 { font-size: 18px; margin-bottom: 16px; }
+.stats-section h2, .password-card h2, .activity-card h2 { font-size: 18px; margin-bottom: 16px; }
 
 .activity-card { padding: 28px 32px; margin-bottom: 32px; }
 .activity-subtitle { color: var(--text-2); font-size: 13px; margin: -8px 0 20px; }
@@ -392,35 +285,6 @@ onMounted(() => {
 .auth-form { display: flex; flex-direction: column; gap: 16px; }
 .auth-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-1); font-weight: 600; }
 
-.deal-card { padding: 28px 32px; max-width: 440px; margin-bottom: 32px; }
-.deal-subtitle { color: var(--text-2); font-size: 13px; margin: -8px 0 20px; }
-.deal-form { display: flex; flex-direction: column; gap: 16px; }
-.deal-label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-1); font-weight: 600; }
-.deal-input-wrap { position: relative; max-width: 140px; }
-.deal-input { padding-right: 32px; }
-.deal-percent {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-2);
-  font-size: 14px;
-  pointer-events: none;
-}
-.push-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 22px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-soft);
-}
-.push-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.push-title { font-size: 13px; font-weight: 600; color: var(--text-1); }
-.push-desc { font-size: 12px; color: var(--text-2); }
-.push-btn { flex-shrink: 0; white-space: nowrap; }
-.push-denied { font-size: 12px; color: var(--text-2); flex-shrink: 0; }
 .submit-btn { width: 100%; padding: 12px; margin-top: 6px; }
 .error-msg { color: var(--status-dropped); font-size: 13px; margin: 0; }
 .success-msg { color: var(--status-completed); font-size: 13px; margin: 0; }

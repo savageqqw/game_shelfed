@@ -53,7 +53,12 @@
     "dealsHint": "По умолчанию порог {threshold}%. Настрой для каждой игры отдельно или отключи.",
     "dealsEmpty": "Нет игр в планах.",
     "dealsMute": "Отключить",
-    "dealsUnmute": "Включить"
+    "dealsUnmute": "Включить",
+    "dealsTestCta": "Тестовое уведомление",
+    "dealsTestSending": "Отправка...",
+    "dealsTestSuccess": "Уведомление отправлено.",
+    "dealsTestNoSub": "Сначала включи уведомления выше.",
+    "dealsTestFail": "Не удалось отправить уведомление."
   },
   "library": {
     "eyebrow": "Каталог игр",

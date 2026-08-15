@@ -53,7 +53,12 @@
     "dealsHint": "Default threshold is {threshold}%. Override it per game or mute it.",
     "dealsEmpty": "No games in your plans.",
     "dealsMute": "Mute",
-    "dealsUnmute": "Unmute"
+    "dealsUnmute": "Unmute",
+    "dealsTestCta": "Send test notification",
+    "dealsTestSending": "Sending...",
+    "dealsTestSuccess": "Notification sent.",
+    "dealsTestNoSub": "Enable notifications above first.",
+    "dealsTestFail": "Failed to send the notification."
   },
   "library": {
     "eyebrow": "Game catalog",

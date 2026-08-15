@@ -17,14 +17,10 @@ export default withErrors(async (req, res) => {
   await ensureSchema()
   const db = getClient()
 
-  await db.execute({
-    sql: `UPDATE library_items SET rating = ?, updated_at = datetime('now') WHERE user_id = ? AND game_id = ?`,
-    args: [rating, user.id, String(game_id)]
-  })
-
   const result = await db.execute({
-    sql: 'SELECT id, game_id, title, cover, status, rating, genres, released, catalog_rating, completed_at, updated_at FROM library_items WHERE user_id = ? AND game_id = ?',
-    args: [user.id, String(game_id)]
+    sql: `UPDATE library_items SET rating = ?, updated_at = datetime('now') WHERE user_id = ? AND game_id = ?
+          RETURNING id, game_id, title, cover, status, rating, genres, released, catalog_rating, playtime_minutes, deal_threshold_percent, completed_at, updated_at`,
+    args: [rating, user.id, String(game_id)]
   })
   if (!result.rows[0]) return sendJson(res, 404, { error: 'Item not found in library' })
 

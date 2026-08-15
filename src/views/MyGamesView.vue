@@ -5,6 +5,8 @@ import { useAuthStore } from '../stores/auth'
 import { useLibraryStore, STATUSES, STATUS_ICONS } from '../stores/library'
 import { useSteamPlaytimeStore } from '../stores/steamPlaytime'
 import { useDealsStore } from '../stores/deals'
+import { getPushStatus, subscribeToPush, unsubscribeFromPush } from '../utils/push'
+import { api } from '../utils/api'
 import GameCard from '../components/GameCard.vue'
 import CategoryTabs from '../components/CategoryTabs.vue'
 
@@ -73,20 +75,26 @@ async function jumpToRandom() {
   highlightTimer = setTimeout(() => { highlightId.value = null }, 1800)
 }
 
-onMounted(() => {
-  steamPlaytime.ensureLoaded()
-  deals.ensureChecked()
-  ;(async () => {
-    if (!library.loaded) await library.fetchAll()
-    library.backfillMeta()
-  })()
-})
-
 // --- per-game deal-drop notification settings ---
 const showDealsModal = ref(false)
 const dealDrafts = ref({}) // gameId -> string value of the custom-% input
 
 const plannedForDeals = computed(() => library.byStatus('planned'))
+
+// account-wide default threshold
+const defaultThreshold = ref(20)
+const defaultThresholdSaving = ref(false)
+const defaultThresholdError = ref(null)
+const defaultThresholdSaved = ref(false)
+
+// push subscription state
+const pushStatus = ref('unsubscribed') // unsubscribed | subscribed | denied | unsupported
+const pushBusy = ref(false)
+const pushError = ref(null)
+
+// test notification
+const testSending = ref(false)
+const testResult = ref(null) // { ok: bool, message: string } | null
 
 function openDealsModal() {
   const drafts = {}
@@ -97,6 +105,10 @@ function openDealsModal() {
         : ''
   }
   dealDrafts.value = drafts
+  defaultThreshold.value = deals.threshold
+  defaultThresholdSaved.value = false
+  defaultThresholdError.value = null
+  testResult.value = null
   showDealsModal.value = true
 }
 
@@ -126,6 +138,73 @@ async function saveCustom(item) {
   }
   await library.setDealThreshold(item.game_id, val)
 }
+
+async function saveDefaultThreshold() {
+  defaultThresholdError.value = null
+  defaultThresholdSaved.value = false
+  if (!Number.isFinite(defaultThreshold.value) || defaultThreshold.value < 1 || defaultThreshold.value > 90) {
+    defaultThresholdError.value = t('account.deals.invalid')
+    return
+  }
+  defaultThresholdSaving.value = true
+  try {
+    await api.post('/account-deal-threshold', { percent: defaultThreshold.value }, auth.token)
+    defaultThresholdSaved.value = true
+    deals.reset()
+    deals.ensureChecked()
+  } catch (e) {
+    defaultThresholdError.value = e.message
+  } finally {
+    defaultThresholdSaving.value = false
+  }
+}
+
+async function enablePush() {
+  pushError.value = null
+  pushBusy.value = true
+  try {
+    await subscribeToPush(auth.token)
+    pushStatus.value = 'subscribed'
+  } catch (e) {
+    pushStatus.value = e.message === 'permission-denied' ? 'denied' : await getPushStatus()
+    pushError.value = e.message === 'permission-denied' ? t('account.deals.pushDenied') : e.message
+  } finally {
+    pushBusy.value = false
+  }
+}
+
+async function disablePush() {
+  pushBusy.value = true
+  try {
+    await unsubscribeFromPush(auth.token)
+    pushStatus.value = 'unsubscribed'
+  } finally {
+    pushBusy.value = false
+  }
+}
+
+async function sendTestNotification() {
+  testResult.value = null
+  testSending.value = true
+  try {
+    await api.post('/push-test', {}, auth.token)
+    testResult.value = { ok: true, message: t('myGames.dealsTestSuccess') }
+  } catch (e) {
+    testResult.value = { ok: false, message: e.message === 'no-subscription' ? t('myGames.dealsTestNoSub') : t('myGames.dealsTestFail') }
+  } finally {
+    testSending.value = false
+  }
+}
+
+onMounted(() => {
+  steamPlaytime.ensureLoaded()
+  deals.ensureChecked()
+  getPushStatus().then((s) => { pushStatus.value = s })
+  ;(async () => {
+    if (!library.loaded) await library.fetchAll()
+    library.backfillMeta()
+  })()
+})
 </script>
 
 <template>
@@ -182,7 +261,7 @@ async function saveCustom(item) {
       </button>
 
       <button
-        v-if="library.counts.planned"
+        v-if="library.items.length"
         class="btn btn-ghost deals-btn"
         @click="openDealsModal"
       >
@@ -253,7 +332,54 @@ async function saveCustom(item) {
         <div class="deals-modal card-surface">
           <button class="random-close" @click="showDealsModal = false" :aria-label="t('myGames.dealsClose')">✕</button>
           <p class="random-eyebrow mono">{{ t('myGames.dealsEyebrow') }}</p>
-          <p class="deals-hint">{{ t('myGames.dealsHint', { threshold: deals.threshold }) }}</p>
+
+          <div class="deals-default">
+            <label class="deals-default-label">
+              <span>{{ t('account.deals.label') }}</span>
+              <div class="deals-input-wrap">
+                <input v-model.number="defaultThreshold" type="number" min="1" max="90" class="deals-input" />
+                <span class="deals-percent">%</span>
+              </div>
+            </label>
+            <button class="btn btn-ghost deals-default-save" :disabled="defaultThresholdSaving" @click="saveDefaultThreshold">
+              {{ t('account.deals.submit') }}
+            </button>
+          </div>
+          <p v-if="defaultThresholdSaved" class="success-msg">{{ t('account.deals.success') }}</p>
+          <p v-if="defaultThresholdError" class="error-msg">{{ defaultThresholdError }}</p>
+
+          <div class="push-row">
+            <div class="push-text">
+              <span class="push-title">{{ t('account.deals.pushTitle') }}</span>
+              <span class="push-desc">{{ t('account.deals.pushDesc') }}</span>
+            </div>
+            <button
+              v-if="pushStatus === 'subscribed'"
+              type="button"
+              class="btn btn-ghost push-btn"
+              :disabled="pushBusy"
+              @click="disablePush"
+            >{{ t('account.deals.pushDisable') }}</button>
+            <button
+              v-else-if="pushStatus === 'unsubscribed'"
+              type="button"
+              class="btn btn-primary push-btn"
+              :disabled="pushBusy"
+              @click="enablePush"
+            >{{ t('account.deals.pushEnable') }}</button>
+            <span v-else-if="pushStatus === 'denied'" class="push-denied">{{ t('account.deals.pushDenied') }}</span>
+            <span v-else class="push-denied">{{ t('account.deals.pushUnsupported') }}</span>
+          </div>
+          <p v-if="pushError" class="error-msg">{{ pushError }}</p>
+
+          <div v-if="pushStatus === 'subscribed'" class="deals-test-row">
+            <button class="btn btn-ghost deals-test-btn" :disabled="testSending" @click="sendTestNotification">
+              {{ testSending ? t('myGames.dealsTestSending') : t('myGames.dealsTestCta') }}
+            </button>
+            <p v-if="testResult" class="test-result" :class="{ ok: testResult.ok, fail: !testResult.ok }">{{ testResult.message }}</p>
+          </div>
+
+          <p class="deals-hint deals-hint-list">{{ t('myGames.dealsHint', { threshold: deals.threshold }) }}</p>
 
           <p v-if="!plannedForDeals.length" class="deals-empty">{{ t('myGames.dealsEmpty') }}</p>
 
@@ -264,6 +390,10 @@ async function saveCustom(item) {
               class="deals-row"
               :class="{ muted: isMuted(item) }"
             >
+              <div class="deals-cover">
+                <img v-if="item.cover" :src="item.cover" :alt="item.title" loading="lazy" />
+                <span v-else class="deals-cover-fallback mono">{{ item.title.slice(0, 2).toUpperCase() }}</span>
+              </div>
               <span class="deals-title">{{ item.title }}</span>
               <div class="deals-controls">
                 <div class="deals-input-wrap">
@@ -446,17 +576,62 @@ async function saveCustom(item) {
   position: relative;
   width: 100%;
   max-width: 460px;
-  max-height: 80vh;
+  max-height: 84vh;
   padding: 28px 24px 24px;
   display: flex;
   flex-direction: column;
+  text-align: left;
 }
+.deals-default {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+.deals-default-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-1);
+  font-weight: 600;
+  flex: 1;
+}
+.deals-default-save { flex-shrink: 0; white-space: nowrap; }
+.push-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-soft);
+}
+.push-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.push-title { font-size: 13px; font-weight: 600; color: var(--text-1); }
+.push-desc { font-size: 12px; color: var(--text-2); }
+.push-btn { flex-shrink: 0; white-space: nowrap; }
+.push-denied { font-size: 12px; color: var(--text-2); flex-shrink: 0; }
+.deals-test-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.deals-test-btn { flex-shrink: 0; white-space: nowrap; }
+.test-result { font-size: 12px; margin: 0; }
+.test-result.ok { color: var(--status-completed); }
+.test-result.fail { color: var(--status-dropped); }
+.error-msg { color: var(--status-dropped); font-size: 13px; margin: 6px 0 0; }
+.success-msg { color: var(--status-completed); font-size: 13px; margin: 6px 0 0; }
 .deals-hint {
   font-size: 13px;
   color: var(--text-2);
   margin: 0 0 18px;
   text-align: left;
 }
+.deals-hint-list { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-soft); margin-bottom: 12px; }
 .deals-empty {
   color: var(--text-2);
   font-size: 14px;
@@ -478,11 +653,25 @@ async function saveCustom(item) {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 2px;
+  padding: 10px 2px;
   border-bottom: 1px solid var(--border-soft);
   text-align: left;
 }
 .deals-row.muted .deals-title { color: var(--text-2); }
+.deals-cover {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.deals-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.deals-row.muted .deals-cover { opacity: 0.5; }
+.deals-cover-fallback { font-size: 11px; font-weight: 700; color: var(--text-2); }
 .deals-title {
   font-size: 14px;
   font-weight: 600;

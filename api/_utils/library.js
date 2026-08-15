@@ -19,7 +19,7 @@ export async function upsertLibraryItem(userId, { gameId, title, cover, status, 
   const hasPlaytime = typeof playtimeMinutes === 'number' && Number.isFinite(playtimeMinutes)
   const playtimeVal = hasPlaytime ? Math.round(playtimeMinutes) : null
 
-  await db.execute({
+  const result = await db.execute({
     sql: `INSERT INTO library_items (user_id, game_id, title, cover, status, genres, released, catalog_rating, playtime_minutes, completed_at, updated_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CASE WHEN ? = 'completed' THEN datetime('now') ELSE NULL END, datetime('now'))
           ON CONFLICT(user_id, game_id) DO UPDATE SET
@@ -34,13 +34,9 @@ export async function upsertLibraryItem(userId, { gameId, title, cover, status, 
               WHEN excluded.status = 'completed' AND library_items.status != 'completed' THEN datetime('now')
               ELSE library_items.completed_at
             END,
-            updated_at = datetime('now')`,
+            updated_at = datetime('now')
+          RETURNING id, game_id, title, cover, status, rating, genres, released, catalog_rating, playtime_minutes, deal_threshold_percent, completed_at, updated_at`,
     args: [userId, String(gameId), title, cover || null, status, genresJson, releasedVal, catalogRatingVal, playtimeVal, status, hasPlaytime ? 1 : 0]
-  })
-
-  const result = await db.execute({
-    sql: 'SELECT id, game_id, title, cover, status, rating, genres, released, catalog_rating, playtime_minutes, deal_threshold_percent, completed_at, updated_at FROM library_items WHERE user_id = ? AND game_id = ?',
-    args: [userId, String(gameId)]
   })
   return result.rows[0]
 }

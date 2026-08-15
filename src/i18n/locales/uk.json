@@ -53,7 +53,12 @@
     "dealsHint": "За замовчуванням поріг {threshold}%. Онови окремо для кожної гри або вимкни.",
     "dealsEmpty": "Немає ігор в планах.",
     "dealsMute": "Вимкнути",
-    "dealsUnmute": "Увімкнути"
+    "dealsUnmute": "Увімкнути",
+    "dealsTestCta": "Тестове повідомлення",
+    "dealsTestSending": "Надсилання...",
+    "dealsTestSuccess": "Повідомлення надіслано.",
+    "dealsTestNoSub": "Спочатку увімкни сповіщення вище.",
+    "dealsTestFail": "Не вдалося надіслати повідомлення."
   },
   "library": {
     "eyebrow": "Каталог ігор",
