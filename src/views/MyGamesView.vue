@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore, STATUSES, STATUS_ICONS } from '../stores/library'
 import { useSteamPlaytimeStore } from '../stores/steamPlaytime'
+import { useDealsStore } from '../stores/deals'
 import GameCard from '../components/GameCard.vue'
 import CategoryTabs from '../components/CategoryTabs.vue'
 
@@ -11,6 +12,7 @@ const { t } = useI18n()
 const auth = useAuthStore()
 const library = useLibraryStore()
 const steamPlaytime = useSteamPlaytimeStore()
+const deals = useDealsStore()
 const activeTab = ref('all')
 const searchQuery = ref('')
 
@@ -73,11 +75,57 @@ async function jumpToRandom() {
 
 onMounted(() => {
   steamPlaytime.ensureLoaded()
+  deals.ensureChecked()
   ;(async () => {
     if (!library.loaded) await library.fetchAll()
     library.backfillMeta()
   })()
 })
+
+// --- per-game deal-drop notification settings ---
+const showDealsModal = ref(false)
+const dealDrafts = ref({}) // gameId -> string value of the custom-% input
+
+const plannedForDeals = computed(() => library.byStatus('planned'))
+
+function openDealsModal() {
+  const drafts = {}
+  for (const item of plannedForDeals.value) {
+    drafts[item.game_id] =
+      item.deal_threshold_percent != null && item.deal_threshold_percent !== 0
+        ? String(item.deal_threshold_percent)
+        : ''
+  }
+  dealDrafts.value = drafts
+  showDealsModal.value = true
+}
+
+function isMuted(item) {
+  return item.deal_threshold_percent === 0
+}
+
+async function toggleMute(item) {
+  if (isMuted(item)) {
+    await library.setDealThreshold(item.game_id, null)
+    dealDrafts.value[item.game_id] = ''
+  } else {
+    await library.setDealThreshold(item.game_id, 0)
+  }
+}
+
+async function saveCustom(item) {
+  const raw = dealDrafts.value[item.game_id]
+  if (raw === '' || raw == null) {
+    if (item.deal_threshold_percent != null) await library.setDealThreshold(item.game_id, null)
+    return
+  }
+  const val = parseInt(raw, 10)
+  if (!Number.isFinite(val) || val < 1 || val > 90) {
+    dealDrafts.value[item.game_id] = item.deal_threshold_percent ? String(item.deal_threshold_percent) : ''
+    return
+  }
+  await library.setDealThreshold(item.game_id, val)
+}
 </script>
 
 <template>
@@ -131,6 +179,14 @@ onMounted(() => {
         @click="pickRandom"
       >
         <span aria-hidden="true">🎲</span> {{ t('myGames.randomCta') }}
+      </button>
+
+      <button
+        v-if="library.counts.planned"
+        class="btn btn-ghost deals-btn"
+        @click="openDealsModal"
+      >
+        <span aria-hidden="true">🔔</span> {{ t('myGames.dealsCta') }}
       </button>
 
       <router-link :to="{ name: 'steam-import' }" class="btn btn-ghost steam-btn" :class="{ 'steam-btn-alone': !library.items.length }">
@@ -188,6 +244,51 @@ onMounted(() => {
             <button class="btn btn-ghost" @click="pickRandom">🎲 {{ t('myGames.randomReroll') }}</button>
             <button class="btn btn-primary" @click="jumpToRandom">{{ t('myGames.randomJump') }}</button>
           </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade-slide">
+      <div v-if="showDealsModal" class="random-overlay" @click.self="showDealsModal = false">
+        <div class="deals-modal card-surface">
+          <button class="random-close" @click="showDealsModal = false" :aria-label="t('myGames.dealsClose')">✕</button>
+          <p class="random-eyebrow mono">{{ t('myGames.dealsEyebrow') }}</p>
+          <p class="deals-hint">{{ t('myGames.dealsHint', { threshold: deals.threshold }) }}</p>
+
+          <p v-if="!plannedForDeals.length" class="deals-empty">{{ t('myGames.dealsEmpty') }}</p>
+
+          <ul v-else class="deals-list">
+            <li
+              v-for="item in plannedForDeals"
+              :key="item.game_id"
+              class="deals-row"
+              :class="{ muted: isMuted(item) }"
+            >
+              <span class="deals-title">{{ item.title }}</span>
+              <div class="deals-controls">
+                <div class="deals-input-wrap">
+                  <input
+                    type="number"
+                    min="1"
+                    max="90"
+                    class="deals-input"
+                    :placeholder="String(deals.threshold)"
+                    :disabled="isMuted(item)"
+                    v-model="dealDrafts[item.game_id]"
+                    @blur="saveCustom(item)"
+                    @keyup.enter="saveCustom(item); $event.target.blur()"
+                  />
+                  <span class="deals-percent">%</span>
+                </div>
+                <button
+                  type="button"
+                  class="deals-mute-btn"
+                  :class="{ active: isMuted(item) }"
+                  @click="toggleMute(item)"
+                >{{ isMuted(item) ? t('myGames.dealsUnmute') : t('myGames.dealsMute') }}</button>
+              </div>
+            </li>
+          </ul>
         </div>
       </div>
     </transition>
@@ -332,6 +433,115 @@ onMounted(() => {
   text-decoration: none;
 }
 .steam-btn-alone { margin: 0 auto; }
+
+.deals-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.deals-modal {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  max-height: 80vh;
+  padding: 28px 24px 24px;
+  display: flex;
+  flex-direction: column;
+}
+.deals-hint {
+  font-size: 13px;
+  color: var(--text-2);
+  margin: 0 0 18px;
+  text-align: left;
+}
+.deals-empty {
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: center;
+  padding: 24px 0;
+}
+.deals-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--border-soft);
+}
+.deals-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--border-soft);
+  text-align: left;
+}
+.deals-row.muted .deals-title { color: var(--text-2); }
+.deals-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.deals-controls {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.deals-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-1);
+}
+.deals-input {
+  width: 40px;
+  border: none;
+  background: transparent;
+  color: var(--text-0);
+  font-size: 13px;
+  font-family: inherit;
+  text-align: right;
+  -moz-appearance: textfield;
+}
+.deals-input::-webkit-outer-spin-button,
+.deals-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.deals-input:disabled { color: var(--text-2); }
+.deals-input:focus { outline: none; }
+.deals-percent { font-size: 12px; color: var(--text-2); }
+.deals-mute-btn {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+}
+.deals-mute-btn:hover { background: var(--bg-1); color: var(--text-0); }
+.deals-mute-btn.active {
+  color: var(--status-dropped);
+  border-color: var(--status-dropped);
+  background: rgba(var(--status-dropped-rgb, 220, 90, 90), 0.1);
+}
 
 .random-overlay {
   position: fixed;

@@ -40,13 +40,22 @@ export default withErrors(async (req, res) => {
   for (const u of usersWithSubs.rows) {
     const threshold = u.deal_threshold_percent ?? 20
     const planned = await db.execute({
-      sql: "SELECT game_id, title, cover FROM library_items WHERE user_id = ? AND status = 'planned' AND (notify_deals IS NULL OR notify_deals = 1)",
+      sql: "SELECT game_id, title, cover, deal_threshold_percent FROM library_items WHERE user_id = ? AND status = 'planned'",
       args: [u.id]
     })
-    if (!planned.rows.length) continue
+    // deal_threshold_percent per game: NULL -> account default, 0 -> muted, 1-90 -> custom
+    const items = planned.rows
+      .filter((r) => r.deal_threshold_percent !== 0)
+      .map((r) => ({
+        game_id: r.game_id,
+        title: r.title,
+        cover: r.cover,
+        threshold: r.deal_threshold_percent ?? threshold
+      }))
+    if (!items.length) continue
     usersChecked++
 
-    const deals = await findDeals(planned.rows, threshold)
+    const deals = await findDeals(items)
     if (!deals.length) continue
 
     // Skip deals we already pushed for this appid at this-or-a-worse price

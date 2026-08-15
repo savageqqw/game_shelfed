@@ -9,10 +9,9 @@ const props = defineProps({
   status: { type: String, default: null },
   userRating: { type: String, default: null }, // null | 'like' | 'dislike' | 'mixed'
   showRating: { type: Boolean, default: false },
-  readonly: { type: Boolean, default: false }, // true when viewing someone else's public shelf
-  notifyDeals: { type: Boolean, default: true } // deal-drop notifications, only relevant while status is 'planned'
+  readonly: { type: Boolean, default: false } // true when viewing someone else's public shelf
 })
-const emit = defineEmits(['set-status', 'remove', 'set-rating', 'toggle-notify'])
+const emit = defineEmits(['set-status', 'remove', 'set-rating'])
 
 const { t } = useI18n()
 const menuOpen = ref(false)
@@ -53,25 +52,6 @@ function choose(s) {
           </svg>
           {{ formatPlaytime(game.playtimeMinutes) }}
         </span>
-
-        <button
-          v-if="status === 'planned' && !readonly"
-          class="notify-btn"
-          :class="{ muted: !notifyDeals }"
-          @click.stop="emit('toggle-notify')"
-          :aria-label="`${t('status.notifyDeals')}: ${notifyDeals ? t('status.notifyOn') : t('status.notifyOff')}`"
-          :title="`${t('status.notifyDeals')}: ${notifyDeals ? t('status.notifyOn') : t('status.notifyOff')}`"
-        >
-          <svg v-if="notifyDeals" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-          <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          </svg>
-        </button>
       </div>
 
       <div class="info">
@@ -255,22 +235,6 @@ function choose(s) {
 }
 .playtime-badge svg { flex-shrink: 0; }
 
-.notify-btn {
-  flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1px solid rgba(253, 250, 242, 0.14);
-  background: rgba(10, 11, 16, 0.68);
-  backdrop-filter: blur(4px);
-  color: rgba(253, 250, 242, 0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px -3px rgba(0, 0, 0, 0.55);
-}
-.notify-btn.muted { color: rgba(253, 250, 242, 0.4); }
-
 .info {
   position: absolute;
   left: 0;
@@ -406,9 +370,6 @@ function choose(s) {
   .remove-btn { width: 21px; height: 21px; font-size: 10px; }
   .playtime-badge { font-size: 9px; padding: 3px 7px 3px 5px; gap: 3px; }
   .playtime-badge svg { width: 9px; height: 9px; }
-  .corner-right { gap: 4px; }
-  .notify-btn { width: 20px; height: 20px; }
-  .notify-btn svg { width: 10px; height: 10px; }
   .info { padding: 20px 8px 8px; }
 }
 </style>

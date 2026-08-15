@@ -86,7 +86,6 @@ onMounted(() => {
     <header class="users-header">
       <p class="eyebrow mono">{{ t('users.eyebrow') }}</p>
       <h1>{{ t('users.title') }}</h1>
-      <p class="subtitle">{{ t('users.subtitle') }}</p>
     </header>
 
     <div v-if="!loading && !error && users.length" class="search-wrap">

@@ -22,10 +22,7 @@
     "dropped": "Dropped",
     "add": "Add to library",
     "change": "Change status",
-    "remove": "Remove from my games",
-    "notifyDeals": "Deal notifications",
-    "notifyOn": "on",
-    "notifyOff": "off"
+    "remove": "Remove from my games"
   },
   "myGames": {
     "title": "My Games",
@@ -49,7 +46,14 @@
     "randomReroll": "Reroll",
     "randomJump": "Show on shelf",
     "randomClose": "Close",
-    "steamCta": "Import from Steam"
+    "steamCta": "Import from Steam",
+    "dealsCta": "Deals",
+    "dealsClose": "Close",
+    "dealsEyebrow": "Deal notifications",
+    "dealsHint": "Default threshold is {threshold}%. Override it per game or mute it.",
+    "dealsEmpty": "No games in your plans.",
+    "dealsMute": "Mute",
+    "dealsUnmute": "Unmute"
   },
   "library": {
     "eyebrow": "Game catalog",
@@ -182,7 +186,6 @@
   "users": {
     "eyebrow": "Community",
     "title": "Community",
-    "subtitle": "Site users and a place for feedback and ideas.",
     "empty": "Nobody here yet.",
     "gameCount": "{count} games",
     "profileEmpty": "This user's shelf is still empty.",

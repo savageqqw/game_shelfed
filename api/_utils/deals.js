@@ -58,21 +58,22 @@ async function checkOne(item) {
     game_id: item.game_id,
     title: item.title,
     cover: item.cover,
+    threshold: item.threshold,
     appid,
     ...price
   }
 }
 
-// Checks a list of {game_id, title, cover} planned-library rows against
-// current Steam pricing and returns only those at/above the discount
-// threshold, sorted best-discount-first.
-export async function findDeals(items, threshold) {
+// Checks a list of {game_id, title, cover, threshold} planned-library rows
+// against current Steam pricing and returns only those at/above their own
+// (per-game, or account-default) discount threshold, sorted best-discount-first.
+export async function findDeals(items) {
   const deals = []
   for (let i = 0; i < items.length; i += CONCURRENCY) {
     const slice = items.slice(i, i + CONCURRENCY)
     const settled = await Promise.all(slice.map(checkOne))
     for (const d of settled) {
-      if (d && d.discountPercent >= threshold) deals.push(d)
+      if (d && d.discountPercent >= d.threshold) deals.push(d)
     }
   }
   deals.sort((a, b) => b.discountPercent - a.discountPercent)

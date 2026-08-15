@@ -88,12 +88,13 @@ export const useLibraryStore = defineStore('library', {
       if (idx >= 0) this.items[idx] = res.item
       return res.item
     },
-    // Per-game opt-out from deal-drop notifications (only meaningful for
-    // 'planned' items, but harmless to call regardless of status).
-    async toggleNotify(gameId, notify) {
+    // Per-game deal-drop notification threshold. percent: null resets to
+    // account default, 0 mutes the game, 1-90 sets a custom threshold.
+    // Only meaningful while status is 'planned'.
+    async setDealThreshold(gameId, percent) {
       const auth = useAuthStore()
       if (!auth.isAuthed) throw new Error('not-authed')
-      const res = await api.post('/library-notify', { game_id: gameId, notify }, auth.token)
+      const res = await api.post('/library-deal-threshold', { game_id: gameId, percent }, auth.token)
       const idx = this.items.findIndex((i) => String(i.game_id) === String(gameId))
       if (idx >= 0) this.items[idx] = res.item
       return res.item
