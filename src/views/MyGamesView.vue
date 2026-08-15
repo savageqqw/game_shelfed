@@ -78,6 +78,8 @@ async function jumpToRandom() {
 // --- per-game deal-drop notification settings ---
 const showDealsModal = ref(false)
 const dealDrafts = ref({}) // gameId -> string value of the custom-% input
+const dealSavingId = ref(null) // game_id currently being saved
+const dealSavedId = ref(null) // game_id that was just saved (briefly shows a checkmark)
 
 const plannedForDeals = computed(() => library.byStatus('planned'))
 
@@ -117,6 +119,7 @@ function isMuted(item) {
 }
 
 async function toggleMute(item) {
+  dealSavedId.value = null
   if (isMuted(item)) {
     await library.setDealThreshold(item.game_id, null)
     dealDrafts.value[item.game_id] = ''
@@ -136,7 +139,17 @@ async function saveCustom(item) {
     dealDrafts.value[item.game_id] = item.deal_threshold_percent ? String(item.deal_threshold_percent) : ''
     return
   }
-  await library.setDealThreshold(item.game_id, val)
+  if (val === item.deal_threshold_percent) return
+  dealSavingId.value = item.game_id
+  try {
+    await library.setDealThreshold(item.game_id, val)
+    dealSavedId.value = item.game_id
+    setTimeout(() => {
+      if (dealSavedId.value === item.game_id) dealSavedId.value = null
+    }, 1500)
+  } finally {
+    dealSavingId.value = null
+  }
 }
 
 async function saveDefaultThreshold() {
@@ -390,11 +403,13 @@ onMounted(() => {
               class="deals-row"
               :class="{ muted: isMuted(item) }"
             >
-              <div class="deals-cover">
-                <img v-if="item.cover" :src="item.cover" :alt="item.title" loading="lazy" />
-                <span v-else class="deals-cover-fallback mono">{{ item.title.slice(0, 2).toUpperCase() }}</span>
+              <div class="deals-row-top">
+                <div class="deals-cover">
+                  <img v-if="item.cover" :src="item.cover" :alt="item.title" loading="lazy" />
+                  <span v-else class="deals-cover-fallback mono">{{ item.title.slice(0, 2).toUpperCase() }}</span>
+                </div>
+                <span class="deals-title">{{ item.title }}</span>
               </div>
-              <span class="deals-title">{{ item.title }}</span>
               <div class="deals-controls">
                 <div class="deals-input-wrap">
                   <input
@@ -405,11 +420,17 @@ onMounted(() => {
                     :placeholder="String(deals.threshold)"
                     :disabled="isMuted(item)"
                     v-model="dealDrafts[item.game_id]"
-                    @blur="saveCustom(item)"
                     @keyup.enter="saveCustom(item); $event.target.blur()"
                   />
                   <span class="deals-percent">%</span>
                 </div>
+                <button
+                  type="button"
+                  class="deals-save-btn"
+                  :class="{ saved: dealSavedId === item.game_id }"
+                  :disabled="isMuted(item) || dealSavingId === item.game_id"
+                  @click="saveCustom(item)"
+                >{{ dealSavingId === item.game_id ? t('myGames.dealsSaving') : (dealSavedId === item.game_id ? t('myGames.dealsSaved') : t('myGames.dealsSave')) }}</button>
                 <button
                   type="button"
                   class="deals-mute-btn"
@@ -650,12 +671,16 @@ onMounted(() => {
 }
 .deals-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 2px;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 2px;
   border-bottom: 1px solid var(--border-soft);
   text-align: left;
+}
+.deals-row-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .deals-row.muted .deals-title { color: var(--text-2); }
 .deals-cover {
@@ -687,6 +712,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding-left: 46px;
+  flex-wrap: wrap;
 }
 .deals-input-wrap {
   display: flex;
@@ -712,6 +739,25 @@ onMounted(() => {
 .deals-input:disabled { color: var(--text-2); }
 .deals-input:focus { outline: none; }
 .deals-percent { font-size: 12px; color: var(--text-2); }
+.deals-save-btn {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-amber);
+  background: transparent;
+  color: var(--accent-amber);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast), opacity var(--dur-fast);
+}
+.deals-save-btn:hover:not(:disabled) { background: var(--accent-amber); color: #17131a; }
+.deals-save-btn:disabled { opacity: 0.5; cursor: default; }
+.deals-save-btn.saved {
+  border-color: var(--status-completed);
+  color: var(--status-completed);
+}
 .deals-mute-btn {
   flex-shrink: 0;
   padding: 7px 12px;

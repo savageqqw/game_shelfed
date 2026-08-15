@@ -58,7 +58,10 @@
     "dealsTestSending": "Надсилання...",
     "dealsTestSuccess": "Повідомлення надіслано.",
     "dealsTestNoSub": "Спочатку увімкни сповіщення вище.",
-    "dealsTestFail": "Не вдалося надіслати повідомлення."
+    "dealsTestFail": "Не вдалося надіслати повідомлення.",
+    "dealsSave": "Зберегти",
+    "dealsSaving": "Збереження...",
+    "dealsSaved": "Збережено"
   },
   "library": {
     "eyebrow": "Каталог ігор",

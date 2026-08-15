@@ -58,7 +58,10 @@
     "dealsTestSending": "Отправка...",
     "dealsTestSuccess": "Уведомление отправлено.",
     "dealsTestNoSub": "Сначала включи уведомления выше.",
-    "dealsTestFail": "Не удалось отправить уведомление."
+    "dealsTestFail": "Не удалось отправить уведомление.",
+    "dealsSave": "Сохранить",
+    "dealsSaving": "Сохранение...",
+    "dealsSaved": "Сохранено"
   },
   "library": {
     "eyebrow": "Каталог игр",

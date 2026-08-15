@@ -58,7 +58,10 @@
     "dealsTestSending": "Sending...",
     "dealsTestSuccess": "Notification sent.",
     "dealsTestNoSub": "Enable notifications above first.",
-    "dealsTestFail": "Failed to send the notification."
+    "dealsTestFail": "Failed to send the notification.",
+    "dealsSave": "Save",
+    "dealsSaving": "Saving...",
+    "dealsSaved": "Saved"
   },
   "library": {
     "eyebrow": "Game catalog",

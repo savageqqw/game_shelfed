@@ -60,33 +60,84 @@ export const useLibraryStore = defineStore('library', {
     async upsert(game, status) {
       const auth = useAuthStore()
       if (!auth.isAuthed) throw new Error('not-authed')
-      const res = await api.post('/library-upsert', {
+
+      const idx = this.items.findIndex((i) => String(i.game_id) === String(game.id))
+      const prev = idx >= 0 ? { ...this.items[idx] } : null
+
+      // Optimistic UI: reflect the new status immediately instead of making
+      // the person wait for the round-trip before the card/tab updates.
+      const optimistic = {
+        ...(prev || {}),
         game_id: game.id,
         title: game.title,
         cover: game.cover,
         status,
-        genres: game.genres || null,
-        released: game.released || null,
-        catalog_rating: typeof game.rating === 'number' ? game.rating : null
-      }, auth.token)
-      const idx = this.items.findIndex((i) => String(i.game_id) === String(game.id))
-      if (idx >= 0) this.items[idx] = res.item
-      else this.items.push(res.item)
-      return res.item
+        genres: game.genres || prev?.genres || null,
+        released: game.released || prev?.released || null,
+        catalog_rating: typeof game.rating === 'number' ? game.rating : prev?.catalog_rating ?? null,
+        rating: prev?.rating ?? null,
+        updated_at: new Date().toISOString()
+      }
+      if (idx >= 0) this.items[idx] = optimistic
+      else this.items.push(optimistic)
+
+      try {
+        const res = await api.post('/library-upsert', {
+          game_id: game.id,
+          title: game.title,
+          cover: game.cover,
+          status,
+          genres: game.genres || null,
+          released: game.released || null,
+          catalog_rating: typeof game.rating === 'number' ? game.rating : null
+        }, auth.token)
+        const i = this.items.findIndex((it) => String(it.game_id) === String(game.id))
+        if (i >= 0) this.items[i] = res.item
+        else this.items.push(res.item)
+        return res.item
+      } catch (e) {
+        // Roll back on failure.
+        const i = this.items.findIndex((it) => String(it.game_id) === String(game.id))
+        if (i >= 0) {
+          if (prev) this.items[i] = prev
+          else this.items.splice(i, 1)
+        }
+        throw e
+      }
     },
     async remove(gameId) {
       const auth = useAuthStore()
       if (!auth.isAuthed) throw new Error('not-authed')
-      await api.post('/library-delete', { game_id: gameId }, auth.token)
-      this.items = this.items.filter((i) => String(i.game_id) !== String(gameId))
+
+      const idx = this.items.findIndex((i) => String(i.game_id) === String(gameId))
+      const prev = idx >= 0 ? this.items[idx] : null
+      if (idx >= 0) this.items.splice(idx, 1)
+
+      try {
+        await api.post('/library-delete', { game_id: gameId }, auth.token)
+      } catch (e) {
+        if (prev) this.items.splice(idx, 0, prev)
+        throw e
+      }
     },
     async rate(gameId, rating) {
       const auth = useAuthStore()
       if (!auth.isAuthed) throw new Error('not-authed')
-      const res = await api.post('/library-rate', { game_id: gameId, rating }, auth.token)
+
       const idx = this.items.findIndex((i) => String(i.game_id) === String(gameId))
-      if (idx >= 0) this.items[idx] = res.item
-      return res.item
+      const prevRating = idx >= 0 ? this.items[idx].rating : undefined
+      if (idx >= 0) this.items[idx] = { ...this.items[idx], rating }
+
+      try {
+        const res = await api.post('/library-rate', { game_id: gameId, rating }, auth.token)
+        const i = this.items.findIndex((it) => String(it.game_id) === String(gameId))
+        if (i >= 0) this.items[i] = res.item
+        return res.item
+      } catch (e) {
+        const i = this.items.findIndex((it) => String(it.game_id) === String(gameId))
+        if (i >= 0 && prevRating !== undefined) this.items[i] = { ...this.items[i], rating: prevRating }
+        throw e
+      }
     },
     // Per-game deal-drop notification threshold. percent: null resets to
     // account default, 0 mutes the game, 1-90 sets a custom threshold.
@@ -94,10 +145,21 @@ export const useLibraryStore = defineStore('library', {
     async setDealThreshold(gameId, percent) {
       const auth = useAuthStore()
       if (!auth.isAuthed) throw new Error('not-authed')
-      const res = await api.post('/library-deal-threshold', { game_id: gameId, percent }, auth.token)
+
       const idx = this.items.findIndex((i) => String(i.game_id) === String(gameId))
-      if (idx >= 0) this.items[idx] = res.item
-      return res.item
+      const prevPercent = idx >= 0 ? this.items[idx].deal_threshold_percent : undefined
+      if (idx >= 0) this.items[idx] = { ...this.items[idx], deal_threshold_percent: percent }
+
+      try {
+        const res = await api.post('/library-deal-threshold', { game_id: gameId, percent }, auth.token)
+        const i = this.items.findIndex((it) => String(it.game_id) === String(gameId))
+        if (i >= 0) this.items[i] = res.item
+        return res.item
+      } catch (e) {
+        const i = this.items.findIndex((it) => String(it.game_id) === String(gameId))
+        if (i >= 0 && prevPercent !== undefined) this.items[i] = { ...this.items[i], deal_threshold_percent: prevPercent }
+        throw e
+      }
     },
     // Games added before genres/released/catalog_rating were tracked have
     // no metadata saved. Quietly fetch and persist it once, in the background.
