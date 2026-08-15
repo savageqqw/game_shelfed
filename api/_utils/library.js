@@ -39,7 +39,7 @@ export async function upsertLibraryItem(userId, { gameId, title, cover, status, 
   })
 
   const result = await db.execute({
-    sql: 'SELECT id, game_id, title, cover, status, rating, genres, released, catalog_rating, playtime_minutes, completed_at, updated_at FROM library_items WHERE user_id = ? AND game_id = ?',
+    sql: 'SELECT id, game_id, title, cover, status, rating, genres, released, catalog_rating, playtime_minutes, notify_deals, completed_at, updated_at FROM library_items WHERE user_id = ? AND game_id = ?',
     args: [userId, String(gameId)]
   })
   return result.rows[0]

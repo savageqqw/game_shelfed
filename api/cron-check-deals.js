@@ -40,7 +40,7 @@ export default withErrors(async (req, res) => {
   for (const u of usersWithSubs.rows) {
     const threshold = u.deal_threshold_percent ?? 20
     const planned = await db.execute({
-      sql: "SELECT game_id, title, cover FROM library_items WHERE user_id = ? AND status = 'planned'",
+      sql: "SELECT game_id, title, cover FROM library_items WHERE user_id = ? AND status = 'planned' AND (notify_deals IS NULL OR notify_deals = 1)",
       args: [u.id]
     })
     if (!planned.rows.length) continue

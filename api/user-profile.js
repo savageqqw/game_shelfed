@@ -15,7 +15,7 @@ export default withErrors(async (req, res) => {
   const db = getClient()
 
   const userRes = await db.execute({
-    sql: 'SELECT id, username, avatar, created_at FROM users WHERE username = ? COLLATE NOCASE',
+    sql: 'SELECT id, username, avatar, steam_id, created_at FROM users WHERE username = ? COLLATE NOCASE',
     args: [username]
   })
   const userRow = userRes.rows[0]
@@ -30,6 +30,7 @@ export default withErrors(async (req, res) => {
   sendJson(res, 200, {
     username: userRow.username,
     avatar: userRow.avatar || null,
+    steamLinked: !!userRow.steam_id,
     createdAt: userRow.created_at,
     isAdmin: userRow.username.toLowerCase() === ADMIN_USERNAME,
     items: itemsRes.rows

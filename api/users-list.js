@@ -11,14 +11,31 @@ export default withErrors(async (req, res) => {
   await ensureSchema()
   const db = getClient()
 
-  const result = await db.execute(`
-    SELECT u.username, u.avatar, u.created_at,
-           COUNT(li.id) AS game_count
-    FROM users u
-    LEFT JOIN library_items li ON li.user_id = u.id
-    GROUP BY u.id
-    ORDER BY game_count DESC, u.username ASC
-  `)
+  const q = String(req.query?.q || '').trim()
+
+  const result = await db.execute(
+    q
+      ? {
+          sql: `
+            SELECT u.username, u.avatar, u.created_at,
+                   COUNT(li.id) AS game_count
+            FROM users u
+            LEFT JOIN library_items li ON li.user_id = u.id
+            WHERE u.username LIKE ?
+            GROUP BY u.id
+            ORDER BY game_count DESC, u.username ASC
+          `,
+          args: [`%${q}%`]
+        }
+      : `
+          SELECT u.username, u.avatar, u.created_at,
+                 COUNT(li.id) AS game_count
+          FROM users u
+          LEFT JOIN library_items li ON li.user_id = u.id
+          GROUP BY u.id
+          ORDER BY game_count DESC, u.username ASC
+        `
+  )
 
   const users = result.rows.map((r) => ({
     username: r.username,

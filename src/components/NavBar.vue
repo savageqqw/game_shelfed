@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/auth'
 import { useLibraryStore } from '../stores/library'
 import { useSteamPlaytimeStore } from '../stores/steamPlaytime'
 import { useDealsStore } from '../stores/deals'
+import { useCommentsStore } from '../stores/comments'
 import ThemeToggle from './ThemeToggle.vue'
 import LangSwitcher from './LangSwitcher.vue'
 import logoIconUrl from '../assets/logo-icon.svg'
@@ -18,6 +19,7 @@ const auth = useAuthStore()
 const library = useLibraryStore()
 const steamPlaytime = useSteamPlaytimeStore()
 const deals = useDealsStore()
+const comments = useCommentsStore()
 const mobileOpen = ref(false)
 
 // Kick this off as soon as the app shell mounts (present on every page),
@@ -39,6 +41,7 @@ function logout() {
   library.reset()
   steamPlaytime.reset()
   deals.reset()
+  comments.reset()
   mobileOpen.value = false
   router.push({ name: 'library' })
 }

@@ -2,7 +2,7 @@
   "nav": {
     "library": "Library",
     "myGames": "My Games",
-    "users": "Users",
+    "users": "Community",
     "login": "Log in",
     "register": "Sign up",
     "logout": "Log out",
@@ -22,7 +22,10 @@
     "dropped": "Dropped",
     "add": "Add to library",
     "change": "Change status",
-    "remove": "Remove from my games"
+    "remove": "Remove from my games",
+    "notifyDeals": "Deal notifications",
+    "notifyOn": "on",
+    "notifyOff": "off"
   },
   "myGames": {
     "title": "My Games",
@@ -178,13 +181,26 @@
   },
   "users": {
     "eyebrow": "Community",
-    "title": "Users",
-    "subtitle": "Browse other players' shelves.",
+    "title": "Community",
+    "subtitle": "Site users and a place for feedback and ideas.",
     "empty": "Nobody here yet.",
     "gameCount": "{count} games",
     "profileEmpty": "This user's shelf is still empty.",
     "joined": "Joined {date}",
     "statTotal": "Total",
-    "admin": "Admin"
+    "admin": "Admin",
+    "searchPlaceholder": "Search by username...",
+    "noResults": "No users found",
+    "comments": {
+      "title": "Comments & suggestions",
+      "subtitle": "Share a bug report, request, or idea for the site.",
+      "placeholder": "Write a comment or suggestion...",
+      "submit": "Post",
+      "empty": "Nothing here yet. Be the first!",
+      "delete": "Delete",
+      "posting": "Posting...",
+      "error": "Failed to post comment",
+      "deleteError": "Failed to delete comment"
+    }
   }
 }

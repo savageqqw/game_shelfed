@@ -10,7 +10,7 @@ export default withErrors(async (req, res) => {
   const db = getClient()
 
   const result = await db.execute({
-    sql: 'SELECT id, game_id, title, cover, status, rating, genres, released, catalog_rating, playtime_minutes, completed_at, updated_at FROM library_items WHERE user_id = ? ORDER BY updated_at DESC',
+    sql: 'SELECT id, game_id, title, cover, status, rating, genres, released, catalog_rating, playtime_minutes, notify_deals, completed_at, updated_at FROM library_items WHERE user_id = ? ORDER BY updated_at DESC',
     args: [user.id]
   })
 

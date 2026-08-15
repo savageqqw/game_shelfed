@@ -72,6 +72,14 @@ export async function ensureSchema() {
       discount_percent INTEGER NOT NULL,
       notified_at TEXT DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (user_id, appid)
+    )`,
+    'ALTER TABLE library_items ADD COLUMN notify_deals INTEGER DEFAULT 1',
+    `CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      body TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY(user_id) REFERENCES users(id)
     )`
   ]) {
     try {

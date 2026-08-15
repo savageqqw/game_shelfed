@@ -88,6 +88,16 @@ export const useLibraryStore = defineStore('library', {
       if (idx >= 0) this.items[idx] = res.item
       return res.item
     },
+    // Per-game opt-out from deal-drop notifications (only meaningful for
+    // 'planned' items, but harmless to call regardless of status).
+    async toggleNotify(gameId, notify) {
+      const auth = useAuthStore()
+      if (!auth.isAuthed) throw new Error('not-authed')
+      const res = await api.post('/library-notify', { game_id: gameId, notify }, auth.token)
+      const idx = this.items.findIndex((i) => String(i.game_id) === String(gameId))
+      if (idx >= 0) this.items[idx] = res.item
+      return res.item
+    },
     // Games added before genres/released/catalog_rating were tracked have
     // no metadata saved. Quietly fetch and persist it once, in the background.
     async backfillMeta() {

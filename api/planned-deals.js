@@ -14,7 +14,7 @@ export default withErrors(async (req, res) => {
   const threshold = userRow.rows[0]?.deal_threshold_percent ?? 20
 
   const planned = await db.execute({
-    sql: "SELECT game_id, title, cover FROM library_items WHERE user_id = ? AND status = 'planned'",
+    sql: "SELECT game_id, title, cover FROM library_items WHERE user_id = ? AND status = 'planned' AND (notify_deals IS NULL OR notify_deals = 1)",
     args: [user.id]
   })
   const items = planned.rows

@@ -22,8 +22,18 @@ CREATE TABLE IF NOT EXISTS library_items (
   genres TEXT, -- JSON array
   released TEXT,
   catalog_rating REAL,
+  playtime_minutes INTEGER,
+  notify_deals INTEGER DEFAULT 1, -- per-game opt-out from deal-drop notifications
   completed_at TEXT, -- set the first time status transitions to 'completed'
   updated_at TEXT DEFAULT (datetime('now')),
   UNIQUE(user_id, game_id),
+  FOREIGN KEY(user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  body TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
   FOREIGN KEY(user_id) REFERENCES users(id)
 );
