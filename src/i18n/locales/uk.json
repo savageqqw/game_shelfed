@@ -210,5 +210,20 @@
       "error": "Не вдалося надіслати коментар",
       "deleteError": "Не вдалося видалити коментар"
     }
+  },
+  "gameDetail": {
+    "back": "Назад",
+    "notFound": "Гру не знайдено.",
+    "loadError": "Не вдалося завантажити гру.",
+    "developer": "Розробник",
+    "publisher": "Видавець",
+    "platforms": "Платформи",
+    "officialSite": "Офіційний сайт",
+    "steamPage": "Сторінка в Steam",
+    "noSummary": "Опису поки немає.",
+    "screenshots": "Скріншоти",
+    "similar": "Схожі ігри",
+    "signInToTrack": "Увійди, щоб додати гру в бібліотеку",
+    "ratingCount": "{count} оцінок"
   }
 }

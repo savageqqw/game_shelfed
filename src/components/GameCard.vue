@@ -16,6 +16,11 @@ const emit = defineEmits(['set-status', 'remove', 'set-rating'])
 const { t } = useI18n()
 const menuOpen = ref(false)
 
+// Only IGDB-catalog games (plain numeric ids) have a detail page; Steam
+// imports that never got matched to the catalog use a 'steam:123' id and
+// have nowhere to link to.
+const isLinkable = /^\d+$/.test(String(props.game.id))
+
 function formatPlaytime(minutes) {
   const hours = minutes / 60
   const rounded = hours >= 10 ? Math.round(hours) : Math.round(hours * 10) / 10
@@ -32,8 +37,14 @@ function choose(s) {
   <article class="card" :class="{ shelved: !!status }">
     <div class="art">
       <div class="art-media">
-        <img v-if="game.cover" :src="game.cover" :alt="game.title" loading="lazy" />
-        <div v-else class="art-fallback mono">{{ game.title.slice(0, 2).toUpperCase() }}</div>
+        <router-link v-if="isLinkable" :to="{ name: 'game-detail', params: { id: game.id } }" class="art-link" :aria-label="game.title">
+          <img v-if="game.cover" :src="game.cover" :alt="game.title" loading="lazy" />
+          <div v-else class="art-fallback mono">{{ game.title.slice(0, 2).toUpperCase() }}</div>
+        </router-link>
+        <template v-else>
+          <img v-if="game.cover" :src="game.cover" :alt="game.title" loading="lazy" />
+          <div v-else class="art-fallback mono">{{ game.title.slice(0, 2).toUpperCase() }}</div>
+        </template>
         <div class="scrim" />
       </div>
 
@@ -57,7 +68,10 @@ function choose(s) {
       <div class="info">
         <div class="info-row">
           <div class="text-col">
-            <h3 class="title">{{ game.title }}</h3>
+            <h3 class="title">
+              <router-link v-if="isLinkable" :to="{ name: 'game-detail', params: { id: game.id } }" class="title-link">{{ game.title }}</router-link>
+              <template v-else>{{ game.title }}</template>
+            </h3>
             <p class="meta">
               <span class="meta-line1">
                 <span v-if="game.rating" class="rating mono">★ {{ game.rating.toFixed(1) }}</span>
@@ -169,6 +183,12 @@ function choose(s) {
 }
 .card:hover .art-media img { transform: scale(1.06); }
 
+.art-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .art-fallback {
   width: 100%;
   height: 100%;
@@ -261,6 +281,8 @@ function choose(s) {
   overflow: hidden;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
+.title-link { color: inherit; text-decoration: none; }
+.title-link:hover { text-decoration: underline; }
 .meta {
   margin: 6px 0 0;
   display: flex;

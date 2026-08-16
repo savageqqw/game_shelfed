@@ -210,5 +210,20 @@
       "error": "Не удалось отправить комментарий",
       "deleteError": "Не удалось удалить комментарий"
     }
+  },
+  "gameDetail": {
+    "back": "Назад",
+    "notFound": "Игра не найдена.",
+    "loadError": "Не удалось загрузить игру.",
+    "developer": "Разработчик",
+    "publisher": "Издатель",
+    "platforms": "Платформы",
+    "officialSite": "Официальный сайт",
+    "steamPage": "Страница в Steam",
+    "noSummary": "Описания пока нет.",
+    "screenshots": "Скриншоты",
+    "similar": "Похожие игры",
+    "signInToTrack": "Войди, чтобы добавить игру в библиотеку",
+    "ratingCount": "{count} оценок"
   }
 }

@@ -210,5 +210,20 @@
       "error": "Failed to post comment",
       "deleteError": "Failed to delete comment"
     }
+  },
+  "gameDetail": {
+    "back": "Back",
+    "notFound": "Game not found.",
+    "loadError": "Failed to load the game.",
+    "developer": "Developer",
+    "publisher": "Publisher",
+    "platforms": "Platforms",
+    "officialSite": "Official site",
+    "steamPage": "Steam page",
+    "noSummary": "No description yet.",
+    "screenshots": "Screenshots",
+    "similar": "Similar games",
+    "signInToTrack": "Sign in to add this game to your library",
+    "ratingCount": "{count} ratings"
   }
 }
