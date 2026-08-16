@@ -50,7 +50,7 @@
   --card-dropped: #ef4444;
 }
 
-/* ---------------- Dark theme (default) ---------------- */
+/* ---------------- Dark theme (the only theme) ---------------- */
 [data-theme='dark'] {
   --bg-0: #14171f;
   --bg-1: #1c202b;
@@ -70,30 +70,6 @@
   --wallpaper-ink: rgba(245, 241, 230, 0.045);
   --glow-amber: rgba(99, 102, 241, 0.20);
   --glow-violet: rgba(99, 102, 241, 0.16);
-}
-
-/* ---------------- Light theme ---------------- */
-/* A warm poster-stock paper, not a stark white and not a cool
-   lavender-tech tint: closer to aged cardstock game packaging. */
-[data-theme='light'] {
-  --bg-0: #e3dbc8;
-  --bg-1: #f6f1e3;
-  --bg-2: #ece3cd;
-  --bg-3: #ded1b0;
-  --border-soft: rgba(67, 56, 202, 0.16);
-  --border-strong: rgba(67, 56, 202, 0.30);
-  --text-0: #241f16;
-  --text-1: #4c4432;
-  --text-2: #786c53;
-  --shadow-card: 0 12px 26px -16px rgba(60, 40, 10, 0.35);
-  --scrim: rgba(36, 31, 22, 0.5);
-  --status-completed: #157347;
-  --status-planned: #8a5a12;
-  --status-playing: #4f46e5;
-  --status-dropped: #c23f2c;
-  --wallpaper-ink: rgba(36, 31, 22, 0.05);
-  --glow-amber: rgba(99, 102, 241, 0.22);
-  --glow-violet: rgba(99, 102, 241, 0.14);
 }
 
 * { box-sizing: border-box; }

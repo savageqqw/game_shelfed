@@ -151,9 +151,6 @@
     "dislike": "Didn't like it",
     "mixed": "Mixed feelings"
   },
-  "theme": {
-    "toggle": "Toggle theme"
-  },
   "steamImport": {
     "title": "Import from Steam",
     "subtitle": "Pull in your Steam library and pick which games to add to your shelf.",

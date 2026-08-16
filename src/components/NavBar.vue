@@ -7,7 +7,6 @@ import { useLibraryStore } from '../stores/library'
 import { useSteamPlaytimeStore } from '../stores/steamPlaytime'
 import { useDealsStore } from '../stores/deals'
 import { useCommentsStore } from '../stores/comments'
-import ThemeToggle from './ThemeToggle.vue'
 import LangSwitcher from './LangSwitcher.vue'
 import logoIconUrl from '../assets/logo-icon.svg'
 import logoWordmarkUrl from '../assets/logo-wordmark.svg'
@@ -70,7 +69,6 @@ function logout() {
 
       <div class="controls">
         <LangSwitcher />
-        <ThemeToggle />
         <template v-if="auth.isAuthed">
           <router-link :to="{ name: 'account' }" class="user-chip">
             <img v-if="auth.user?.avatar" :src="auth.user.avatar" alt="" class="user-avatar" />
@@ -101,7 +99,6 @@ function logout() {
         <router-link v-if="auth.isAuthed" :to="{ name: 'users' }" @click="mobileOpen = false">{{ t('nav.users') }}</router-link>
         <div class="mobile-controls">
           <LangSwitcher />
-          <ThemeToggle />
         </div>
         <template v-if="auth.isAuthed">
           <router-link :to="{ name: 'account' }" @click="mobileOpen = false">{{ t('nav.profile') }}</router-link>

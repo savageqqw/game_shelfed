@@ -45,7 +45,6 @@
   color: var(--text-0);
   opacity: 0.26;
 }
-[data-theme='light'] .wallpaper { opacity: 0.30; }
 
 .glow {
   position: absolute;
