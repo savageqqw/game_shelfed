@@ -166,8 +166,8 @@ watch(selectedPeriod, replay)
 }
 .period-btn:hover { color: var(--text-0); border-color: var(--border-strong); }
 .period-btn.active {
-  color: var(--card-completed);
-  border-color: var(--card-completed);
+  color: var(--status-completed);
+  border-color: var(--status-completed);
   background: rgba(34, 197, 94, 0.12);
 }
 

@@ -491,20 +491,20 @@ onMounted(() => {
   color: #fdfaf2;
   box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.5);
 }
-.stat-card.s-completed .stat-icon { background: var(--card-completed); }
-.stat-card.s-planned .stat-icon { background: var(--card-planned); }
-.stat-card.s-playing .stat-icon { background: var(--card-playing); }
-.stat-card.s-dropped .stat-icon { background: var(--card-dropped); }
+.stat-card.s-completed .stat-icon { background: var(--status-completed); }
+.stat-card.s-planned .stat-icon { background: var(--status-planned); }
+.stat-card.s-playing .stat-icon { background: var(--status-playing); }
+.stat-card.s-dropped .stat-icon { background: var(--status-dropped); }
 
 .stat-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .stat-num { font-size: 22px; font-weight: 700; line-height: 1.1; color: var(--text-0); }
 .stat-label { font-size: 12px; color: var(--text-2); }
 
 .stat-card.active { background: var(--bg-2); }
-.stat-card.active.s-completed { border-color: var(--card-completed); }
-.stat-card.active.s-planned { border-color: var(--card-planned); }
-.stat-card.active.s-playing { border-color: var(--card-playing); }
-.stat-card.active.s-dropped { border-color: var(--card-dropped); }
+.stat-card.active.s-completed { border-color: var(--status-completed); }
+.stat-card.active.s-planned { border-color: var(--status-planned); }
+.stat-card.active.s-playing { border-color: var(--status-playing); }
+.stat-card.active.s-dropped { border-color: var(--status-dropped); }
 
 .tools-row {
   display: flex;

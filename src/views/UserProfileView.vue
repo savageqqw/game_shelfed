@@ -201,10 +201,10 @@ onMounted(load)
 }
 .stat-item { display: flex; flex-direction: column; gap: 2px; }
 .stat-num { font-size: 20px; font-weight: 700; line-height: 1.1; color: var(--text-0); }
-.stat-item.s-completed .stat-num { color: var(--card-completed); }
-.stat-item.s-planned .stat-num { color: var(--card-planned); }
-.stat-item.s-playing .stat-num { color: var(--card-playing); }
-.stat-item.s-dropped .stat-num { color: var(--card-dropped); }
+.stat-item.s-completed .stat-num { color: var(--status-completed); }
+.stat-item.s-planned .stat-num { color: var(--status-planned); }
+.stat-item.s-playing .stat-num { color: var(--status-playing); }
+.stat-item.s-dropped .stat-num { color: var(--status-dropped); }
 .stat-label { font-size: 11px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; }
 
 .tabs-row {
@@ -290,10 +290,10 @@ onMounted(load)
   border-radius: 999px;
   background: var(--bg-2);
 }
-.row-status.s-completed { color: var(--card-completed); }
-.row-status.s-planned { color: var(--card-planned); }
-.row-status.s-playing { color: var(--card-playing); }
-.row-status.s-dropped { color: var(--card-dropped); }
+.row-status.s-completed { color: var(--status-completed); }
+.row-status.s-planned { color: var(--status-planned); }
+.row-status.s-playing { color: var(--status-playing); }
+.row-status.s-dropped { color: var(--status-dropped); }
 .row-status-icon { font-size: 12px; }
 
 @media (max-width: 640px) {

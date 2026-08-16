@@ -348,10 +348,10 @@ function choose(s) {
 .status-opt:hover { background: var(--bg-2); }
 .status-opt.active { color: var(--text-0); font-weight: 700; background: var(--bg-2); }
 .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.status-opt.s-completed .dot { background: var(--card-completed); }
-.status-opt.s-planned .dot { background: var(--card-planned); }
-.status-opt.s-playing .dot { background: var(--card-playing); }
-.status-opt.s-dropped .dot { background: var(--card-dropped); }
+.status-opt.s-completed .dot { background: var(--status-completed); }
+.status-opt.s-planned .dot { background: var(--status-planned); }
+.status-opt.s-playing .dot { background: var(--status-playing); }
+.status-opt.s-dropped .dot { background: var(--status-dropped); }
 
 .fade-slide-enter-active, .fade-slide-leave-active {
   transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);

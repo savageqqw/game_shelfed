@@ -177,7 +177,7 @@ button { font-family: var(--font-body); cursor: pointer; }
 .btn-primary {
   background: linear-gradient(135deg, var(--accent-amber), #4338ca);
   border-color: transparent;
-  color: #04262b;
+  color: #fdfaf2;
   box-shadow: 0 8px 20px -8px rgba(99, 102, 241, 0.55);
   transition: filter var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }

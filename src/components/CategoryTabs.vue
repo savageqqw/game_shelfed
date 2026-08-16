@@ -95,10 +95,10 @@ onBeforeUnmount(() => ro && ro.disconnect())
 }
 .cat-tab:hover { color: var(--text-0); }
 .cat-tab.active { color: var(--text-0); }
-.cat-tab.active.s-completed { color: var(--card-completed); }
-.cat-tab.active.s-planned { color: var(--card-planned); }
-.cat-tab.active.s-playing { color: var(--card-playing); }
-.cat-tab.active.s-dropped { color: var(--card-dropped); }
+.cat-tab.active.s-completed { color: var(--status-completed); }
+.cat-tab.active.s-planned { color: var(--status-planned); }
+.cat-tab.active.s-playing { color: var(--status-playing); }
+.cat-tab.active.s-dropped { color: var(--status-dropped); }
 .count {
   font-size: 11px;
   background: var(--bg-2);
