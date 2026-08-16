@@ -121,7 +121,7 @@ onMounted(() => {
           <span v-else class="user-avatar-fallback mono">{{ initials(u.username) }}</span>
         </div>
         <span class="user-name">{{ u.username }}</span>
-        <span v-if="u.isAdmin" class="admin-badge mono">{{ t('users.admin') }}</span>
+        <span v-if="u.isAdmin" class="admin-badge">{{ t('users.admin') }}</span>
         <span class="user-count mono">{{ t('users.gameCount', { count: u.gameCount }) }}</span>
       </router-link>
     </div>
@@ -281,6 +281,7 @@ onMounted(() => {
 
 .admin-badge {
   flex-shrink: 0;
+  font-family: var(--font-heading);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
