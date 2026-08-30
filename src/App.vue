@@ -1,13 +1,20 @@
 <script setup>
+import { onMounted } from 'vue'
 import NavBar from './components/NavBar.vue'
 import AppBackground from './components/AppBackground.vue'
 import { STATUSES } from './stores/library'
 import { useDealsStore } from './stores/deals'
+import { usePageViewsStore } from './stores/pageViews'
 import { useI18n } from 'vue-i18n'
 import logoIconUrl from './assets/logo-icon.svg'
 import logoWordmarkUrl from './assets/logo-wordmark.svg'
 const { t } = useI18n()
 const deals = useDealsStore()
+const pageViews = usePageViewsStore()
+
+onMounted(() => {
+  pageViews.trackAndLoad()
+})
 </script>
 
 <template>
@@ -57,6 +64,9 @@ const deals = useDealsStore()
             <span v-for="n in 28" :key="n" :style="{ height: 14 + ((n * 7) % 12) + 'px' }" />
           </div>
           <span class="receipt-code mono">GSHELF-000-UA</span>
+          <span v-if="pageViews.weekly !== null" class="view-counter mono">
+            <span aria-hidden="true">◉</span> {{ t('footer.weeklyViews', { count: pageViews.weekly }) }}
+          </span>
         </div>
       </div>
     </footer>
@@ -187,4 +197,13 @@ const deals = useDealsStore()
   color: var(--text-2);
   letter-spacing: 0.06em;
 }
+.view-counter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--text-2);
+  letter-spacing: 0.03em;
+}
+.view-counter span[aria-hidden] { color: var(--accent-amber); font-size: 8px; }
 </style>

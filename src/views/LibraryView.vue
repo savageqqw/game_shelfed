@@ -4,11 +4,27 @@ import { useI18n } from 'vue-i18n'
 import { api } from '../utils/api'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore } from '../stores/library'
+import { useSeo } from '../composables/useSeo'
 import GameCard from '../components/GameCard.vue'
 
 const { t } = useI18n()
 const auth = useAuthStore()
 const library = useLibraryStore()
+
+useSeo(() => ({
+  path: '/',
+  jsonLd: {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Game Shelfed',
+    url: 'https://game-shelfed.pp.ua/',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://game-shelfed.pp.ua/?q={search_term_string}',
+      'query-input': 'required name=search_term_string'
+    }
+  }
+}))
 
 const query = ref('')
 const games = ref([])

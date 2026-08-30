@@ -82,6 +82,10 @@ const EXTRA_TABLES = {
     body TEXT NOT NULL,
     created_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY(user_id) REFERENCES users(id)
+  )`,
+  page_views: `CREATE TABLE IF NOT EXISTS page_views (
+    day TEXT PRIMARY KEY,
+    count INTEGER NOT NULL DEFAULT 0
   )`
 }
 

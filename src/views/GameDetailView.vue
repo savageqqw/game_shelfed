@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore, STATUSES, STATUS_ICONS } from '../stores/library'
 import { api } from '../utils/api'
+import { useSeo } from '../composables/useSeo'
 import RatingPicker from '../components/RatingPicker.vue'
 import GameCard from '../components/GameCard.vue'
 
@@ -68,6 +69,33 @@ onMounted(() => {
   load(route.params.id)
 })
 watch(() => route.params.id, (id) => { if (id) load(id) })
+
+useSeo(() => {
+  if (!game.value) return null
+  const g = game.value
+  const descBase = g.summary ? g.summary.slice(0, 155).trim() + (g.summary.length > 155 ? '…' : '') : null
+  return {
+    title: g.title,
+    description: descBase || `${g.title}${g.released ? ` (${g.released.slice(0, 4)})` : ''} — деталі, скріншоти та схожі ігри на Game Shelfed.`,
+    path: `/game/${g.id}`,
+    image: g.cover || undefined,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'VideoGame',
+      name: g.title,
+      description: g.summary || undefined,
+      image: g.cover || undefined,
+      datePublished: g.released || undefined,
+      genre: g.genres?.length ? g.genres : undefined,
+      gamePlatform: g.platforms?.length ? g.platforms : undefined,
+      publisher: g.publishers?.length ? g.publishers.map((name) => ({ '@type': 'Organization', name })) : undefined,
+      author: g.developers?.length ? g.developers.map((name) => ({ '@type': 'Organization', name })) : undefined,
+      aggregateRating: g.rating
+        ? { '@type': 'AggregateRating', ratingValue: g.rating, bestRating: 5, ratingCount: g.ratingCount || 1 }
+        : undefined
+    }
+  }
+})
 </script>
 
 <template>

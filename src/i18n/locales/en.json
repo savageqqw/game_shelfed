@@ -65,8 +65,8 @@
   },
   "library": {
     "eyebrow": "Game catalog",
-    "title": "Shelf your next game",
-    "subtitle": "Find any title and file it onto your shelf — planned, playing, or cleared.",
+    "title": "Track your games",
+    "subtitle": "Add games to your personal library.",
     "stats": {
       "games": "games in the catalog",
       "statuses": "progress statuses",
@@ -181,7 +181,8 @@
     "emptyResults": "No games match your search."
   },
   "footer": {
-    "tagline": "A shelf for every game you've ever cleared."
+    "tagline": "A shelf for every game you've ever cleared.",
+    "weeklyViews": "{count} views this week"
   },
   "deals": {
     "bannerPrefix": "{count} games from your plans are on sale ≥{threshold}%: ",
@@ -201,7 +202,7 @@
     "noResults": "No users found",
     "comments": {
       "title": "Comments & suggestions",
-      "subtitle": "Share a bug report, request, or idea for the site.",
+      "subtitle": "Share advice or a suggestion for the site.",
       "placeholder": "Write a comment or suggestion...",
       "submit": "Post",
       "empty": "Nothing here yet. Be the first!",
