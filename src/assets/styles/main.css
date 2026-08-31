@@ -1,0 +1,221 @@
+/* ============================================================
+   SHELFED — design tokens
+   Concept: the used-game shelf at a corner game store. Every
+   title carries a die-cut PRICE TAG instead of a generic badge;
+   the footer prints like a receipt/barcode strip; the page
+   background is a faint wallpaper of controller/cartridge
+   silhouettes, like the pattern on a store's back wall — not a
+   generic gradient glow.
+   ============================================================ */
+
+:root {
+  /* --- typography ---
+     Bungee: a block arcade-marquee face, used ONLY for the brand
+     mark and the hero headline — loud on purpose, used sparingly.
+     Inter carries every other heading and all body copy. */
+  --font-display: 'Bungee', 'Inter', sans-serif;
+  --font-heading: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'Space Grotesk', 'Inter', sans-serif;
+
+  /* --- layout --- */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --shell-max: 1360px;
+  --nav-h: 68px;
+
+  /* --- motion --- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 150ms;
+  --dur-med: 320ms;
+  --dur-slow: 520ms;
+
+  /* --- accent (shared across themes) ---
+     Cyan is the primary brand accent (an arcade-marquee neon),
+     with amber demoted to one of four status colors so the page
+     isn't monochrome. */
+  --accent-amber: #6366f1;
+  --accent-amber-2: #a5b4fc;
+  --accent-red: #ff5f6d;
+  --accent-violet: #6366f1;
+  --accent-teal: #e8a33d;
+
+  /* Fixed status colors for GameCard badges — the card art is always a
+     dark overlay regardless of site theme, so these stay constant instead
+     of switching between the light/dark theme status-* variables. */
+  --card-completed: #4ade80;
+  --card-planned: #eab308;
+  --card-playing: #6366f1;
+  --card-dropped: #ef4444;
+}
+
+/* ---------------- Dark theme (the only theme) ---------------- */
+[data-theme='dark'] {
+  --bg-0: #14171f;
+  --bg-1: #1c202b;
+  --bg-2: #242a38;
+  --bg-3: #2e3547;
+  --border-soft: rgba(99, 102, 241, 0.14);
+  --border-strong: rgba(99, 102, 241, 0.30);
+  --text-0: #f5f1e6;
+  --text-1: #c9c4b4;
+  --text-2: #8b8779;
+  --shadow-card: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+  --scrim: rgba(10, 11, 16, 0.72);
+  --status-completed: #4ade80;
+  --status-planned: var(--accent-teal);
+  --status-playing: var(--accent-violet);
+  --status-dropped: var(--accent-red);
+  --wallpaper-ink: rgba(245, 241, 230, 0.045);
+  --glow-amber: rgba(99, 102, 241, 0.20);
+  --glow-violet: rgba(99, 102, 241, 0.16);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-0);
+  color: var(--text-0);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--dur-med) var(--ease-out), color var(--dur-med) var(--ease-out);
+  /* Stops iOS Safari's rubber-band bounce at the top/bottom of the page,
+     which otherwise makes the sticky nav visually detach from the fixed
+     background wallpaper and leave a blank gap while overscrolling. */
+  overscroll-behavior-y: none;
+}
+
+#app { min-height: 100vh; }
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+a { color: inherit; }
+
+button { font-family: var(--font-body); cursor: pointer; }
+
+::selection { background: var(--accent-amber); color: #241f16; }
+
+/* focus visibility (accessibility floor) */
+:focus-visible {
+  outline: 2px solid var(--accent-amber);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------- shared utility classes ---------------- */
+.shell {
+  max-width: var(--shell-max);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+@media (max-width: 560px) {
+  .shell { padding: 0 14px; }
+}
+
+.mono { font-family: var(--font-mono); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  border: none;
+  background: var(--bg-2);
+  color: var(--text-0);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast);
+}
+.btn:hover { transform: translateY(-1px); background: var(--bg-3); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-amber), #4338ca);
+  border-color: transparent;
+  color: #fdfaf2;
+  box-shadow: 0 8px 20px -8px rgba(99, 102, 241, 0.55);
+  transition: filter var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.btn-primary:hover { filter: brightness(1.12) saturate(1.15); box-shadow: 0 10px 26px -8px rgba(99, 102, 241, 0.7); }
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.btn-ghost:hover { background: var(--bg-2); }
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-1);
+  color: var(--text-0);
+  font-size: 14px;
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.input:focus {
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  outline: none;
+}
+
+.card-surface {
+  background: var(--bg-1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* barcode strip — reusable decorative device for the "receipt" motif */
+.barcode {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  height: 26px;
+  opacity: 0.8;
+}
+.barcode span {
+  display: block;
+  width: 2px;
+  background: var(--text-2);
+}
+.barcode span:nth-child(3n) { width: 3px; }
+.barcode span:nth-child(5n) { width: 1px; }
+
+/* fade/slide transitions used across route + list changes */
+.fade-slide-enter-active { transition: all var(--dur-med) var(--ease-out); }
+.fade-slide-leave-active { transition: all var(--dur-fast) var(--ease-out); position: absolute; }
+.fade-slide-enter-from { opacity: 0; transform: translateY(10px); }
+.fade-slide-leave-to { opacity: 0; transform: translateY(-6px); }
+
+.grid-fade-move { transition: transform var(--dur-med) var(--ease-out); }
+.grid-fade-enter-active { transition: all var(--dur-med) var(--ease-out); }
+.grid-fade-leave-active { transition: all var(--dur-fast) var(--ease-out); position: absolute; }
+.grid-fade-enter-from { opacity: 0; transform: scale(0.92) translateY(8px); }
+.grid-fade-leave-to { opacity: 0; transform: scale(0.92); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
