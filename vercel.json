@@ -4,9 +4,45 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+
+    { "source": "/api/account-info", "destination": "/api/account?action=info" },
+    { "source": "/api/account-deal-threshold", "destination": "/api/account?action=deal-threshold" },
+    { "source": "/api/account-change-password", "destination": "/api/account?action=change-password" },
+
+    { "source": "/api/library-list", "destination": "/api/library?action=list" },
+    { "source": "/api/library-upsert", "destination": "/api/library?action=upsert" },
+    { "source": "/api/library-rate", "destination": "/api/library?action=rate" },
+    { "source": "/api/library-delete", "destination": "/api/library?action=delete" },
+    { "source": "/api/library-deal-threshold", "destination": "/api/library?action=deal-threshold" },
+    { "source": "/api/library-backfill-meta", "destination": "/api/library?action=backfill-meta" },
+
+    { "source": "/api/games-search", "destination": "/api/games?action=search" },
+    { "source": "/api/games-details", "destination": "/api/games?action=details" },
+    { "source": "/api/game-detail", "destination": "/api/games?action=detail" },
+
+    { "source": "/api/push-subscribe", "destination": "/api/push?action=subscribe" },
+    { "source": "/api/push-unsubscribe", "destination": "/api/push?action=unsubscribe" },
+    { "source": "/api/push-test", "destination": "/api/push?action=test" },
+
+    { "source": "/api/comments-list", "destination": "/api/comments?action=list" },
+    { "source": "/api/comments-add", "destination": "/api/comments?action=add" },
+    { "source": "/api/comments-delete", "destination": "/api/comments?action=delete" },
+
+    { "source": "/api/steam-import", "destination": "/api/steam?action=import" },
+    { "source": "/api/steam-library", "destination": "/api/steam?action=library" },
+    { "source": "/api/auth-steam-start", "destination": "/api/steam?action=start" },
+
+    { "source": "/api/users-list", "destination": "/api/users?action=list" },
+    { "source": "/api/user-profile", "destination": "/api/users?action=profile" },
+
+    { "source": "/api/auth-login", "destination": "/api/auth?action=login" },
+    { "source": "/api/auth-register", "destination": "/api/auth?action=register" },
+
+    { "source": "/api/planned-deals", "destination": "/api/deals?action=planned" },
+
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "crons": [
-    { "path": "/api/cron-check-deals", "schedule": "0 12 * * *" }
+    { "path": "/api/deals?action=cron", "schedule": "0 12 * * *" }
   ]
 }
