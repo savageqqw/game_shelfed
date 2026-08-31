@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore, STATUSES } from '../stores/library'
+import { usePageViewsStore } from '../stores/pageViews'
 import { api } from '../utils/api'
 import ActivityHeatmap from '../components/ActivityHeatmap.vue'
 
@@ -12,6 +13,23 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const library = useLibraryStore()
+const pageViews = usePageViewsStore()
+
+const isAdmin = computed(() => (auth.user?.username || '').toLowerCase() === 'hellraiser')
+
+function visitLabel(v) {
+  if (v.isSelf) return t('account.visits.self')
+  if (v.username) return v.username
+  return v.isNewVisitor ? t('account.visits.newGuest') : t('account.visits.returningGuest')
+}
+
+function formatVisitTime(raw) {
+  if (!raw) return ''
+  const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T') + 'Z'
+  const d = new Date(normalized)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleString(locale.value, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
 
 const info = ref(null)
 const infoLoading = ref(true)
@@ -81,6 +99,7 @@ async function submitPasswordChange() {
 onMounted(() => {
   loadInfo()
   if (!library.loaded) library.fetchAll()
+  if (isAdmin.value) pageViews.fetchRecent()
 
   if (route.query.steamLinked) {
     linkNotice.value = { type: 'success', text: t('account.steamLinkSuccess') }
@@ -188,6 +207,22 @@ onMounted(() => {
         </button>
       </form>
     </section>
+
+    <section v-if="isAdmin" class="card-surface visits-card">
+      <h2>{{ t('account.visits.title') }}</h2>
+      <p class="visits-subtitle">{{ t('account.visits.subtitle') }}</p>
+
+      <div v-if="pageViews.recentLoading" class="loading-msg mono">{{ t('search.loading') }}</div>
+      <p v-else-if="!pageViews.recent.length" class="visits-empty">{{ t('account.visits.empty') }}</p>
+
+      <ul v-else class="visits-list">
+        <li v-for="v in pageViews.recent" :key="v.id" class="visit-row">
+          <span class="visit-dot" :class="{ self: v.isSelf, known: v.username && !v.isSelf, new: v.isGuest && v.isNewVisitor }" />
+          <span class="visit-name">{{ visitLabel(v) }}</span>
+          <span class="visit-time mono">{{ formatVisitTime(v.createdAt) }}</span>
+        </li>
+      </ul>
+    </section>
   </div>
 </template>
 
@@ -282,6 +317,33 @@ onMounted(() => {
 .stat-item.s-dropped .dot { background: var(--status-dropped); }
 
 .password-card { padding: 28px 32px; max-width: 440px; }
+
+.visits-card { padding: 28px 32px; margin-top: 32px; max-width: 560px; }
+.visits-subtitle { color: var(--text-2); font-size: 13px; margin: -8px 0 18px; }
+.visits-empty { color: var(--text-2); font-size: 14px; padding: 12px 0; }
+.visits-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border-soft);
+  max-height: 360px;
+  overflow-y: auto;
+}
+.visit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.visit-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--text-2); }
+.visit-dot.self { background: var(--accent-amber); }
+.visit-dot.known { background: var(--status-completed); }
+.visit-dot.new { background: var(--status-planned); }
+.visit-name { font-size: 13px; font-weight: 600; color: var(--text-0); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.visit-time { font-size: 11px; color: var(--text-2); flex-shrink: 0; }
 .auth-form { display: flex; flex-direction: column; gap: 16px; }
 .auth-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-1); font-weight: 600; }
 

@@ -36,3 +36,11 @@ export function requireUser(req) {
   }
   return user
 }
+
+// Like requireUser, but returns null for guests instead of throwing --
+// for endpoints that work for anyone but behave differently when signed in.
+export function optionalUser(req) {
+  const header = req.headers.authorization || req.headers.Authorization
+  if (!header || !header.startsWith('Bearer ')) return null
+  return verifyToken(header.slice(7))
+}

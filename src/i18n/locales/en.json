@@ -142,6 +142,14 @@
       "pushDisable": "Disable",
       "pushDenied": "Notification permission is blocked in your browser.",
       "pushUnsupported": "This browser doesn't support push notifications."
+    },
+    "visits": {
+      "title": "Recent visitors",
+      "subtitle": "Who has been on the site lately.",
+      "self": "You",
+      "newGuest": "New visitor",
+      "returningGuest": "Guest (returning)",
+      "empty": "No visits yet."
     }
   },
   "rating": {

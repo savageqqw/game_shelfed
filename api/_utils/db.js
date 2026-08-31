@@ -86,6 +86,14 @@ const EXTRA_TABLES = {
   page_views: `CREATE TABLE IF NOT EXISTS page_views (
     day TEXT PRIMARY KEY,
     count INTEGER NOT NULL DEFAULT 0
+  )`,
+  visits: `CREATE TABLE IF NOT EXISTS visits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT DEFAULT (datetime('now')),
+    user_id INTEGER,
+    username TEXT,
+    visitor_id TEXT,
+    is_new_visitor INTEGER NOT NULL DEFAULT 0
   )`
 }
 
