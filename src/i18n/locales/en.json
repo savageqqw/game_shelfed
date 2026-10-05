@@ -7,8 +7,8 @@
     "register": "Sign up",
     "logout": "Log out",
     "profile": "Profile",
-    "donate": "Insert coin",
-    "donateHint": "Support the project with a donation"
+    "donate": "Donate",
+    "donateHint": "Support the project"
   },
   "search": {
     "placeholder": "Search the catalog…",
@@ -28,7 +28,7 @@
   },
   "myGames": {
     "title": "My Games",
-    "empty": "This shelf is empty — go add a game from the Library.",
+    "empty": "This shelf is empty. Add a game from the library.",
     "emptyCta": "Browse the library",
     "tabs": {
       "all": "All",
@@ -96,7 +96,18 @@
     "orDivider": "or",
     "steamCta": "Sign in with Steam",
     "steamConnecting": "Connecting to Steam…",
-    "steamFailed": "Steam sign-in failed. Please try again."
+    "steamFailed": "Steam sign-in failed. Please try again.",
+    "errors": {
+      "bad_credentials": "Wrong email or password.",
+      "missing_fields": "Fill in all the fields.",
+      "bad_username": "Username must be 2 to 32 characters.",
+      "bad_email": "That email doesn't look right.",
+      "short_password": "Password needs at least 6 characters.",
+      "long_password": "That password is too long.",
+      "email_taken": "There's already an account with this email.",
+      "username_taken": "That username is taken.",
+      "bad_current_password": "The current password is wrong."
+    }
   },
   "account": {
     "title": "Account",
@@ -156,6 +167,29 @@
       "newGuest": "New visitor",
       "returningGuest": "Guest (returning)",
       "empty": "No visits yet."
+    },
+    "stats": {
+      "title": "Visits",
+      "subtitle": "Real people only. Bots, your own visits and local development aren't counted.",
+      "visitors7d": "People, 7 days",
+      "today": "Today",
+      "sessions": "Visits, 7 days",
+      "signups": "Sign-ups, 7 days",
+      "bots": "Bots filtered",
+      "prevWeek": "previous week: {count}",
+      "conversion": "{pct}% of visitors sign up. Accounts in total: {total}.",
+      "daily": "People per day",
+      "sources": "Where they come from",
+      "countries": "Countries",
+      "devices": "Devices",
+      "direct": "Direct",
+      "unknown": "Unknown",
+      "mobile": "Phone",
+      "desktop": "Computer",
+      "log": "Latest visits",
+      "bot": "bot",
+      "empty": "No data yet. The new stats count from this site update on.",
+      "loadError": "Couldn't load the stats."
     }
   },
   "rating": {
@@ -168,7 +202,7 @@
   "steamImport": {
     "title": "Import from Steam",
     "subtitle": "Pull in your Steam library and pick which games to add to your shelf.",
-    "back": "← My Games",
+    "back": "My Games",
     "inputLabel": "Steam profile",
     "inputPlaceholder": "ID64, profile link, or vanity name",
     "inputHint": "e.g. steamcommunity.com/id/yourname, or just yourname",
@@ -186,7 +220,7 @@
     "hoursPlayed": "{hours} h",
     "notPlayed": "Never launched",
     "importCta": "Add selected ({count})",
-    "importing": "Adding games — this can take a minute…",
+    "importing": "Adding games: {done} of {total}…",
     "importDone": "Done! Games added: {count}",
     "importDoneMatched": "Matched with full catalog data: {count}",
     "importDoneCta": "Go to My Games",
@@ -196,7 +230,7 @@
   },
   "footer": {
     "tagline": "A shelf for every game you've ever cleared.",
-    "weeklyViews": "{count} views this week"
+    "weeklyVisitors": "Visitors this week: {count}"
   },
   "deals": {
     "bannerPrefix": "{count} games from your plans are on sale ≥{threshold}%: ",
@@ -245,5 +279,21 @@
     "title": "There's no shelf here",
     "text": "The page has moved, or the link has a typo.",
     "cta": "Back to the catalog"
+  },
+  "donate": {
+    "eyebrow": "Donate",
+    "title": "Support Game Shelfed",
+    "lead": "Game Shelfed is free. If the site has been useful to you, you can support it with any amount.",
+    "monoTitle": "Monobank jar",
+    "monoText": "You can top up the jar with a card from any bank.",
+    "monoCta": "Open the jar",
+    "cryptoTitle": "Crypto",
+    "cryptoText": "Copy the address for the network you're sending on.",
+    "warning": "Only send on the network listed next to the address. A transfer on another network can get lost.",
+    "evmNote": "Ethereum, BNB Smart Chain, Base and Robinhood Chain use the same address.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyFailed": "Couldn't copy",
+    "thanks": "Thanks for the support!"
   }
 }

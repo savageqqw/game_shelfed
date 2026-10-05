@@ -56,6 +56,13 @@ const COLUMN_MIGRATIONS = {
     steam_id: 'ALTER TABLE users ADD COLUMN steam_id TEXT',
     avatar: 'ALTER TABLE users ADD COLUMN avatar TEXT',
     deal_threshold_percent: 'ALTER TABLE users ADD COLUMN deal_threshold_percent INTEGER'
+  },
+  visits: {
+    device: 'ALTER TABLE visits ADD COLUMN device TEXT',
+    referrer: 'ALTER TABLE visits ADD COLUMN referrer TEXT',
+    country: 'ALTER TABLE visits ADD COLUMN country TEXT',
+    path: 'ALTER TABLE visits ADD COLUMN path TEXT',
+    is_bot: 'ALTER TABLE visits ADD COLUMN is_bot INTEGER NOT NULL DEFAULT 0'
   }
 }
 
@@ -93,7 +100,18 @@ const EXTRA_TABLES = {
     user_id INTEGER,
     username TEXT,
     visitor_id TEXT,
-    is_new_visitor INTEGER NOT NULL DEFAULT 0
+    is_new_visitor INTEGER NOT NULL DEFAULT 0,
+    device TEXT,
+    referrer TEXT,
+    country TEXT,
+    path TEXT,
+    is_bot INTEGER NOT NULL DEFAULT 0
+  )`,
+  // one row per person per day -- the source of the "unique visitors" numbers
+  visitor_days: `CREATE TABLE IF NOT EXISTS visitor_days (
+    day TEXT NOT NULL,
+    visitor_id TEXT NOT NULL,
+    PRIMARY KEY (day, visitor_id)
   )`
 }
 
@@ -115,14 +133,16 @@ export async function ensureSchema() {
   // Base tables must exist before we can introspect their columns.
   await db.batch(BASE_TABLES, 'write')
 
-  const [usersCols, itemsCols, master] = await Promise.all([
+  const [usersCols, itemsCols, visitsCols, master] = await Promise.all([
     db.execute('PRAGMA table_info(users)'),
     db.execute('PRAGMA table_info(library_items)'),
+    db.execute('PRAGMA table_info(visits)'),
     db.execute("SELECT type, name FROM sqlite_master WHERE type IN ('table', 'index')")
   ])
 
   const haveUserCols = new Set(usersCols.rows.map((r) => r.name))
   const haveItemCols = new Set(itemsCols.rows.map((r) => r.name))
+  const haveVisitCols = new Set(visitsCols.rows.map((r) => r.name))
   const haveNames = new Set(master.rows.map((r) => r.name))
 
   const stmts = []
@@ -132,6 +152,12 @@ export async function ensureSchema() {
   }
   for (const [col, stmt] of Object.entries(COLUMN_MIGRATIONS.users)) {
     if (!haveUserCols.has(col)) stmts.push(stmt)
+  }
+  // a brand-new visits table is created with these columns already
+  if (haveNames.has('visits')) {
+    for (const [col, stmt] of Object.entries(COLUMN_MIGRATIONS.visits)) {
+      if (!haveVisitCols.has(col)) stmts.push(stmt)
+    }
   }
   for (const [table, stmt] of Object.entries(EXTRA_TABLES)) {
     if (!haveNames.has(table)) stmts.push(stmt)

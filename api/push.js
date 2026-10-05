@@ -65,7 +65,7 @@ async function test(req, res, user) {
 
   const payload = JSON.stringify({
     title: 'Game Shelfed',
-    body: 'Тестове повідомлення — сповіщення про знижки працюють.',
+    body: 'Тестове повідомлення: сповіщення про знижки працюють.',
     url: '/my-games'
   })
 

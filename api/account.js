@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 import { getClient, ensureSchema } from './_utils/db.js'
 import { requireUser } from './_utils/auth.js'
 import { sendJson, withErrors } from './_utils/response.js'
+import { isAdmin } from './_utils/admin.js'
 
 async function info(req, res, user) {
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' })
@@ -23,7 +24,8 @@ async function info(req, res, user) {
     avatar: row.avatar || null,
     steamLinked: !!row.steam_id,
     createdAt: row.created_at,
-    dealThresholdPercent: row.deal_threshold_percent ?? 20
+    dealThresholdPercent: row.deal_threshold_percent ?? 20,
+    isAdmin: await isAdmin(db, user)
   })
 }
 
@@ -67,7 +69,8 @@ async function changePassword(req, res, user) {
   if (!row) return sendJson(res, 404, { error: 'User not found' })
 
   const valid = await bcrypt.compare(currentPassword, row.password_hash)
-  if (!valid) return sendJson(res, 401, { error: 'Current password is incorrect' })
+  // 400, not 401: a 401 makes the client treat the session as expired
+  if (!valid) return sendJson(res, 400, { error: 'Current password is incorrect', code: 'bad_current_password' })
 
   const hash = await bcrypt.hash(newPassword, 10)
   await db.execute({

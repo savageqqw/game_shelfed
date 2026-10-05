@@ -149,34 +149,37 @@ watch(selectedPeriod, replay)
 
 <style scoped>
 .period-row {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 18px;
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: 20px;
+  border: var(--stroke) solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg-0);
 }
 .period-btn {
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border-soft);
-  background: var(--bg-1);
-  color: var(--text-2);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-1);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color var(--dur-fast), background var(--dur-fast);
 }
-.period-btn:hover { color: var(--text-0); border-color: var(--border-strong); }
-.period-btn.active {
-  color: var(--status-completed);
-  border-color: var(--status-completed);
-  background: rgba(34, 197, 94, 0.12);
-}
+.period-btn:hover { color: var(--text-0); }
+.period-btn.active { background: var(--st-completed); color: var(--ink); }
 
 .chart-plot-wrap { overflow-x: auto; }
 
 .chart-plot {
   position: relative;
   display: flex;
-  height: 200px;
+  height: 210px;
   padding-left: 30px;
 }
 
@@ -190,14 +193,14 @@ watch(selectedPeriod, replay)
 }
 .grid-line {
   position: relative;
-  border-top: 1px dashed var(--border-soft);
+  border-top: 1px dashed var(--line);
 }
-.grid-line:last-child { border-top: 1px solid var(--border-strong); }
+.grid-line:last-child { border-top: 1px solid var(--line-strong); }
 .grid-value {
   position: absolute;
   left: -30px;
-  top: -6px;
-  width: 26px;
+  top: -7px;
+  width: 24px;
   text-align: right;
   font-size: 10px;
   color: var(--text-2);
@@ -209,7 +212,7 @@ watch(selectedPeriod, replay)
   flex: 1;
   display: flex;
   align-items: flex-end;
-  gap: clamp(4px, 1vw, 12px);
+  gap: 2px;
   padding-bottom: 26px;
 }
 
@@ -235,29 +238,26 @@ watch(selectedPeriod, replay)
 .bar-value.show { opacity: 1; }
 
 .bar-track {
-  width: 100%;
+  width: 72%;
   max-width: 34px;
   height: 100%;
   display: flex;
   align-items: flex-end;
 }
 
+/* single series: one hue, 4px rounded data-end, square on the baseline */
 .bar-fill {
   width: 100%;
-  border-radius: 6px 6px 2px 2px;
-  background: linear-gradient(180deg, #4ade80 0%, var(--card-completed) 100%);
-  box-shadow: 0 0 14px -4px rgba(34, 197, 94, 0.6);
-  transition: height 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 4px 4px 0 0;
+  background: var(--st-completed);
+  transition: height 0.9s cubic-bezier(0.16, 1, 0.3, 1), filter var(--dur-fast);
 }
 .bar-fill.empty {
-  background: var(--bg-2);
-  box-shadow: none;
-  height: 3px !important;
+  background: var(--bg-3);
+  border-radius: 1px;
+  height: 2px !important;
 }
-
-.bar-col:hover .bar-fill:not(.empty) {
-  filter: brightness(1.15);
-}
+.bar-col:hover .bar-fill:not(.empty) { filter: brightness(1.15); }
 
 .bar-label {
   position: absolute;
@@ -269,9 +269,11 @@ watch(selectedPeriod, replay)
 }
 
 .chart-total {
-  margin: 14px 0 0;
-  font-size: 13px;
-  color: var(--text-2);
+  margin: 16px 0 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text-1);
   text-align: right;
 }
 </style>

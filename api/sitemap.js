@@ -9,6 +9,7 @@ function xmlEscape(s) {
 export default async function handler(req, res) {
   const urls = [
     { loc: `${SITE}/`, changefreq: 'daily', priority: '1.0' },
+    { loc: `${SITE}/donate`, changefreq: 'monthly', priority: '0.4' },
     { loc: `${SITE}/login`, changefreq: 'monthly', priority: '0.3' },
     { loc: `${SITE}/register`, changefreq: 'monthly', priority: '0.3' }
   ]

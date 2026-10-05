@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { api } from '../utils/api'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore } from '../stores/library'
@@ -9,6 +10,7 @@ import GameCard from '../components/GameCard.vue'
 import AppIcon from '../components/AppIcon.vue'
 
 const { t } = useI18n()
+const router = useRouter()
 const auth = useAuthStore()
 const library = useLibraryStore()
 
@@ -101,7 +103,7 @@ function clearSearch() {
 
 async function setStatus(game, status) {
   if (!auth.isAuthed) {
-    window.location.assign('/login')
+    router.push({ name: 'login', query: { redirect: '/' } })
     return
   }
   await library.upsert(game, status)

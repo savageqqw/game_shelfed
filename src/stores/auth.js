@@ -1,5 +1,12 @@
 import { defineStore } from 'pinia'
 import { api } from '../utils/api'
+import { i18n } from '../i18n'
+
+// server errors carry a `code`; show those in the visitor's language
+function errorText(e) {
+  const key = `auth.errors.${e.code}`
+  return e.code && i18n.global.te(key) ? i18n.global.t(key) : e.message
+}
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -26,7 +33,7 @@ export const useAuthStore = defineStore('auth', {
         this.setSession(res.token, res.user)
         return true
       } catch (e) {
-        this.error = e.message
+        this.error = errorText(e)
         return false
       } finally {
         this.loading = false
@@ -40,7 +47,7 @@ export const useAuthStore = defineStore('auth', {
         this.setSession(res.token, res.user)
         return true
       } catch (e) {
-        this.error = e.message
+        this.error = errorText(e)
         return false
       } finally {
         this.loading = false

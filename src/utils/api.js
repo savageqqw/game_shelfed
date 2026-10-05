@@ -19,7 +19,14 @@ async function request(path, { method = 'GET', body, token, params } = {}) {
   try { data = await res.json() } catch { /* no body */ }
 
   if (!res.ok) {
-    throw new Error(data?.error || `Request failed (${res.status})`)
+    // a stored token that the server no longer accepts (expired after 30
+    // days, or the secret changed): let the app sign out instead of leaving
+    // every request failing behind a "logged in" UI
+    if (res.status === 401 && token) window.dispatchEvent(new CustomEvent('gs:session-expired'))
+    const err = new Error(data?.error || `Request failed (${res.status})`)
+    err.code = data?.code || null
+    err.status = res.status
+    throw err
   }
   return data
 }

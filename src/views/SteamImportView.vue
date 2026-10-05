@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore, STATUSES, STATUS_ICONS } from '../stores/library'
 import { api } from '../utils/api'
+import AppIcon from '../components/AppIcon.vue'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -24,7 +25,10 @@ const searchQuery = ref('')
 const selected = ref(new Set())
 const importStatus = ref('planned')
 
-// step 3 — import
+// step 3 — import. The server takes at most 60 games per request (each one
+// is matched against the catalog), so the selection goes up in batches.
+const IMPORT_BATCH = 20
+const importProgress = ref({ done: 0, total: 0 })
 const importing = ref(false)
 const importError = ref(null)
 const importResult = ref(null)
@@ -108,12 +112,22 @@ async function runImport() {
   if (!picked.length) return
   importing.value = true
   importError.value = null
+  importProgress.value = { done: 0, total: picked.length }
+  let added = 0
+  let matched = 0
   try {
-    const res = await api.post('/steam-import', { status: importStatus.value, games: picked }, auth.token)
-    importResult.value = res
+    for (let i = 0; i < picked.length; i += IMPORT_BATCH) {
+      const res = await api.post('/steam-import', { status: importStatus.value, games: picked.slice(i, i + IMPORT_BATCH) }, auth.token)
+      added += res.added || 0
+      matched += res.matched || 0
+      importProgress.value = { done: Math.min(i + IMPORT_BATCH, picked.length), total: picked.length }
+    }
+    importResult.value = { added, matched }
     await library.fetchAll()
   } catch (e) {
     importError.value = e.message || t('steamImport.genericError')
+    // whatever made it in before the failure should still show up
+    if (added) library.fetchAll()
   } finally {
     importing.value = false
   }
@@ -131,9 +145,10 @@ function startOver() {
 
 <template>
   <div class="shell steam-view">
-    <router-link :to="{ name: 'my-games' }" class="back-link">{{ t('steamImport.back') }}</router-link>
+    <router-link :to="{ name: 'my-games' }" class="back-link"><AppIcon name="arrow-left" :size="16" :stroke="2.5" />{{ t('steamImport.back') }}</router-link>
 
     <header class="steam-header">
+      <span class="tape"><AppIcon name="download" :size="13" :stroke="2.5" />Steam</span>
       <h1>{{ t('steamImport.title') }}</h1>
       <p class="subtitle">{{ t('steamImport.subtitle') }}</p>
     </header>
@@ -143,9 +158,9 @@ function startOver() {
       {{ t('steamImport.fetching') }}
     </section>
 
-    <section v-else-if="phase === 'input'" class="card-surface lookup-card">
+    <section v-else-if="phase === 'input'" class="lookup-card">
       <form @submit.prevent="fetchLibrary" class="lookup-form">
-        <label>
+        <label class="field-label">
           <span>{{ t('steamImport.inputLabel') }}</span>
           <input
             v-model="steamInput"
@@ -162,7 +177,7 @@ function startOver() {
       </form>
     </section>
 
-    <section v-else-if="phase === 'error'" class="card-surface lookup-card">
+    <section v-else-if="phase === 'error'" class="lookup-card">
       <p class="error-msg">{{ fetchError }}</p>
       <button class="btn btn-primary submit-btn" type="button" @click="fetchLibrary">
         {{ t('steamImport.fetchCta') }}
@@ -178,8 +193,8 @@ function startOver() {
         <p class="found-count mono">{{ t('steamImport.foundCount', { count: games.length }) }}</p>
 
         <div class="search-wrap">
-          <span class="search-icon" aria-hidden="true">⌕</span>
-          <input v-model="searchQuery" type="text" class="search-input" :placeholder="t('steamImport.searchPlaceholder')" />
+          <AppIcon name="search" :size="17" class="search-icon" />
+          <input v-model="searchQuery" type="search" class="input search-input" :placeholder="t('steamImport.searchPlaceholder')" :aria-label="t('steamImport.searchPlaceholder')" />
         </div>
 
         <div class="bulk-actions">
@@ -204,7 +219,7 @@ function startOver() {
         </label>
       </div>
 
-      <div class="import-bar card-surface">
+      <div class="import-bar">
         <label class="status-pick">
           <span>{{ t('steamImport.statusLabel') }}</span>
           <select v-model="importStatus" class="input status-select">
@@ -221,13 +236,13 @@ function startOver() {
           :disabled="!selected.size || importing"
           @click="runImport"
         >
-          {{ importing ? t('steamImport.importing') : t('steamImport.importCta', { count: selected.size }) }}
+          {{ importing ? t('steamImport.importing', importProgress) : t('steamImport.importCta', { count: selected.size }) }}
         </button>
       </div>
     </section>
 
     <!-- step 3: done -->
-    <section v-else class="card-surface done-card">
+    <section v-else class="done-card">
       <p class="done-title">{{ t('steamImport.importDone', { count: importResult.added }) }}</p>
       <p class="done-sub">{{ t('steamImport.importDoneMatched', { count: importResult.matched }) }}</p>
       <div class="done-actions">
@@ -239,91 +254,103 @@ function startOver() {
 </template>
 
 <style scoped>
-.steam-view { padding-bottom: 80px; }
+.steam-view { padding-bottom: 100px; }
 .back-link {
-  display: inline-block;
-  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 12px 0 8px;
+  border: var(--stroke) solid var(--line);
+  border-radius: var(--radius-sm);
   font-size: 13px;
-  font-weight: 600;
-  color: var(--text-2);
+  font-weight: 700;
+  color: var(--text-1);
   text-decoration: none;
+  transition: color var(--dur-fast), border-color var(--dur-fast);
 }
-.back-link:hover { color: var(--text-0); }
+.back-link:hover { color: var(--text-0); border-color: var(--paper); }
 
-.steam-header { padding: 16px 0 28px; }
-.steam-header h1 { font-size: clamp(24px, 4vw, 32px); }
-.subtitle { color: var(--text-2); font-size: 14px; margin-top: 8px; max-width: 520px; }
+.steam-header { padding: 24px 0 28px; }
+.steam-header .tape :deep(svg) { margin-right: 2px; }
+.steam-header h1 { margin-top: 18px; font-size: clamp(30px, 4.4vw, 52px); font-weight: 800; letter-spacing: -0.035em; }
+.subtitle { color: var(--text-1); font-size: 16px; margin: 12px 0 0; max-width: 560px; line-height: 1.55; }
 
-.lookup-card { max-width: 480px; padding: 32px; }
+.lookup-card {
+  max-width: 520px;
+  padding: 28px;
+  background: var(--bg-1);
+  border: var(--stroke) solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 8px 8px 0 #66c0f4;
+}
 .lookup-card .submit-btn + .submit-btn { margin-top: 10px; }
-.loading-block { color: var(--text-2); font-size: 14px; padding: 40px 0; text-align: center; }
+.loading-block { color: var(--text-2); font-size: 14px; padding: 40px 0; text-align: center; letter-spacing: 0.06em; }
 .lookup-form { display: flex; flex-direction: column; gap: 16px; }
-.lookup-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-1); font-weight: 600; }
-.input-hint { font-size: 12px; color: var(--text-2); font-weight: 400; }
-.submit-btn { padding: 12px; margin-top: 4px; }
-.error-msg { color: var(--status-dropped); font-size: 13px; margin: 0; line-height: 1.5; }
+.field-label .input { font-family: var(--font-body); letter-spacing: 0; text-transform: none; }
+.input-hint { font-family: var(--font-body); font-size: 12px; color: var(--text-2); font-weight: 400; letter-spacing: 0; text-transform: none; }
+.submit-btn { width: 100%; min-height: 48px; margin-top: 4px; }
+.error-msg { color: var(--st-dropped); font-size: 14px; margin: 0 0 14px; line-height: 1.5; }
 
 .picker-toolbar {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 14px;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
-.found-count { font-size: 13px; color: var(--text-2); white-space: nowrap; }
+.found-count {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-1);
+  white-space: nowrap;
+}
 
-.search-wrap { position: relative; flex: 1 1 220px; min-width: 180px; }
+.search-wrap { position: relative; flex: 1 1 240px; min-width: 180px; }
 .search-icon {
   position: absolute;
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-2);
-  font-size: 14px;
   pointer-events: none;
 }
-.search-input {
-  width: 100%;
-  padding: 9px 14px 9px 36px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-soft);
-  background: var(--bg-1);
-  color: var(--text-0);
-  font-size: 13px;
-  font-family: inherit;
-}
-.search-input:focus { outline: none; border-color: var(--accent-amber); background: var(--bg-2); }
+.search-wrap:focus-within .search-icon { color: var(--acid); }
+.search-input { padding-left: 40px; -webkit-appearance: none; appearance: none; }
 
 .bulk-actions { display: flex; gap: 8px; flex-shrink: 0; }
-.btn-sm { padding: 8px 12px; font-size: 12px; }
+.btn-sm { min-height: 40px; padding: 0 12px; font-size: 13px; }
 
 .empty-msg { color: var(--text-2); text-align: center; padding: 40px 0; }
 
 .game-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 460px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 8px;
+  max-height: 520px;
   overflow-y: auto;
-  padding-right: 4px;
-  margin-bottom: 100px;
+  padding: 2px 6px 2px 2px;
+  margin-bottom: 110px;
 }
 .game-row {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-height: 52px;
   padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  border: var(--stroke) solid var(--line);
   background: var(--bg-1);
   cursor: pointer;
   transition: border-color var(--dur-fast), background var(--dur-fast);
 }
-.game-row:hover { border-color: var(--border-strong); }
-.game-row.checked { border-color: var(--accent-amber); background: var(--bg-2); }
-.game-row input[type='checkbox'] { flex-shrink: 0; width: 16px; height: 16px; accent-color: var(--accent-amber); cursor: pointer; }
-.row-cover { width: 64px; height: 30px; object-fit: cover; border-radius: 5px; flex-shrink: 0; background: var(--bg-2); }
-.row-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: var(--text-0); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game-row:hover { border-color: var(--line-strong); }
+.game-row.checked { border-color: var(--acid); background: color-mix(in srgb, var(--acid) 8%, var(--bg-1)); }
+.game-row input[type='checkbox'] { flex-shrink: 0; width: 18px; height: 18px; accent-color: var(--acid); cursor: pointer; }
+.row-cover { width: 70px; height: 33px; object-fit: cover; border-radius: 3px; flex-shrink: 0; background: var(--bg-2); }
+.row-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: var(--text-0); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row-hours { font-size: 11px; color: var(--text-2); flex-shrink: 0; }
 
 .import-bar {
@@ -336,25 +363,45 @@ function startOver() {
   align-items: center;
   gap: 18px;
   flex-wrap: wrap;
-  padding: 16px max(20px, calc((100vw - 1360px) / 2 + 20px));
-  border-radius: 0;
-  border-top: 1px solid var(--border-soft);
-  box-shadow: 0 -10px 30px -14px rgba(0, 0, 0, 0.5);
+  padding: 14px max(24px, calc((100vw - 1360px) / 2 + 24px));
+  background: color-mix(in srgb, var(--bg-0) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: var(--stroke) solid var(--acid);
 }
-.status-pick { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); font-weight: 600; }
-.status-select { width: auto; padding: 8px 12px; font-size: 13px; }
-.selected-count { font-size: 12px; color: var(--text-2); flex: 1; }
-.import-btn { padding: 11px 20px; white-space: nowrap; }
+.status-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-1);
+}
+.status-select { width: auto; min-height: 42px; padding: 0 12px; font-size: 14px; font-family: var(--font-body); letter-spacing: 0; text-transform: none; }
+.selected-count { font-size: 12px; color: var(--text-1); flex: 1; margin: 0; letter-spacing: 0.04em; }
+.import-bar .error-msg { margin: 0; }
+.import-btn { min-height: 48px; }
 
-.done-card { max-width: 480px; padding: 40px 32px; text-align: center; }
-.done-title { font-size: 20px; font-weight: 700; margin: 0 0 8px; }
-.done-sub { color: var(--text-2); font-size: 13px; margin: 0 0 24px; }
+.done-card {
+  max-width: 520px;
+  padding: 36px 30px;
+  text-align: center;
+  background: var(--bg-1);
+  border: var(--stroke) solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 8px 8px 0 var(--st-completed);
+}
+.done-title { font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 10px; }
+.done-sub { color: var(--text-1); font-size: 14px; margin: 0 0 24px; }
 .done-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
 @media (max-width: 600px) {
-  .lookup-card { padding: 22px; }
-  .row-cover { width: 48px; height: 24px; }
-  .import-bar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .lookup-card { padding: 20px; box-shadow: 5px 5px 0 #66c0f4; }
+  .game-list { grid-template-columns: 1fr; }
+  .row-cover { width: 52px; height: 25px; }
+  .import-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; }
   .import-btn { width: 100%; }
 }
 </style>

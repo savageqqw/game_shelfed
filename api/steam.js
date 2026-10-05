@@ -113,11 +113,33 @@ async function callback(req, res) {
   if (rawLinkToken && !linkedUser) return fail('link_token_invalid')
   if (!query['openid.claimed_id']) return fail('no_claimed_id')
 
+  // The assertion has to come from Steam, be signed over the fields we rely
+  // on, and be addressed to this exact callback -- otherwise a response
+  // issued for some other site could be replayed here.
+  const signedFields = String(query['openid.signed'] || '').split(',')
+  if (query['openid.op_endpoint'] !== 'https://steamcommunity.com/openid/login') return fail('openid_bad_endpoint')
+  if (!['claimed_id', 'identity', 'return_to', 'op_endpoint'].every((f) => signedFields.includes(f))) {
+    return fail('openid_unsigned_fields')
+  }
+  let returnTo
+  try {
+    returnTo = new URL(String(query['openid.return_to'] || ''))
+  } catch {
+    return fail('openid_bad_return_to')
+  }
+  if (
+    `${returnTo.origin}${returnTo.pathname}` !== `${origin}/api/steam` ||
+    returnTo.searchParams.get('action') !== 'callback' ||
+    (returnTo.searchParams.get('link_token') || null) !== rawLinkToken
+  ) {
+    return fail('openid_bad_return_to')
+  }
+
   try {
     const valid = await verifyAssertion(query)
     if (!valid) return fail('openid_not_valid')
 
-    const match = String(query['openid.claimed_id']).match(/(\d{17})$/)
+    const match = String(query['openid.claimed_id']).match(/^https?:\/\/steamcommunity\.com\/openid\/id\/(\d{17})$/)
     const steamId = match?.[1]
     if (!steamId) return fail('no_steamid_in_claimed_id')
 
@@ -182,21 +204,30 @@ async function callback(req, res) {
       return redirectTo(res, origin, '/account', { steamLinked: '1' })
     }
 
+    // A Steam persona name can be anything, including someone else's
+    // username here, so a clash gets a short suffix from the Steam id.
+    const ownId = existing.rows[0] ? Number(existing.rows[0].id) : -1
+    const clash = await db.execute({
+      sql: 'SELECT id FROM users WHERE username = ? COLLATE NOCASE AND id != ? LIMIT 1',
+      args: [displayName, ownId]
+    })
+    const username = clash.rows.length ? `${displayName.slice(0, 26)}-${steamId.slice(-4)}` : displayName
+
     let user
     if (existing.rows[0]) {
       await db.execute({
         sql: 'UPDATE users SET username = ?, avatar = ? WHERE id = ?',
-        args: [displayName, avatar, existing.rows[0].id]
+        args: [username, avatar, existing.rows[0].id]
       })
-      user = { id: Number(existing.rows[0].id), username: displayName, email: existing.rows[0].email }
+      user = { id: Number(existing.rows[0].id), username, email: existing.rows[0].email }
     } else {
       const placeholderHash = await bcrypt.hash(randomUUID(), 10)
       const email = `steam-${steamId}@steamusers.local`
       const insertRes = await db.execute({
         sql: 'INSERT INTO users (username, email, password_hash, steam_id, avatar) VALUES (?, ?, ?, ?, ?)',
-        args: [displayName, email, placeholderHash, steamId, avatar]
+        args: [username, email, placeholderHash, steamId, avatar]
       })
-      user = { id: Number(insertRes.lastInsertRowid), username: displayName, email }
+      user = { id: Number(insertRes.lastInsertRowid), username, email }
     }
 
     const token = signToken(user)

@@ -1,3 +1,14 @@
-// Where the "insert coin" donate button in the nav points. Set
-// VITE_DONATE_URL in the Vercel project env vars, or replace the fallback.
-export const DONATE_URL = import.meta.env.VITE_DONATE_URL || 'https://send.monobank.ua/jar/REPLACE_ME'
+// Donation details shown on /donate.
+export const MONO_JAR_URL = 'https://send.monobank.ua/jar/2dtCTR24Th'
+
+const EVM_ADDRESS = '0xa551001916727Bb94A48fb12549D5903B056B873'
+
+// `tag` is the token standard / chain type printed next to the network name
+export const CRYPTO_WALLETS = [
+  { id: 'eth', network: 'Ethereum', tag: 'ERC-20', address: EVM_ADDRESS },
+  { id: 'tron', network: 'Tron', tag: 'TRC-20', address: 'TJ7A1cPGQEVafgfna8Faj8koibHn7Xddxd' },
+  { id: 'sol', network: 'Solana', tag: 'SPL', address: '9GcgZaVSJ3kjZKKC8MEdLpkvUzpeJPLQvqyCtKZw8B3w' },
+  { id: 'bsc', network: 'BNB Smart Chain', tag: 'BEP-20', address: EVM_ADDRESS },
+  { id: 'base', network: 'Base', tag: 'EVM', address: EVM_ADDRESS },
+  { id: 'robinhood', network: 'Robinhood Chain', tag: 'EVM', address: EVM_ADDRESS }
+]

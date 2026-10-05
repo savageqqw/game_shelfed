@@ -1,11 +1,11 @@
 import { getClient, ensureSchema } from './_utils/db.js'
 import { requireUser } from './_utils/auth.js'
 import { sendJson, withErrors } from './_utils/response.js'
+import { isAdmin } from './_utils/admin.js'
 
 const MAX_LEN = 1000
-const ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'hellraiser').toLowerCase()
 
-async function list(req, res) {
+async function list(req, res, user) {
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'Method not allowed' })
 
   await ensureSchema()
@@ -28,7 +28,7 @@ async function list(req, res) {
     userId: r.user_id
   }))
 
-  sendJson(res, 200, { comments })
+  sendJson(res, 200, { comments, viewerIsAdmin: await isAdmin(db, user) })
 }
 
 async function add(req, res, user) {
@@ -78,12 +78,12 @@ async function remove(req, res, user) {
   await ensureSchema()
   const db = getClient()
 
-  const isAdmin = (user.username || '').toLowerCase() === ADMIN_USERNAME
+  const admin = await isAdmin(db, user)
   const result = await db.execute({
-    sql: isAdmin
+    sql: admin
       ? 'DELETE FROM comments WHERE id = ?'
       : 'DELETE FROM comments WHERE id = ? AND user_id = ?',
-    args: isAdmin ? [id] : [id, user.id]
+    args: admin ? [id] : [id, user.id]
   })
 
   if (!result.rowsAffected) return sendJson(res, 404, { error: 'Comment not found' })
@@ -91,12 +91,9 @@ async function remove(req, res, user) {
 }
 
 export default withErrors(async (req, res) => {
-  if (req.query.action === 'list') {
-    requireUser(req)
-    return list(req, res)
-  }
   const user = requireUser(req)
   switch (req.query.action) {
+    case 'list': return list(req, res, user)
     case 'add': return add(req, res, user)
     case 'delete': return remove(req, res, user)
     default: return sendJson(res, 404, { error: 'Unknown action' })

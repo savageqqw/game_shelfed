@@ -9,7 +9,6 @@ import { useDealsStore } from '../stores/deals'
 import { useCommentsStore } from '../stores/comments'
 import LangSwitcher from './LangSwitcher.vue'
 import AppIcon from './AppIcon.vue'
-import { DONATE_URL } from '../config'
 import logoIconUrl from '../assets/logo-icon.svg'
 import logoWordmarkUrl from '../assets/logo-wordmark.svg'
 
@@ -72,17 +71,15 @@ function logout() {
       </nav>
 
       <div class="controls">
-        <a
-          :href="DONATE_URL"
-          target="_blank"
-          rel="noopener"
+        <router-link
+          :to="{ name: 'donate' }"
           class="coin-btn"
+          :class="{ active: route.name === 'donate' }"
           :title="t('nav.donateHint')"
-          :aria-label="t('nav.donateHint')"
         >
-          <span class="coin"><AppIcon name="coin" :size="18" /></span>
+          <span class="coin"><AppIcon name="heart" :size="16" :stroke="2.5" /></span>
           <span class="coin-label">{{ t('nav.donate') }}</span>
-        </a>
+        </router-link>
 
         <span class="divider" aria-hidden="true" />
 
@@ -109,16 +106,14 @@ function logout() {
       </div>
 
       <div class="mobile-actions">
-        <a
-          :href="DONATE_URL"
-          target="_blank"
-          rel="noopener"
+        <router-link
+          :to="{ name: 'donate' }"
           class="coin-btn coin-btn-compact"
           :title="t('nav.donateHint')"
-          :aria-label="t('nav.donateHint')"
+          :aria-label="t('nav.donate')"
         >
-          <span class="coin"><AppIcon name="coin" :size="18" /></span>
-        </a>
+          <span class="coin"><AppIcon name="heart" :size="16" :stroke="2.5" /></span>
+        </router-link>
         <button class="burger" @click="mobileOpen = !mobileOpen" :aria-expanded="mobileOpen" aria-label="menu">
           <span /><span /><span />
         </button>
@@ -141,13 +136,13 @@ function logout() {
             <span>{{ t('nav.profile') }}</span><AppIcon name="arrow-right" :size="18" />
           </router-link>
 
-          <a :href="DONATE_URL" target="_blank" rel="noopener" class="m-donate" @click="mobileOpen = false">
-            <span class="coin"><AppIcon name="coin" :size="20" /></span>
+          <router-link :to="{ name: 'donate' }" class="m-donate" @click="mobileOpen = false">
+            <span class="coin"><AppIcon name="heart" :size="18" :stroke="2.5" /></span>
             <span class="m-donate-text">
               <strong>{{ t('nav.donate') }}</strong>
               <small>{{ t('nav.donateHint') }}</small>
             </span>
-          </a>
+          </router-link>
 
           <div class="mobile-controls">
             <LangSwitcher />
@@ -260,7 +255,7 @@ function logout() {
   margin: 0 2px;
 }
 
-/* --- donate: a round "insert coin" pill, the only round control on the bar --- */
+/* --- donate: an orange pill, the only round control on the bar --- */
 .coin-btn {
   display: inline-flex;
   align-items: center;
@@ -283,6 +278,7 @@ function logout() {
   box-shadow: 3px 3px 0 var(--paper);
 }
 .coin-btn:active { transform: none; box-shadow: none; }
+.coin-btn.active { box-shadow: 3px 3px 0 var(--paper); }
 .coin {
   width: 28px;
   height: 28px;
@@ -294,11 +290,12 @@ function logout() {
   justify-content: center;
   flex-shrink: 0;
 }
-.coin-btn:hover .coin { animation: coin-flip 0.7s var(--ease-out); }
-@keyframes coin-flip {
-  0% { transform: rotateY(0) translateY(0); }
-  45% { transform: rotateY(360deg) translateY(-5px); }
-  100% { transform: rotateY(720deg) translateY(0); }
+.coin-btn:hover .coin { animation: heart-beat 0.8s var(--ease-out); }
+@keyframes heart-beat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.18); }
+  50% { transform: scale(0.95); }
+  70% { transform: scale(1.1); }
 }
 .coin-btn-compact { padding: 0; width: 40px; justify-content: center; }
 

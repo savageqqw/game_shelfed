@@ -1,21 +1,47 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import NavBar from './components/NavBar.vue'
 import AppBackground from './components/AppBackground.vue'
 import AppIcon from './components/AppIcon.vue'
-import { STATUSES } from './stores/library'
+import { STATUSES, useLibraryStore } from './stores/library'
+import { useAuthStore } from './stores/auth'
 import { useDealsStore } from './stores/deals'
+import { useCommentsStore } from './stores/comments'
+import { useSteamPlaytimeStore } from './stores/steamPlaytime'
 import { usePageViewsStore } from './stores/pageViews'
 import { useI18n } from 'vue-i18n'
 import logoIconUrl from './assets/logo-icon.svg'
 import logoWordmarkUrl from './assets/logo-wordmark.svg'
 const { t } = useI18n()
+const router = useRouter()
+const auth = useAuthStore()
+const library = useLibraryStore()
 const deals = useDealsStore()
+const comments = useCommentsStore()
+const steamPlaytime = useSteamPlaytimeStore()
 const pageViews = usePageViewsStore()
+
+// the server rejected the stored token: sign out and send the person to
+// the login page, returning them here afterwards
+async function onSessionExpired() {
+  if (!auth.isAuthed) return
+  auth.logout()
+  library.reset()
+  deals.reset()
+  comments.reset()
+  steamPlaytime.reset()
+  // the first failing request can fire before the initial navigation settles
+  await router.isReady()
+  const current = router.currentRoute.value
+  if (current.meta.requiresAuth) router.push({ name: 'login', query: { redirect: current.fullPath } })
+}
 
 onMounted(() => {
   pageViews.trackAndLoad()
+  window.addEventListener('gs:session-expired', onSessionExpired)
 })
+onBeforeUnmount(() => window.removeEventListener('gs:session-expired', onSessionExpired))
 </script>
 
 <template>
@@ -68,9 +94,12 @@ onMounted(() => {
             <span v-for="n in 34" :key="n" />
           </div>
           <span class="receipt-code mono">GSHELF · 000 · UA</span>
-          <span v-if="pageViews.weekly !== null" class="view-counter mono">
-            <AppIcon name="eye" :size="13" /> {{ t('footer.weeklyViews', { count: pageViews.weekly }) }}
+          <span v-if="pageViews.weekly" class="view-counter mono">
+            <AppIcon name="eye" :size="13" /> {{ t('footer.weeklyVisitors', { count: pageViews.weekly }) }}
           </span>
+          <router-link :to="{ name: 'donate' }" class="footer-donate mono">
+            <AppIcon name="heart" :size="13" />{{ t('nav.donate') }}
+          </router-link>
         </div>
       </div>
       <div class="footer-mark" aria-hidden="true">GAME&nbsp;SHELFED</div>
@@ -231,6 +260,21 @@ onMounted(() => {
   letter-spacing: 0.04em;
 }
 .view-counter :deep(svg) { color: var(--acid); }
+.footer-donate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hot);
+  text-decoration: none;
+  border-bottom: 1.5px solid transparent;
+  transition: border-color var(--dur-fast);
+}
+.footer-donate:hover { border-bottom-color: var(--hot); }
 
 .footer-mark {
   margin-top: 36px;

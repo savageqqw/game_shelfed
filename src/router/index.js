@@ -12,6 +12,7 @@ const routes = [
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { guestOnly: true } },
   { path: '/register', name: 'register', component: () => import('../views/RegisterView.vue'), meta: { guestOnly: true } },
   { path: '/auth/steam-callback', name: 'steam-callback', component: () => import('../views/SteamCallbackView.vue') },
+  { path: '/donate', name: 'donate', component: () => import('../views/DonateView.vue') },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue') }
 ]
 

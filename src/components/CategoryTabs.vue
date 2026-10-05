@@ -26,19 +26,25 @@ function updateIndicator() {
   indicator.value = { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight }
 }
 
+// counts arriving widen the tabs before the active one and push it sideways
+// without resizing it, so re-measure on those too, not only on resize
 watch(() => props.modelValue, () => nextTick(updateIndicator))
+watch(() => props.counts, () => nextTick(updateIndicator), { deep: true })
 
+const rootEl = ref(null)
 let ro
 onMounted(() => {
   nextTick(updateIndicator)
   ro = new ResizeObserver(() => updateIndicator())
   tabRefs.value.forEach((el) => el && ro.observe(el))
+  if (rootEl.value) ro.observe(rootEl.value)
+  document.fonts?.ready.then(updateIndicator)
 })
 onBeforeUnmount(() => ro && ro.disconnect())
 </script>
 
 <template>
-  <div class="cat-tabs" role="tablist">
+  <div ref="rootEl" class="cat-tabs" role="tablist">
     <span
       class="indicator"
       :class="`s-${modelValue}`"

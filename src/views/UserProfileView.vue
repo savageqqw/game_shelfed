@@ -3,8 +3,9 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { STATUSES, STATUS_ICONS } from '../stores/library'
+import { STATUSES, STATUS_ICON_NAMES } from '../stores/library'
 import { api } from '../utils/api'
+import AppIcon from '../components/AppIcon.vue'
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -75,7 +76,7 @@ onMounted(load)
     <div v-else-if="error" class="status-msg error-msg">{{ error }}</div>
 
     <template v-else-if="profile">
-      <section class="banner card-surface">
+      <section class="banner">
         <div class="banner-who">
           <div class="profile-avatar">
             <img v-if="profile.avatar" :src="profile.avatar" :alt="profile.username" />
@@ -97,7 +98,7 @@ onMounted(load)
         </div>
 
         <div class="banner-stats">
-          <div class="stat-item">
+          <div class="stat-item s-total">
             <span class="stat-num mono">{{ profile.items.length }}</span>
             <span class="stat-label">{{ t('users.statTotal') }}</span>
           </div>
@@ -113,7 +114,7 @@ onMounted(load)
           v-for="tab in ['all', ...STATUSES]"
           :key="tab"
           class="filter-tab"
-          :class="{ active: activeTab === tab }"
+          :class="[`s-${tab}`, { active: activeTab === tab }]"
           @click="activeTab = tab"
         >
           {{ tab === 'all' ? t('myGames.tabs.all') : t(`status.${tab}`) }}
@@ -134,7 +135,7 @@ onMounted(load)
           <span v-if="item.released" class="row-year mono">{{ item.released.slice(0, 4) }}</span>
           <span v-if="genreOf(item)" class="row-genre">{{ genreOf(item) }}</span>
           <span class="row-status mono" :class="`s-${item.status}`">
-            <span class="row-status-icon">{{ STATUS_ICONS[item.status] }}</span>
+            <AppIcon :name="STATUS_ICON_NAMES[item.status]" :size="12" :stroke="3" />
             {{ t(`status.${item.status}`) }}
           </span>
         </li>
@@ -144,69 +145,99 @@ onMounted(load)
 </template>
 
 <style scoped>
-.profile-view { padding-bottom: 60px; }
+.profile-view { padding: 12px 0 20px; }
 
 .banner {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 20px;
-  padding: 24px 28px;
-  margin: 24px 0 24px;
+  gap: 22px;
+  padding: 24px 26px;
+  margin: 0 0 28px;
+  background: var(--bg-1);
+  border: var(--stroke) solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 8px 8px 0 var(--acid);
 }
-.banner-who { display: flex; align-items: center; gap: 14px; }
+.banner-who { display: flex; align-items: center; gap: 16px; min-width: 0; }
 .profile-avatar {
   flex-shrink: 0;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
   overflow: hidden;
-  background: var(--bg-2);
+  background: var(--acid);
+  border: var(--stroke) solid var(--paper);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .profile-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.profile-avatar-fallback { font-size: 16px; font-weight: 700; color: var(--text-2); }
-.banner-who h1 { font-size: clamp(20px, 2.8vw, 26px); margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.profile-avatar-fallback { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--ink); }
+.banner-who h1 {
+  font-size: clamp(24px, 3.2vw, 36px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  overflow-wrap: anywhere;
+}
 .admin-badge {
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #17131a;
-  background: var(--accent-amber-2);
-  padding: 3px 8px;
-  border-radius: 999px;
+  color: var(--ink);
+  background: var(--acid);
+  padding: 3px 6px 2px;
+  border-radius: 2px;
 }
 .steam-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
   font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: #66c0f4;
-  background: rgba(102, 192, 244, 0.14);
-  border: 1px solid rgba(102, 192, 244, 0.3);
-  padding: 4px 10px;
-  border-radius: 999px;
+  border: 1.5px solid rgba(102, 192, 244, 0.45);
+  padding: 3px 8px 2px;
+  border-radius: 2px;
 }
-.joined { color: var(--text-2); font-size: 12px; margin-top: 4px; }
+.joined { color: var(--text-2); font-size: 12px; margin: 8px 0 0; letter-spacing: 0.04em; }
 
 .banner-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 26px;
+  gap: 8px;
 }
-.stat-item { display: flex; flex-direction: column; gap: 2px; }
-.stat-num { font-size: 20px; font-weight: 700; line-height: 1.1; color: var(--text-0); }
-.stat-item.s-completed .stat-num { color: var(--status-completed); }
-.stat-item.s-planned .stat-num { color: var(--status-planned); }
-.stat-item.s-playing .stat-num { color: var(--status-playing); }
-.stat-item.s-dropped .stat-num { color: var(--status-dropped); }
-.stat-label { font-size: 11px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; }
+.stat-item {
+  --tone: var(--paper);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 82px;
+  padding: 10px 12px;
+  border: var(--stroke) solid var(--line);
+  border-top: 4px solid var(--tone);
+  border-radius: var(--radius-sm);
+  background: var(--bg-0);
+}
+.stat-item.s-total { --tone: var(--acid); }
+.stat-item.s-completed { --tone: var(--st-completed); }
+.stat-item.s-planned { --tone: var(--st-planned); }
+.stat-item.s-playing { --tone: var(--st-playing); }
+.stat-item.s-dropped { --tone: var(--st-dropped); }
+.stat-num { font-size: 26px; font-weight: 700; line-height: 1; letter-spacing: -0.03em; color: var(--text-0); }
+.stat-label { font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.08em; }
 
 .tabs-row {
   display: flex;
@@ -215,43 +246,51 @@ onMounted(load)
   margin-bottom: 18px;
 }
 .filter-tab {
-  padding: 7px 15px;
-  border-radius: 999px;
-  border: 1px solid var(--border-soft);
+  --tone: var(--paper);
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  border: var(--stroke) solid var(--line-strong);
   background: transparent;
-  color: var(--text-2);
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
+  color: var(--text-1);
+  font-size: 13px;
+  font-weight: 700;
   transition: border-color var(--dur-fast), color var(--dur-fast), background var(--dur-fast);
 }
-.filter-tab:hover { color: var(--text-0); }
-.filter-tab.active { background: var(--bg-2); color: var(--text-0); border-color: var(--border-strong); }
+.filter-tab.s-completed { --tone: var(--st-completed); }
+.filter-tab.s-planned { --tone: var(--st-planned); }
+.filter-tab.s-playing { --tone: var(--st-playing); }
+.filter-tab.s-dropped { --tone: var(--st-dropped); }
+.filter-tab:hover { color: var(--text-0); border-color: var(--tone); }
+.filter-tab.active { background: var(--tone); border-color: var(--tone); color: var(--ink); }
 
 .status-msg { color: var(--text-2); text-align: center; padding: 60px 0; }
 
 .game-list {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--border-soft);
   list-style: none;
   margin: 0;
   padding: 0;
+  border-top: var(--stroke) solid var(--line-strong);
 }
 .game-row {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 10px 4px;
-  border-bottom: 1px solid var(--border-soft);
+  padding: 10px 6px;
+  border-bottom: 1px dashed var(--line-strong);
+  transition: background var(--dur-fast);
 }
+.game-row:hover { background: var(--bg-1); }
 .row-cover {
   flex-shrink: 0;
-  width: 34px;
-  height: 46px;
-  border-radius: 5px;
+  width: 36px;
+  height: 48px;
+  border-radius: 3px;
   overflow: hidden;
   background: var(--bg-2);
+  border: 1.5px solid var(--line-strong);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -262,42 +301,47 @@ onMounted(load)
 .row-title {
   flex: 1 1 200px;
   min-width: 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--text-0);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.row-rating { flex-shrink: 0; font-size: 12px; color: var(--accent-amber-2); font-weight: 700; width: 40px; }
+.row-rating { flex-shrink: 0; font-size: 12px; color: var(--acid); font-weight: 700; width: 44px; }
 .row-year { flex-shrink: 0; font-size: 12px; color: var(--text-2); width: 40px; }
 .row-genre {
-  flex: 0 1 140px;
+  flex: 0 1 150px;
   min-width: 0;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .row-status {
+  --tone: var(--paper);
   flex-shrink: 0;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--bg-2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 8px 3px;
+  border-radius: 2px;
+  background: var(--tone);
+  color: var(--ink);
 }
-.row-status.s-completed { color: var(--status-completed); }
-.row-status.s-planned { color: var(--status-planned); }
-.row-status.s-playing { color: var(--status-playing); }
-.row-status.s-dropped { color: var(--status-dropped); }
-.row-status-icon { font-size: 12px; }
+.row-status.s-completed { --tone: var(--st-completed); }
+.row-status.s-planned { --tone: var(--st-planned); }
+.row-status.s-playing { --tone: var(--st-playing); }
+.row-status.s-dropped { --tone: var(--st-dropped); }
 
 @media (max-width: 640px) {
+  .banner { padding: 20px 16px; box-shadow: 5px 5px 0 var(--acid); }
   .row-genre, .row-rating { display: none; }
+  .row-year { display: none; }
 }
 </style>

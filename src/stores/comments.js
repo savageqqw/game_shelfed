@@ -5,6 +5,7 @@ import { useAuthStore } from './auth'
 export const useCommentsStore = defineStore('comments', {
   state: () => ({
     comments: [],
+    viewerIsAdmin: false,
     loaded: false,
     loading: false,
     posting: false
@@ -17,6 +18,7 @@ export const useCommentsStore = defineStore('comments', {
       try {
         const res = await api.get('/comments-list', auth.token)
         this.comments = res.comments || []
+        this.viewerIsAdmin = !!res.viewerIsAdmin
         this.loaded = true
       } finally {
         this.loading = false
@@ -42,6 +44,7 @@ export const useCommentsStore = defineStore('comments', {
     },
     reset() {
       this.comments = []
+      this.viewerIsAdmin = false
       this.loaded = false
     }
   }
