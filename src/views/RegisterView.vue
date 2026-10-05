@@ -25,7 +25,8 @@ async function submit() {
 
 <template>
   <div class="shell auth-view">
-    <div class="auth-card card-surface">
+    <div class="auth-card">
+      <span class="tape">{{ t('nav.register') }}</span>
       <h1>{{ t('auth.registerTitle') }}</h1>
       <p class="subtitle">{{ t('auth.registerSubtitle') }}</p>
 
@@ -71,61 +72,107 @@ async function submit() {
 .auth-view {
   display: flex;
   justify-content: center;
-  padding: 60px 20px 100px;
+  padding: 36px 0 40px;
 }
 .auth-card {
+  position: relative;
   width: 100%;
-  max-width: 420px;
-  padding: 36px;
+  max-width: 450px;
+  padding: 32px 32px 28px;
+  background: var(--bg-1);
+  border: var(--stroke) solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 10px 10px 0 var(--acid);
 }
-.auth-card h1 { font-size: 26px; }
-.subtitle { color: var(--text-2); font-size: 14px; margin: 8px 0 26px; }
+/* little punched hole, like a hang tag */
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: var(--stroke) solid var(--line-strong);
+  background: var(--bg-0);
+}
+.auth-card h1 { font-size: clamp(26px, 3vw, 32px); font-weight: 800; margin-top: 18px; }
+.subtitle { color: var(--text-1); font-size: 15px; margin: 10px 0 26px; line-height: 1.5; }
 
 .auth-form { display: flex; flex-direction: column; gap: 16px; }
-.auth-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-1); font-weight: 600; }
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-1);
+}
+.auth-form label .input { font-family: var(--font-body); letter-spacing: 0; text-transform: none; }
 
-.submit-btn { width: 100%; padding: 12px; margin-top: 6px; }
-.error-msg { color: var(--status-dropped); font-size: 13px; margin: 0; }
+.submit-btn { width: 100%; min-height: 50px; margin-top: 6px; font-size: 15px; }
+.error-msg {
+  color: var(--st-dropped);
+  font-size: 13px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1.5px solid var(--st-dropped);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 79, 94, 0.08);
+}
 
 .divider {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 20px 0 16px;
+  margin: 22px 0 18px;
   color: var(--text-2);
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.14em;
 }
 .divider::before, .divider::after {
   content: '';
   flex: 1;
-  height: 1px;
-  background: var(--border-soft);
+  height: 2px;
+  background: repeating-linear-gradient(90deg, var(--line-strong) 0 6px, transparent 6px 10px);
 }
 
 .btn-steam {
   width: 100%;
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 12px;
   border-radius: var(--radius-sm);
+  border: var(--stroke) solid #2a475e;
   background: #1b2838;
-  color: #fdfaf2;
+  color: #c7d5e0;
   text-decoration: none;
   font-weight: 700;
   font-size: 14px;
-  transition: filter var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), color var(--dur-fast), border-color var(--dur-fast);
 }
-.btn-steam:hover { filter: brightness(1.15); transform: translateY(-1px); }
+.btn-steam:hover { transform: translate(-2px, -2px); box-shadow: 3px 3px 0 #66c0f4; border-color: #66c0f4; color: #fff; }
 
-.switch-line { text-align: center; margin-top: 22px; font-size: 13px; color: var(--text-2); }
-.switch-line a { color: var(--accent-amber-2); font-weight: 700; text-decoration: none; margin-left: 4px; }
+.switch-line { text-align: center; margin: 22px 0 0; font-size: 14px; color: var(--text-2); }
+.switch-line a {
+  color: var(--acid);
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 4px;
+  border-bottom: 2px solid currentColor;
+}
+.switch-line a:hover { color: var(--paper); }
 
 @media (max-width: 480px) {
-  .auth-view { padding: 40px 14px 80px; }
-  .auth-card { padding: 24px; }
+  .auth-view { padding: 16px 0 40px; }
+  .auth-card { padding: 26px 20px 22px; box-shadow: 6px 6px 0 var(--acid); }
 }
 </style>

@@ -11,6 +11,15 @@ export const STATUS_ICONS = {
   planned: '▤'
 }
 
+// AppIcon names for each status, so every place that shows a shelf status
+// draws the same glyph
+export const STATUS_ICON_NAMES = {
+  completed: 'check',
+  playing: 'play',
+  dropped: 'x',
+  planned: 'bookmark'
+}
+
 function parseDbDate(raw) {
   if (!raw) return 0
   const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T') + 'Z'

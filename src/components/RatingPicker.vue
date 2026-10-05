@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppIcon from './AppIcon.vue'
 
 const props = defineProps({
   modelValue: { type: String, default: null } // null | 'like' | 'dislike' | 'mixed'
@@ -9,10 +10,10 @@ const emit = defineEmits(['update:modelValue'])
 const { t } = useI18n()
 
 const options = [
-  { value: null, icon: '–' },
-  { value: 'like', icon: '👍' },
-  { value: 'dislike', icon: '👎' },
-  { value: 'mixed', icon: '🤝' }
+  { value: null, icon: 'minus' },
+  { value: 'like', icon: 'thumbs-up' },
+  { value: 'dislike', icon: 'thumbs-down' },
+  { value: 'mixed', icon: 'meh' }
 ]
 
 const optRefs = ref([])
@@ -60,7 +61,7 @@ function choose(opt, event) {
   <div class="rating-picker" role="radiogroup" :aria-label="t('rating.label')">
     <span
       class="indicator"
-      :class="{ ready }"
+      :class="[{ ready }, modelValue ? `r-${modelValue}` : 'r-none']"
       :style="{ transform: `translateX(${indicator.left}px)`, width: indicator.width + 'px' }"
     />
     <button
@@ -76,7 +77,7 @@ function choose(opt, event) {
       :title="t(`rating.${opt.value || 'none'}`)"
       @click="choose(opt, $event)"
     >
-      {{ opt.icon }}
+      <AppIcon :name="opt.icon" :size="15" :stroke="2.25" />
     </button>
   </div>
 </template>
@@ -85,26 +86,29 @@ function choose(opt, event) {
 .rating-picker {
   position: relative;
   display: inline-flex;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 999px;
-  background: rgba(253, 250, 242, 0.14);
-  backdrop-filter: blur(6px);
+  gap: 0;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--line-strong);
+  background: var(--bg-0);
   width: fit-content;
 }
 .indicator {
   position: absolute;
-  top: 3px;
-  bottom: 3px;
+  top: 2px;
+  bottom: 2px;
   left: 0;
-  border-radius: 999px;
-  background: rgba(253, 250, 242, 0.28);
+  border-radius: 2px;
+  background: var(--bg-3);
   transition: none;
   pointer-events: none;
   z-index: 0;
 }
+.indicator.r-like { background: var(--st-completed); }
+.indicator.r-dislike { background: var(--st-dropped); }
+.indicator.r-mixed { background: var(--st-planned); }
 .indicator.ready {
-  transition: transform var(--dur-med) var(--ease-out), width var(--dur-med) var(--ease-out);
+  transition: transform var(--dur-med) var(--ease-out), width var(--dur-med) var(--ease-out), background var(--dur-fast);
 }
 .rate-opt {
   position: relative;
@@ -112,17 +116,19 @@ function choose(opt, event) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
+  width: 32px;
   height: 30px;
-  border-radius: 50%;
+  border-radius: 2px;
   border: none;
   background: transparent;
-  font-size: 14px;
-  line-height: 1;
-  color: #fdfaf2;
-  opacity: 0.55;
-  transition: opacity var(--dur-fast);
+  color: var(--text-2);
+  transition: color var(--dur-fast);
 }
-.rate-opt:hover { opacity: 0.85; }
-.rate-opt.active { opacity: 1; }
+.rate-opt:hover { color: var(--text-0); }
+.rate-opt.active { color: var(--ink); }
+.rate-opt.active:first-of-type { color: var(--text-0); }
+
+@media (max-width: 560px) {
+  .rate-opt { width: 26px; height: 28px; }
+}
 </style>

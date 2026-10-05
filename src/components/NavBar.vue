@@ -8,6 +8,8 @@ import { useSteamPlaytimeStore } from '../stores/steamPlaytime'
 import { useDealsStore } from '../stores/deals'
 import { useCommentsStore } from '../stores/comments'
 import LangSwitcher from './LangSwitcher.vue'
+import AppIcon from './AppIcon.vue'
+import { DONATE_URL } from '../config'
 import logoIconUrl from '../assets/logo-icon.svg'
 import logoWordmarkUrl from '../assets/logo-wordmark.svg'
 
@@ -20,6 +22,8 @@ const steamPlaytime = useSteamPlaytimeStore()
 const deals = useDealsStore()
 const comments = useCommentsStore()
 const mobileOpen = ref(false)
+
+watch(() => route.fullPath, () => { mobileOpen.value = false })
 
 // Kick this off as soon as the app shell mounts (present on every page),
 // well before the person ever opens My Games, so by the time they click
@@ -47,7 +51,7 @@ function logout() {
 </script>
 
 <template>
-  <header class="nav">
+  <header class="nav" :class="{ open: mobileOpen }">
     <div class="shell nav-row">
       <router-link :to="{ name: 'library' }" class="brand" @click="mobileOpen = false">
         <img :src="logoIconUrl" alt="" class="brand-icon" />
@@ -68,17 +72,34 @@ function logout() {
       </nav>
 
       <div class="controls">
+        <a
+          :href="DONATE_URL"
+          target="_blank"
+          rel="noopener"
+          class="coin-btn"
+          :title="t('nav.donateHint')"
+          :aria-label="t('nav.donateHint')"
+        >
+          <span class="coin"><AppIcon name="coin" :size="18" /></span>
+          <span class="coin-label">{{ t('nav.donate') }}</span>
+        </a>
+
+        <span class="divider" aria-hidden="true" />
+
         <LangSwitcher />
         <template v-if="auth.isAuthed">
-          <router-link :to="{ name: 'account' }" class="user-chip">
+          <router-link :to="{ name: 'account' }" class="user-chip" :class="{ active: route.name === 'account' }">
             <img v-if="auth.user?.avatar" :src="auth.user.avatar" alt="" class="user-avatar" />
-            {{ auth.user?.username }}
+            <span v-else class="user-avatar user-avatar-fallback mono">{{ auth.user?.username?.slice(0, 1).toUpperCase() }}</span>
+            <span class="user-name">{{ auth.user?.username }}</span>
           </router-link>
-          <button class="btn btn-ghost" @click="logout">{{ t('nav.logout') }}</button>
+          <button class="icon-btn logout-btn" @click="logout" :aria-label="t('nav.logout')" :title="t('nav.logout')">
+            <AppIcon name="log-out" :size="17" />
+          </button>
         </template>
         <template v-else>
           <a href="/api/auth-steam-start" class="steam-icon-btn" :aria-label="t('auth.steamCta')" :title="t('auth.steamCta')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M12 2C6.99 2 2.87 5.8 2.14 10.73l5.15 2.13a2.7 2.7 0 0 1 1.53-.47c.05 0 .1 0 .15.01l2.29-3.32v-.05a3.65 3.65 0 1 1 3.65 3.65h-.08l-3.27 2.33v.13a2.7 2.7 0 0 1-4.34 2.14L2.5 15.8C3.79 19.42 7.6 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2ZM8.3 17.5l-1.18-.49a1.98 1.98 0 0 0 1.02.9 2.02 2.02 0 0 0 2.63-1.1 2 2 0 0 0-1.09-2.62 2 2 0 0 0-1.52-.01l1.22.5a1.47 1.47 0 1 1-1.08 2.72v.1Zm7.65-6.34a2.44 2.44 0 1 1 0-4.87 2.44 2.44 0 0 1 0 4.87Zm0-.73a1.7 1.7 0 1 0 0-3.41 1.7 1.7 0 0 0 0 3.41Z" />
             </svg>
           </a>
@@ -87,28 +108,59 @@ function logout() {
         </template>
       </div>
 
-      <button class="burger" @click="mobileOpen = !mobileOpen" :aria-expanded="mobileOpen" aria-label="menu">
-        <span /><span /><span />
-      </button>
+      <div class="mobile-actions">
+        <a
+          :href="DONATE_URL"
+          target="_blank"
+          rel="noopener"
+          class="coin-btn coin-btn-compact"
+          :title="t('nav.donateHint')"
+          :aria-label="t('nav.donateHint')"
+        >
+          <span class="coin"><AppIcon name="coin" :size="18" /></span>
+        </a>
+        <button class="burger" @click="mobileOpen = !mobileOpen" :aria-expanded="mobileOpen" aria-label="menu">
+          <span /><span /><span />
+        </button>
+      </div>
     </div>
 
     <transition name="fade-slide">
-      <div v-if="mobileOpen" class="mobile-panel shell">
-        <router-link :to="{ name: 'library' }" @click="mobileOpen = false">{{ t('nav.library') }}</router-link>
-        <router-link :to="{ name: 'my-games' }" @click="mobileOpen = false">{{ t('nav.myGames') }}</router-link>
-        <router-link v-if="auth.isAuthed" :to="{ name: 'users' }" @click="mobileOpen = false">{{ t('nav.users') }}</router-link>
-        <div class="mobile-controls">
-          <LangSwitcher />
+      <div v-if="mobileOpen" class="mobile-panel">
+        <div class="shell mobile-inner">
+          <router-link :to="{ name: 'library' }" class="m-link" @click="mobileOpen = false">
+            <span>{{ t('nav.library') }}</span><AppIcon name="arrow-right" :size="18" />
+          </router-link>
+          <router-link :to="{ name: 'my-games' }" class="m-link" @click="mobileOpen = false">
+            <span>{{ t('nav.myGames') }}</span><AppIcon name="arrow-right" :size="18" />
+          </router-link>
+          <router-link v-if="auth.isAuthed" :to="{ name: 'users' }" class="m-link" @click="mobileOpen = false">
+            <span>{{ t('nav.users') }}</span><AppIcon name="arrow-right" :size="18" />
+          </router-link>
+          <router-link v-if="auth.isAuthed" :to="{ name: 'account' }" class="m-link" @click="mobileOpen = false">
+            <span>{{ t('nav.profile') }}</span><AppIcon name="arrow-right" :size="18" />
+          </router-link>
+
+          <a :href="DONATE_URL" target="_blank" rel="noopener" class="m-donate" @click="mobileOpen = false">
+            <span class="coin"><AppIcon name="coin" :size="20" /></span>
+            <span class="m-donate-text">
+              <strong>{{ t('nav.donate') }}</strong>
+              <small>{{ t('nav.donateHint') }}</small>
+            </span>
+          </a>
+
+          <div class="mobile-controls">
+            <LangSwitcher />
+            <button v-if="auth.isAuthed" class="btn btn-outline" @click="logout">
+              <AppIcon name="log-out" :size="16" />{{ t('nav.logout') }}
+            </button>
+            <a v-else href="/api/auth-steam-start" class="btn btn-steam-mobile" @click="mobileOpen = false">{{ t('auth.steamCta') }}</a>
+          </div>
+          <div v-if="!auth.isAuthed" class="mobile-auth">
+            <router-link :to="{ name: 'login' }" class="btn btn-outline" @click="mobileOpen = false">{{ t('nav.login') }}</router-link>
+            <router-link :to="{ name: 'register' }" class="btn btn-primary" @click="mobileOpen = false">{{ t('nav.register') }}</router-link>
+          </div>
         </div>
-        <template v-if="auth.isAuthed">
-          <router-link :to="{ name: 'account' }" @click="mobileOpen = false">{{ t('nav.profile') }}</router-link>
-          <button class="btn btn-ghost" @click="logout">{{ t('nav.logout') }}</button>
-        </template>
-        <template v-else>
-          <a href="/api/auth-steam-start" class="btn btn-steam-mobile" @click="mobileOpen = false">{{ t('auth.steamCta') }}</a>
-          <router-link :to="{ name: 'login' }" class="btn btn-ghost" @click="mobileOpen = false">{{ t('nav.login') }}</router-link>
-          <router-link :to="{ name: 'register' }" class="btn btn-primary" @click="mobileOpen = false">{{ t('nav.register') }}</router-link>
-        </template>
       </div>
     </transition>
   </header>
@@ -119,9 +171,10 @@ function logout() {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: color-mix(in srgb, var(--bg-0) 88%, transparent);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--bg-0) 86%, transparent);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  border-bottom: var(--stroke) solid var(--line);
 }
 .nav-row {
   height: var(--nav-h);
@@ -132,18 +185,21 @@ function logout() {
 .brand {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   white-space: nowrap;
-  transform: translateY(-2px);
+  flex-shrink: 0;
+  border-radius: 4px;
 }
 .brand-icon {
   height: 30px;
   width: auto;
   display: block;
   flex-shrink: 0;
+  transition: transform var(--dur-med) var(--ease-spring);
 }
+.brand:hover .brand-icon { transform: rotate(-6deg) scale(1.06); }
 .brand-word {
-  height: 19px;
+  height: 18px;
   width: auto;
   display: block;
 }
@@ -152,129 +208,255 @@ function logout() {
   display: flex;
   gap: 4px;
   flex: 1;
+  min-width: 0;
 }
 .tab {
   position: relative;
   text-decoration: none;
-  color: var(--text-2);
+  color: var(--text-1);
   font-weight: 600;
   font-size: 14px;
-  padding: 10px 16px;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  border: var(--stroke) solid transparent;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: color var(--dur-fast), background var(--dur-fast);
+  white-space: nowrap;
+  transition: color var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast);
 }
-.tab:hover { color: var(--text-0); background: var(--bg-2); }
+.tab:hover { color: var(--text-0); border-color: var(--line-strong); }
 .tab.active {
-  color: var(--text-0);
-  background: var(--bg-2);
-}
-.tab.active::after {
-  content: '';
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: -1px;
-  height: 2px;
-  background: var(--accent-amber);
-  border-radius: 2px;
+  color: var(--ink);
+  background: var(--acid);
+  border-color: var(--acid);
 }
 .tab-count {
   font-size: 11px;
+  font-weight: 700;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
   background: var(--bg-3);
-  color: var(--text-1);
-  padding: 1px 7px;
-  border-radius: 999px;
+  color: var(--text-0);
 }
+.tab.active .tab-count { background: var(--ink); color: var(--acid); }
 
 .controls {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
-.user-chip {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-1);
-  padding: 6px 12px 6px 6px;
+.divider {
+  width: 2px;
+  height: 22px;
+  background: var(--line);
+  margin: 0 2px;
+}
+
+/* --- donate: a round "insert coin" pill, the only round control on the bar --- */
+.coin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 40px;
+  padding: 0 16px 0 5px;
   border-radius: 999px;
-  background: var(--bg-2);
+  border: var(--stroke) solid var(--hot);
+  background: var(--hot);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.coin-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 var(--paper);
+}
+.coin-btn:active { transform: none; box-shadow: none; }
+.coin {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--hot);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.coin-btn:hover .coin { animation: coin-flip 0.7s var(--ease-out); }
+@keyframes coin-flip {
+  0% { transform: rotateY(0) translateY(0); }
+  45% { transform: rotateY(360deg) translateY(-5px); }
+  100% { transform: rotateY(720deg) translateY(0); }
+}
+.coin-btn-compact { padding: 0; width: 40px; justify-content: center; }
+
+.user-chip {
+  height: 40px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-0);
+  padding: 0 12px 0 4px;
+  border-radius: var(--radius-sm);
+  border: var(--stroke) solid var(--line);
+  background: var(--bg-1);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: background var(--dur-fast), color var(--dur-fast);
+  max-width: 180px;
+  transition: border-color var(--dur-fast), background var(--dur-fast);
 }
-.user-chip:hover { background: var(--bg-3); color: var(--text-0); }
-.user-avatar { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; }
+.user-chip:hover, .user-chip.active { border-color: var(--paper); background: var(--bg-2); }
+.user-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+.user-avatar-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--acid);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+.logout-btn { width: 40px; height: 40px; }
 
 .steam-icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  background: #1b2838;
-  color: #fdfaf2;
-  flex-shrink: 0;
-  transition: filter var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
-}
-.steam-icon-btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
-
-.btn-steam-mobile {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 14px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-sm);
+  border: var(--stroke) solid #2a475e;
   background: #1b2838;
-  color: #fdfaf2;
-  font-weight: 700;
-  text-decoration: none;
+  color: #c7d5e0;
+  flex-shrink: 0;
+  transition: color var(--dur-fast), border-color var(--dur-fast);
 }
+.steam-icon-btn:hover { color: #fff; border-color: #66c0f4; }
 
-.burger { display: none; }
+.mobile-actions { display: none; }
+.mobile-panel { display: none; }
 
-.mobile-panel {
-  display: none;
+@media (max-width: 1180px) {
+  .coin-label { display: none; }
+  .coin-btn { padding: 0; width: 40px; justify-content: center; }
+  .user-name { display: none; }
+  .user-chip { padding: 0 4px; }
 }
 
 @media (max-width: 860px) {
   .tabs, .controls { display: none; }
+  .mobile-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
   .burger {
+    width: 44px;
+    height: 44px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    margin-left: auto;
-    background: none;
-    border: none;
-    padding: 8px;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background: var(--bg-1);
+    border: var(--stroke) solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    padding: 0;
   }
   .burger span {
-    width: 20px;
+    width: 18px;
     height: 2px;
     background: var(--text-0);
-    border-radius: 2px;
+    transition: transform var(--dur-med) var(--ease-out), opacity var(--dur-fast);
   }
+  .nav.open .burger { border-color: var(--acid); }
+  .nav.open .burger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav.open .burger span:nth-child(2) { opacity: 0; }
+  .nav.open .burger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
   .mobile-panel {
+    display: block;
+    border-top: var(--stroke) solid var(--line);
+    background: var(--bg-0);
+    max-height: calc(100vh - var(--nav-h));
+    overflow-y: auto;
+  }
+  .mobile-inner {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding: 18px 24px 22px;
-    border-top: 1px solid var(--border-soft);
+    padding-top: 6px;
+    padding-bottom: 22px;
   }
-  .mobile-panel a {
+  .m-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 56px;
     text-decoration: none;
-    color: var(--text-1);
-    font-weight: 600;
+    color: var(--text-0);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    border-bottom: 1px dashed var(--line-strong);
   }
+  .m-link.router-link-exact-active { color: var(--acid); }
+  .m-donate {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0 14px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--hot);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .m-donate .coin { width: 38px; height: 38px; }
+  .m-donate-text { display: flex; flex-direction: column; gap: 1px; }
+  .m-donate-text strong { font-size: 15px; font-weight: 800; }
+  .m-donate-text small { font-size: 12px; font-weight: 600; opacity: 0.8; }
   .mobile-controls {
     display: flex;
+    align-items: center;
     gap: 10px;
-    padding: 6px 0;
   }
+  .mobile-controls .btn { flex: 1; }
+  .mobile-auth {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .btn-steam-mobile {
+    background: #1b2838;
+    border-color: #2a475e;
+    color: #c7d5e0;
+  }
+}
+
+@media (max-width: 380px) {
+  .brand-word { height: 15px; }
 }
 </style>

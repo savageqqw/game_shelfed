@@ -6,7 +6,9 @@
     "login": "Log in",
     "register": "Sign up",
     "logout": "Log out",
-    "profile": "Profile"
+    "profile": "Profile",
+    "donate": "Insert coin",
+    "donateHint": "Support the project with a donation"
   },
   "search": {
     "placeholder": "Search the catalog…",
@@ -65,13 +67,17 @@
   },
   "library": {
     "eyebrow": "Game catalog",
-    "title": "Track your games",
-    "subtitle": "Add games to your personal library.",
+    "title": "Every game you play",
+    "subtitle": "Search the catalog and sort games onto shelves: finished, playing, planned and dropped.",
     "stats": {
       "games": "games in the catalog",
       "statuses": "progress statuses",
       "ratings": "ways to rate a game"
-    }
+    },
+    "titleAccent": "on one shelf",
+    "shelfPick": "Hot",
+    "gridPopular": "Popular right now",
+    "gridResults": "Search results"
   },
   "auth": {
     "loginTitle": "Welcome back",
@@ -234,5 +240,10 @@
     "similar": "Similar games",
     "signInToTrack": "Sign in to add this game to your library",
     "ratingCount": "{count} ratings"
+  },
+  "notFound": {
+    "title": "There's no shelf here",
+    "text": "The page has moved, or the link has a typo.",
+    "cta": "Back to the catalog"
   }
 }

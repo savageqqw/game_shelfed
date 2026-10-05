@@ -2,13 +2,14 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
-import { useLibraryStore, STATUSES, STATUS_ICONS } from '../stores/library'
+import { useLibraryStore, STATUSES, STATUS_ICON_NAMES } from '../stores/library'
 import { useSteamPlaytimeStore } from '../stores/steamPlaytime'
 import { useDealsStore } from '../stores/deals'
 import { getPushStatus, subscribeToPush, unsubscribeFromPush } from '../utils/push'
 import { api } from '../utils/api'
 import GameCard from '../components/GameCard.vue'
 import CategoryTabs from '../components/CategoryTabs.vue'
+import AppIcon from '../components/AppIcon.vue'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -223,7 +224,8 @@ onMounted(() => {
 <template>
   <div class="shell my-view">
     <header class="my-header">
-      <div>
+      <div class="title-block">
+        <span class="tape">{{ t('nav.myGames') }}</span>
         <h1>{{ t('myGames.title') }}</h1>
         <p class="stat mono" v-if="library.items.length">{{ t('myGames.stat', { count: library.items.length }) }}</p>
       </div>
@@ -238,60 +240,66 @@ onMounted(() => {
         :class="[`s-${s}`, { active: activeTab === s }]"
         @click="activeTab = s"
       >
-        <span class="stat-icon mono">{{ STATUS_ICONS[s] }}</span>
-        <span class="stat-text">
-          <span class="stat-num mono">{{ library.counts[s] || 0 }}</span>
+        <span class="stat-top">
           <span class="stat-label">{{ t(`status.${s}`) }}</span>
+          <span class="stat-icon"><AppIcon :name="STATUS_ICON_NAMES[s]" :size="15" :stroke="2.75" /></span>
         </span>
+        <span class="stat-num mono">{{ String(library.counts[s] || 0).padStart(2, '0') }}</span>
+        <span class="stat-bar"><span :style="{ width: (library.items.length ? ((library.counts[s] || 0) / library.items.length) * 100 : 0) + '%' }" /></span>
       </button>
     </div>
 
     <div class="tools-row">
       <div v-if="library.items.length" class="search-wrap">
-        <span class="search-icon" aria-hidden="true">⌕</span>
+        <AppIcon name="search" :size="18" class="search-icon" />
         <input
           v-model="searchQuery"
-          type="text"
-          class="search-input"
+          type="search"
+          class="input search-input"
           :placeholder="t('myGames.searchPlaceholder')"
+          :aria-label="t('myGames.searchPlaceholder')"
         />
         <button
           v-if="searchQuery"
           class="search-clear"
           @click="searchQuery = ''"
           :aria-label="t('myGames.searchClear')"
-        >✕</button>
+        ><AppIcon name="x" :size="15" :stroke="2.5" /></button>
       </div>
 
       <button
         v-if="library.items.length"
-        class="btn btn-ghost random-btn"
+        class="btn btn-outline random-btn"
         :disabled="!library.counts.planned"
         :title="library.counts.planned ? t('myGames.randomCta') : t('myGames.randomEmpty')"
         @click="pickRandom"
       >
-        <span aria-hidden="true">🎲</span> {{ t('myGames.randomCta') }}
+        <AppIcon name="dice" :size="17" /> {{ t('myGames.randomCta') }}
       </button>
 
       <button
         v-if="library.items.length"
-        class="btn btn-ghost deals-btn"
+        class="btn btn-outline deals-btn"
         @click="openDealsModal"
       >
-        <span aria-hidden="true">🔔</span> {{ t('myGames.dealsCta') }}
+        <AppIcon name="bell" :size="17" /> {{ t('myGames.dealsCta') }}
       </button>
 
-      <router-link :to="{ name: 'steam-import' }" class="btn btn-ghost steam-btn" :class="{ 'steam-btn-alone': !library.items.length }">
-        <span aria-hidden="true">⇩</span> {{ t('myGames.steamCta') }}
+      <router-link v-if="library.items.length" :to="{ name: 'steam-import' }" class="btn btn-outline steam-btn">
+        <AppIcon name="download" :size="17" /> {{ t('myGames.steamCta') }}
       </router-link>
     </div>
 
     <div v-if="library.loading && !library.loaded" class="loading-msg mono">{{ t('search.loading') }}</div>
 
     <div v-else-if="!library.items.length" class="empty-state">
+      <div class="empty-shelf" aria-hidden="true">
+        <span /><span /><span />
+      </div>
       <p>{{ t('myGames.empty') }}</p>
       <div class="empty-actions">
-        <router-link :to="{ name: 'library' }" class="btn btn-primary">{{ t('myGames.emptyCta') }}</router-link>
+        <router-link :to="{ name: 'library' }" class="btn btn-primary">{{ t('myGames.emptyCta') }}<AppIcon name="arrow-right" :size="16" /></router-link>
+        <router-link :to="{ name: 'steam-import' }" class="btn btn-outline"><AppIcon name="download" :size="17" />{{ t('myGames.steamCta') }}</router-link>
       </div>
     </div>
 
@@ -316,10 +324,10 @@ onMounted(() => {
     </div>
 
     <transition name="fade-slide">
-      <div v-if="showRandom" class="random-overlay" @click.self="closeRandom">
-        <div class="random-modal card-surface">
-          <button class="random-close" @click="closeRandom" :aria-label="t('myGames.randomClose')">✕</button>
-          <p class="random-eyebrow mono">{{ t('myGames.randomEyebrow') }}</p>
+      <div v-if="showRandom" class="overlay random-overlay" @click.self="closeRandom">
+        <div class="dialog random-modal" role="dialog" aria-modal="true">
+          <button class="icon-btn random-close" @click="closeRandom" :aria-label="t('myGames.randomClose')"><AppIcon name="x" :size="16" /></button>
+          <p class="random-eyebrow"><span class="tape tape-hot">{{ t('myGames.randomEyebrow') }}</span></p>
 
           <div class="random-body">
             <div class="random-cover">
@@ -333,18 +341,18 @@ onMounted(() => {
           </div>
 
           <div class="random-actions">
-            <button class="btn btn-ghost" @click="pickRandom">🎲 {{ t('myGames.randomReroll') }}</button>
-            <button class="btn btn-primary" @click="jumpToRandom">{{ t('myGames.randomJump') }}</button>
+            <button class="btn btn-outline" @click="pickRandom"><AppIcon name="dice" :size="17" /> {{ t('myGames.randomReroll') }}</button>
+            <button class="btn btn-primary" @click="jumpToRandom">{{ t('myGames.randomJump') }}<AppIcon name="arrow-right" :size="16" /></button>
           </div>
         </div>
       </div>
     </transition>
 
     <transition name="fade-slide">
-      <div v-if="showDealsModal" class="random-overlay" @click.self="showDealsModal = false">
-        <div class="deals-modal card-surface">
-          <button class="random-close" @click="showDealsModal = false" :aria-label="t('myGames.dealsClose')">✕</button>
-          <p class="random-eyebrow mono">{{ t('myGames.dealsEyebrow') }}</p>
+      <div v-if="showDealsModal" class="overlay random-overlay" @click.self="showDealsModal = false">
+        <div class="dialog deals-modal" role="dialog" aria-modal="true">
+          <button class="icon-btn random-close" @click="showDealsModal = false" :aria-label="t('myGames.dealsClose')"><AppIcon name="x" :size="16" /></button>
+          <p class="random-eyebrow"><span class="tape tape-hot"><AppIcon name="bell" :size="13" :stroke="2.5" />{{ t('myGames.dealsEyebrow') }}</span></p>
 
           <div class="deals-default">
             <label class="deals-default-label">
@@ -354,7 +362,7 @@ onMounted(() => {
                 <span class="deals-percent">%</span>
               </div>
             </label>
-            <button class="btn btn-ghost deals-default-save" :disabled="defaultThresholdSaving" @click="saveDefaultThreshold">
+            <button class="btn btn-primary deals-default-save" :disabled="defaultThresholdSaving" @click="saveDefaultThreshold">
               {{ t('account.deals.submit') }}
             </button>
           </div>
@@ -369,7 +377,7 @@ onMounted(() => {
             <button
               v-if="pushStatus === 'subscribed'"
               type="button"
-              class="btn btn-ghost push-btn"
+              class="btn btn-outline push-btn"
               :disabled="pushBusy"
               @click="disablePush"
             >{{ t('account.deals.pushDisable') }}</button>
@@ -386,7 +394,7 @@ onMounted(() => {
           <p v-if="pushError" class="error-msg">{{ pushError }}</p>
 
           <div v-if="pushStatus === 'subscribed'" class="deals-test-row">
-            <button class="btn btn-ghost deals-test-btn" :disabled="testSending" @click="sendTestNotification">
+            <button class="btn btn-outline deals-test-btn" :disabled="testSending" @click="sendTestNotification">
               {{ testSending ? t('myGames.dealsTestSending') : t('myGames.dealsTestCta') }}
             </button>
             <p v-if="testResult" class="test-result" :class="{ ok: testResult.ok, fail: !testResult.ok }">{{ testResult.message }}</p>
@@ -447,71 +455,117 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.my-view { padding-bottom: 60px; }
+.my-view { padding-bottom: 40px; }
 .my-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
-  padding: 20px 0 28px;
+  gap: 20px 24px;
+  padding: 12px 0 28px;
 }
-.my-header h1 { font-size: clamp(26px, 4vw, 36px); }
-.stat { color: var(--text-2); font-size: 12px; margin-top: 6px; }
+.title-block h1 {
+  margin-top: 18px;
+  font-size: clamp(32px, 4.6vw, 56px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+.stat { color: var(--text-2); font-size: 12px; margin: 10px 0 0; letter-spacing: 0.06em; text-transform: uppercase; }
 
+/* --- scoreboard: one block per shelf --- */
 .stat-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-  margin-bottom: 30px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
 }
 .stat-card {
+  --tone: var(--acid);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-1);
+  border: var(--stroke) solid var(--line);
+  color: var(--text-0);
+  text-align: left;
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), border-color var(--dur-fast), background var(--dur-fast);
+}
+.stat-card.s-completed { --tone: var(--st-completed); }
+.stat-card.s-planned { --tone: var(--st-planned); }
+.stat-card.s-playing { --tone: var(--st-playing); }
+.stat-card.s-dropped { --tone: var(--st-dropped); }
+.stat-card:hover {
+  transform: translate(-3px, -3px);
+  border-color: var(--tone);
+  box-shadow: 5px 5px 0 var(--tone);
+}
+.stat-top {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  border-radius: var(--radius-md);
-  background: var(--bg-1);
-  border: 1px solid var(--border-soft);
-  text-align: left;
-  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast), background var(--dur-fast);
+  justify-content: space-between;
+  gap: 10px;
 }
-.stat-card:hover { transform: translateY(-2px); border-color: var(--border-strong); }
-
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-1);
+}
 .stat-icon {
-  flex-shrink: 0;
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
-  font-weight: 700;
-  color: #fdfaf2;
-  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.5);
+  background: var(--tone);
+  color: var(--ink);
+  flex-shrink: 0;
 }
-.stat-card.s-completed .stat-icon { background: var(--status-completed); }
-.stat-card.s-planned .stat-icon { background: var(--status-planned); }
-.stat-card.s-playing .stat-icon { background: var(--status-playing); }
-.stat-card.s-dropped .stat-icon { background: var(--status-dropped); }
+.stat-num {
+  font-size: clamp(30px, 3.6vw, 44px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--text-0);
+}
+.stat-bar {
+  display: block;
+  height: 6px;
+  background: var(--bg-3);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.stat-bar span {
+  display: block;
+  height: 100%;
+  background: var(--tone);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+.stat-card.active {
+  background: var(--tone);
+  border-color: var(--tone);
+}
+.stat-card.active .stat-label,
+.stat-card.active .stat-num { color: var(--ink); }
+.stat-card.active .stat-icon { background: var(--ink); color: var(--tone); }
+.stat-card.active .stat-bar { background: rgba(0, 0, 0, 0.2); }
+.stat-card.active .stat-bar span { background: var(--ink); }
 
-.stat-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.stat-num { font-size: 22px; font-weight: 700; line-height: 1.1; color: var(--text-0); }
-.stat-label { font-size: 12px; color: var(--text-2); }
-
-.stat-card.active { background: var(--bg-2); }
-.stat-card.active.s-completed { border-color: var(--status-completed); }
-.stat-card.active.s-planned { border-color: var(--status-planned); }
-.stat-card.active.s-playing { border-color: var(--status-playing); }
-.stat-card.active.s-dropped { border-color: var(--status-dropped); }
-
+/* --- tools --- */
 .tools-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+  padding: 12px;
+  border: var(--stroke) dashed var(--line-strong);
+  border-radius: var(--radius-lg);
 }
 
 .search-wrap {
@@ -525,100 +579,115 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-2);
-  font-size: 15px;
   pointer-events: none;
 }
+.search-wrap:focus-within .search-icon { color: var(--acid); }
 .search-input {
-  width: 100%;
-  padding: 11px 38px 11px 38px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-soft);
-  background: var(--bg-1);
-  color: var(--text-0);
-  font-size: 14px;
-  font-family: inherit;
-  transition: border-color var(--dur-fast), background var(--dur-fast);
+  padding-left: 42px;
+  padding-right: 44px;
+  -webkit-appearance: none;
+  appearance: none;
 }
-.search-input::placeholder { color: var(--text-2); }
-.search-input:focus {
-  outline: none;
-  border-color: var(--accent-amber);
-  background: var(--bg-2);
-}
+.search-input::-webkit-search-cancel-button { display: none; }
 .search-clear {
   position: absolute;
-  right: 8px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
   border: none;
   background: transparent;
   color: var(--text-2);
-  font-size: 13px;
-  cursor: pointer;
   transition: background var(--dur-fast), color var(--dur-fast);
 }
-.search-clear:hover { background: var(--bg-2); color: var(--text-0); }
+.search-clear:hover { background: var(--bg-3); color: var(--text-0); }
 
-.random-btn {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-.random-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.random-btn:disabled:hover { transform: none; }
+.random-btn, .deals-btn, .steam-btn { flex-shrink: 0; }
 
-.steam-btn {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  text-decoration: none;
+/* --- dialogs --- */
+.random-overlay { z-index: 100; }
+.random-modal {
+  max-width: 400px;
+  padding: 26px 24px 24px;
+  text-align: center;
 }
-.steam-btn-alone { margin: 0 auto; }
-
-.deals-btn {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
 .deals-modal {
-  position: relative;
-  width: 100%;
-  max-width: 460px;
-  max-height: 84vh;
-  padding: 28px 24px 24px;
+  max-width: 480px;
+  max-height: 86vh;
+  padding: 26px 24px 22px;
   display: flex;
   flex-direction: column;
   text-align: left;
 }
+.random-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+.random-eyebrow { margin: 0 0 22px; }
+.random-eyebrow .tape :deep(svg) { margin-right: 2px; }
+
+.random-body { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.random-cover {
+  width: 150px;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-2);
+  border: var(--stroke) solid var(--paper);
+  box-shadow: 6px 6px 0 var(--st-planned);
+  transform: rotate(-2deg);
+  animation: random-drop 0.55s var(--ease-spring);
+}
+@keyframes random-drop {
+  from { transform: translateY(-18px) rotate(-8deg); opacity: 0; }
+  to { transform: rotate(-2deg); opacity: 1; }
+}
+.random-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.random-cover-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.random-info h3 { font-family: var(--font-display); font-size: 21px; letter-spacing: -0.02em; margin: 4px 0 6px; }
+.random-genre { font-family: var(--font-mono); font-size: 12px; color: var(--text-2); margin: 0; }
+
+.random-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
 .deals-default {
   display: flex;
   align-items: flex-end;
   gap: 10px;
-  margin-top: 4px;
 }
 .deals-default-label {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--text-1);
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-1);
   flex: 1;
 }
-.deals-default-save { flex-shrink: 0; white-space: nowrap; }
+.deals-default-save { flex-shrink: 0; }
 .push-row {
   display: flex;
   align-items: center;
@@ -626,13 +695,13 @@ onMounted(() => {
   gap: 16px;
   margin-top: 18px;
   padding-top: 18px;
-  border-top: 1px solid var(--border-soft);
+  border-top: 1px dashed var(--line-strong);
 }
 .push-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.push-title { font-size: 13px; font-weight: 600; color: var(--text-1); }
-.push-desc { font-size: 12px; color: var(--text-2); }
-.push-btn { flex-shrink: 0; white-space: nowrap; }
-.push-denied { font-size: 12px; color: var(--text-2); flex-shrink: 0; }
+.push-title { font-size: 14px; font-weight: 700; color: var(--text-0); }
+.push-desc { font-size: 13px; color: var(--text-2); }
+.push-btn { flex-shrink: 0; }
+.push-denied { font-size: 12px; color: var(--text-2); flex-shrink: 0; max-width: 160px; }
 .deals-test-row {
   display: flex;
   align-items: center;
@@ -640,19 +709,18 @@ onMounted(() => {
   margin-top: 12px;
   flex-wrap: wrap;
 }
-.deals-test-btn { flex-shrink: 0; white-space: nowrap; }
-.test-result { font-size: 12px; margin: 0; }
-.test-result.ok { color: var(--status-completed); }
-.test-result.fail { color: var(--status-dropped); }
-.error-msg { color: var(--status-dropped); font-size: 13px; margin: 6px 0 0; }
-.success-msg { color: var(--status-completed); font-size: 13px; margin: 6px 0 0; }
+.deals-test-btn { flex-shrink: 0; }
+.test-result { font-size: 13px; margin: 0; }
+.test-result.ok { color: var(--st-completed); }
+.test-result.fail { color: var(--st-dropped); }
+.error-msg { color: var(--st-dropped); font-size: 13px; margin: 8px 0 0; }
+.success-msg { color: var(--st-completed); font-size: 13px; margin: 8px 0 0; }
 .deals-hint {
   font-size: 13px;
   color: var(--text-2);
   margin: 0 0 18px;
-  text-align: left;
 }
-.deals-hint-list { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-soft); margin-bottom: 12px; }
+.deals-hint-list { margin-top: 20px; padding-top: 18px; border-top: 1px dashed var(--line-strong); margin-bottom: 10px; }
 .deals-empty {
   color: var(--text-2);
   font-size: 14px;
@@ -666,40 +734,39 @@ onMounted(() => {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  border-top: 1px solid var(--border-soft);
+  border-top: var(--stroke) solid var(--line);
 }
 .deals-row {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 12px 2px;
-  border-bottom: 1px solid var(--border-soft);
-  text-align: left;
+  border-bottom: 1px solid var(--line);
 }
 .deals-row-top {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-.deals-row.muted .deals-title { color: var(--text-2); }
+.deals-row.muted .deals-title { color: var(--text-2); text-decoration: line-through; text-decoration-color: var(--line-strong); }
 .deals-cover {
   flex-shrink: 0;
   width: 34px;
-  height: 34px;
-  border-radius: 6px;
+  height: 44px;
+  border-radius: 3px;
   overflow: hidden;
   background: var(--bg-2);
+  border: 1.5px solid var(--line-strong);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .deals-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.deals-row.muted .deals-cover { opacity: 0.5; }
+.deals-row.muted .deals-cover { opacity: 0.45; filter: grayscale(1); }
 .deals-cover-fallback { font-size: 11px; font-weight: 700; color: var(--text-2); }
 .deals-title {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-0);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -719,157 +786,106 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 10px;
+  height: 36px;
+  padding: 0 10px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-soft);
-  background: var(--bg-1);
+  border: var(--stroke) solid var(--line-strong);
+  background: var(--bg-0);
+  transition: border-color var(--dur-fast);
 }
+.deals-input-wrap:focus-within { border-color: var(--acid); }
+.deals-input-wrap-lg { height: 46px; }
 .deals-input {
-  width: 40px;
+  width: 44px;
   border: none;
   background: transparent;
   color: var(--text-0);
-  font-size: 13px;
-  font-family: inherit;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
   text-align: right;
   -moz-appearance: textfield;
 }
+.deals-input-wrap-lg .deals-input { width: 100%; text-align: left; font-size: 16px; }
 .deals-input::-webkit-outer-spin-button,
 .deals-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .deals-input:disabled { color: var(--text-2); }
 .deals-input:focus { outline: none; }
-.deals-percent { font-size: 12px; color: var(--text-2); }
-.deals-save-btn {
+.deals-percent { font-family: var(--font-mono); font-size: 13px; color: var(--text-2); }
+.deals-save-btn,
+.deals-mute-btn {
   flex-shrink: 0;
-  padding: 7px 12px;
+  height: 36px;
+  padding: 0 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--accent-amber);
   background: transparent;
-  color: var(--accent-amber);
   font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
+  font-weight: 700;
   white-space: nowrap;
   transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast), opacity var(--dur-fast);
 }
-.deals-save-btn:hover:not(:disabled) { background: var(--accent-amber); color: #17131a; }
-.deals-save-btn:disabled { opacity: 0.5; cursor: default; }
+.deals-save-btn {
+  border: var(--stroke) solid var(--acid);
+  color: var(--acid);
+}
+.deals-save-btn:hover:not(:disabled) { background: var(--acid); color: var(--ink); }
+.deals-save-btn:disabled { opacity: 0.45; }
 .deals-save-btn.saved {
-  border-color: var(--status-completed);
-  color: var(--status-completed);
+  border-color: var(--st-completed);
+  color: var(--st-completed);
 }
 .deals-mute-btn {
-  flex-shrink: 0;
-  padding: 7px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-soft);
-  background: transparent;
-  color: var(--text-2);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+  border: var(--stroke) solid var(--line-strong);
+  color: var(--text-1);
 }
-.deals-mute-btn:hover { background: var(--bg-1); color: var(--text-0); }
+.deals-mute-btn:hover { border-color: var(--paper); color: var(--text-0); }
 .deals-mute-btn.active {
-  color: var(--status-dropped);
-  border-color: var(--status-dropped);
-  background: rgba(var(--status-dropped-rgb, 220, 90, 90), 0.1);
-}
-
-.random-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(10, 12, 16, 0.72);
-  backdrop-filter: blur(6px);
-}
-.random-modal {
-  position: relative;
-  width: 100%;
-  max-width: 380px;
-  padding: 28px 24px 24px;
-  text-align: center;
-}
-.random-close {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  border: 1px solid var(--border-soft);
-  background: var(--bg-1);
-  color: var(--text-2);
-  font-size: 13px;
-  cursor: pointer;
-  transition: color var(--dur-fast), border-color var(--dur-fast);
-}
-.random-close:hover { color: var(--text-0); border-color: var(--border-strong); }
-
-.random-eyebrow {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent-amber);
-  margin: 0 0 18px;
-}
-
-.random-body { display: flex; flex-direction: column; align-items: center; gap: 14px; }
-.random-cover {
-  width: 140px;
-  height: 186px;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: var(--bg-2);
-  border: 1px solid var(--border-soft);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
-}
-.random-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.random-cover-fallback {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--text-2);
-}
-.random-info h3 { font-size: 19px; margin: 0 0 4px; }
-.random-genre { font-size: 13px; color: var(--text-2); margin: 0; }
-
-.random-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 22px;
+  color: var(--ink);
+  border-color: var(--st-dropped);
+  background: var(--st-dropped);
 }
 
 .fade-slide-enter-active, .fade-slide-leave-active {
   transition: opacity var(--dur-fast) var(--ease-out);
 }
-.fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; }
-.fade-slide-enter-active .random-modal, .fade-slide-leave-active .random-modal {
-  transition: transform var(--dur-med) var(--ease-out);
+.fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: none; }
+.fade-slide-enter-active .dialog, .fade-slide-leave-active .dialog {
+  transition: transform var(--dur-med) var(--ease-spring);
 }
-.fade-slide-enter-from .random-modal { transform: translateY(12px) scale(0.97); }
-.fade-slide-leave-to .random-modal { transform: translateY(8px) scale(0.98); }
+.fade-slide-enter-from .dialog { transform: translateY(16px) rotate(-1deg) scale(0.97); }
+.fade-slide-leave-to .dialog { transform: translateY(8px) scale(0.98); }
 
+/* --- empty --- */
 .empty-state {
   text-align: center;
-  padding: 80px 20px;
-  color: var(--text-2);
+  padding: 64px 20px 72px;
+  color: var(--text-1);
+  font-size: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
+  border: var(--stroke) dashed var(--line-strong);
+  border-radius: var(--radius-lg);
 }
+.empty-state p { margin: 0; max-width: 420px; }
+.empty-shelf {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 70px;
+  padding: 0 14px;
+  border-bottom: 3px solid var(--paper);
+}
+.empty-shelf span {
+  width: 18px;
+  border: var(--stroke) dashed var(--line-strong);
+  border-bottom: none;
+  border-radius: 2px 2px 0 0;
+}
+.empty-shelf span:nth-child(1) { height: 70%; }
+.empty-shelf span:nth-child(2) { height: 100%; }
+.empty-shelf span:nth-child(3) { height: 82%; transform: rotate(10deg); transform-origin: bottom left; }
 .empty-actions {
   display: flex;
   gap: 10px;
@@ -877,20 +893,27 @@ onMounted(() => {
   justify-content: center;
 }
 
-.loading-msg { color: var(--text-2); text-align: center; padding: 60px 0; }
+.loading-msg { color: var(--text-2); text-align: center; padding: 60px 0; letter-spacing: 0.06em; }
 
 .game-grid {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+  gap: 22px;
 }
 
 @media (max-width: 900px) {
-  .game-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .game-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
 }
 
 @media (max-width: 560px) {
-  .game-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-row { gap: 10px; }
+  .stat-card { padding: 12px 12px 14px; }
+  .tools-row { padding: 10px; }
+  .tools-row .btn { flex: 1 1 auto; }
+  .game-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .push-row { flex-direction: column; align-items: flex-start; }
+  .deals-controls { padding-left: 0; }
 }
 </style>

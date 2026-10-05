@@ -13,7 +13,7 @@ const { t } = useI18n()
 const tabs = [...STATUSES, 'all']
 
 const tabRefs = ref([])
-const indicator = ref({ left: 0, width: 0 })
+const indicator = ref({ left: 0, top: 0, width: 0, height: 0 })
 
 function setTabRef(el, i) {
   if (el) tabRefs.value[i] = el
@@ -23,7 +23,7 @@ function updateIndicator() {
   const i = tabs.indexOf(props.modelValue)
   const el = tabRefs.value[i]
   if (!el) return
-  indicator.value = { left: el.offsetLeft, width: el.offsetWidth }
+  indicator.value = { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight }
 }
 
 watch(() => props.modelValue, () => nextTick(updateIndicator))
@@ -41,7 +41,8 @@ onBeforeUnmount(() => ro && ro.disconnect())
   <div class="cat-tabs" role="tablist">
     <span
       class="indicator"
-      :style="{ transform: `translateX(${indicator.left}px)`, width: indicator.width + 'px' }"
+      :class="`s-${modelValue}`"
+      :style="{ transform: `translate(${indicator.left}px, ${indicator.top}px)`, width: indicator.width + 'px', height: indicator.height + 'px' }"
     />
     <button
       v-for="(tab, i) in tabs"
@@ -63,46 +64,60 @@ onBeforeUnmount(() => ro && ro.disconnect())
 .cat-tabs {
   position: relative;
   display: flex;
-  gap: 4px;
+  gap: 2px;
   flex-wrap: wrap;
   width: fit-content;
+  max-width: 100%;
+  padding: 3px;
+  border: var(--stroke) solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg-1);
 }
 .indicator {
   position: absolute;
   top: 0;
   left: 0;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--bg-3);
-  transition: transform var(--dur-med) var(--ease-out), width var(--dur-med) var(--ease-out);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  transition: transform var(--dur-med) var(--ease-out), width var(--dur-med) var(--ease-out), background var(--dur-fast);
   pointer-events: none;
   z-index: 0;
 }
+.indicator.s-completed { background: var(--st-completed); }
+.indicator.s-planned { background: var(--st-planned); }
+.indicator.s-playing { background: var(--st-playing); }
+.indicator.s-dropped { background: var(--st-dropped); }
 .cat-tab {
   position: relative;
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 9px 16px;
-  border-radius: 999px;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
   border: none;
   background: transparent;
-  color: var(--text-2);
-  font-weight: 600;
+  color: var(--text-1);
+  font-weight: 700;
   font-size: 13px;
+  white-space: nowrap;
   transition: color var(--dur-fast);
 }
 .cat-tab:hover { color: var(--text-0); }
-.cat-tab.active { color: var(--text-0); }
-.cat-tab.active.s-completed { color: var(--status-completed); }
-.cat-tab.active.s-planned { color: var(--status-planned); }
-.cat-tab.active.s-playing { color: var(--status-playing); }
-.cat-tab.active.s-dropped { color: var(--status-dropped); }
+.cat-tab.active { color: var(--ink); }
 .count {
   font-size: 11px;
-  background: var(--bg-2);
-  padding: 1px 6px;
-  border-radius: 999px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-3);
+  color: var(--text-0);
+  border-radius: 2px;
 }
+.cat-tab.active .count { background: var(--ink); color: var(--paper); }
 </style>
