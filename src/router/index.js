@@ -1,8 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+// the landing page ships in the main bundle: most visitors (and every ad
+// click) arrive here, so it shouldn't wait for a second chunk
+import LibraryView from '../views/LibraryView.vue'
 
 const routes = [
-  { path: '/', name: 'library', component: () => import('../views/LibraryView.vue') },
+  { path: '/', name: 'library', component: LibraryView },
   { path: '/game/:id', name: 'game-detail', component: () => import('../views/GameDetailView.vue') },
   { path: '/my-games', name: 'my-games', component: () => import('../views/MyGamesView.vue'), meta: { requiresAuth: true } },
   { path: '/users', name: 'users', component: () => import('../views/UsersView.vue'), meta: { requiresAuth: true } },
@@ -13,6 +16,7 @@ const routes = [
   { path: '/register', name: 'register', component: () => import('../views/RegisterView.vue'), meta: { guestOnly: true } },
   { path: '/auth/steam-callback', name: 'steam-callback', component: () => import('../views/SteamCallbackView.vue') },
   { path: '/donate', name: 'donate', component: () => import('../views/DonateView.vue') },
+  { path: '/privacy', name: 'privacy', component: () => import('../views/PrivacyView.vue') },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue') }
 ]
 

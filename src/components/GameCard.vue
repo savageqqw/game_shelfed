@@ -14,6 +14,9 @@ const props = defineProps({
 })
 const emit = defineEmits(['set-status', 'remove', 'set-rating'])
 
+// covers fade in once loaded instead of popping in line by line
+const coverLoaded = ref(false)
+
 const { t } = useI18n()
 const menuOpen = ref(false)
 
@@ -55,11 +58,11 @@ onBeforeUnmount(() => {
   <article class="card" :class="[status ? `s-${status}` : '', { shelved: !!status, 'menu-open': menuOpen }]">
     <div class="art">
       <router-link v-if="isLinkable" :to="{ name: 'game-detail', params: { id: game.id } }" class="art-link" :aria-label="game.title" tabindex="-1">
-        <img v-if="game.cover" :src="game.cover" :alt="game.title" loading="lazy" />
+        <img v-if="game.cover" :src="game.cover" :alt="game.title" loading="lazy" :class="{ loaded: coverLoaded }" @load="coverLoaded = true" @error="coverLoaded = true" />
         <div v-else class="art-fallback"><span>{{ game.title.slice(0, 2).toUpperCase() }}</span></div>
       </router-link>
       <template v-else>
-        <img v-if="game.cover" :src="game.cover" :alt="game.title" loading="lazy" />
+        <img v-if="game.cover" :src="game.cover" :alt="game.title" loading="lazy" :class="{ loaded: coverLoaded }" @load="coverLoaded = true" @error="coverLoaded = true" />
         <div v-else class="art-fallback"><span>{{ game.title.slice(0, 2).toUpperCase() }}</span></div>
       </template>
 
@@ -205,7 +208,8 @@ onBeforeUnmount(() => {
   position: relative;
   aspect-ratio: 3 / 4;
   border-radius: calc(var(--radius-lg) - 2px) calc(var(--radius-lg) - 2px) 0 0;
-  background: var(--bg-2);
+  /* striped placeholder, visible until the cover fades in over it */
+  background: repeating-linear-gradient(-45deg, var(--bg-2) 0 6px, var(--bg-1) 6px 12px);
   border-bottom: var(--stroke) solid var(--line);
   overflow: hidden;
 }
@@ -215,8 +219,10 @@ onBeforeUnmount(() => {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform var(--dur-slow) var(--ease-out);
+  opacity: 0;
+  transition: transform var(--dur-slow) var(--ease-out), opacity 0.35s ease;
 }
+.art img.loaded { opacity: 1; }
 .card:hover .art img { transform: scale(1.05); }
 
 .art-link {

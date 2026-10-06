@@ -77,7 +77,21 @@
     "titleAccent": "on one shelf",
     "shelfPick": "Hot",
     "gridPopular": "Popular right now",
-    "gridResults": "Search results"
+    "gridResults": "Search results",
+    "ctaRegister": "Create your shelf",
+    "ctaSteam": "Sign in with Steam",
+    "ctaNote": "Free. Signing up takes a minute.",
+    "how": {
+      "title": "How it works",
+      "findTitle": "Find a game",
+      "findText": "The catalog has {count} games, from new releases to old classics.",
+      "shelveTitle": "Put it on the shelf",
+      "shelveText": "Mark what you've finished, what you're playing, what's planned and what you dropped. A rating helps you remember what you liked.",
+      "steamTitle": "Bring your Steam library",
+      "steamText": "Import your Steam games along with your playtime, so you don't type anything by hand.",
+      "dealsTitle": "Catch sales",
+      "dealsText": "When a game from your plans gets cheaper on Steam, the site sends you a notification."
+    }
   },
   "auth": {
     "loginTitle": "Welcome back",
@@ -106,8 +120,12 @@
       "long_password": "That password is too long.",
       "email_taken": "There's already an account with this email.",
       "username_taken": "That username is taken.",
-      "bad_current_password": "The current password is wrong."
-    }
+      "bad_current_password": "The current password is wrong.",
+      "confirm_mismatch": "That name doesn't match. Type it exactly as shown above.",
+      "admin_locked": "The admin account can't be deleted this way."
+    },
+    "privacyNote": "By signing up you agree to the",
+    "privacyLink": "privacy policy"
   },
   "account": {
     "title": "Account",
@@ -189,7 +207,17 @@
       "log": "Latest visits",
       "bot": "bot",
       "empty": "No data yet. The new stats count from this site update on.",
-      "loadError": "Couldn't load the stats."
+      "loadError": "Couldn't load the stats.",
+      "signupSources": "Where sign-ups come from, 30 days",
+      "directOrUnknown": "Direct or unknown"
+    },
+    "delete": {
+      "title": "Delete account",
+      "text": "Your account, shelf, ratings and comments disappear right away. They can't be restored.",
+      "open": "Delete account",
+      "confirmLabel": "To confirm, type your username: {name}",
+      "cancel": "Cancel",
+      "submit": "Delete for good"
     }
   },
   "rating": {
@@ -295,5 +323,77 @@
     "copied": "Copied",
     "copyFailed": "Couldn't copy",
     "thanks": "Thanks for the support!"
+  },
+  "seo": {
+    "title": "Game Shelfed · all your games on one shelf",
+    "description": "Find any game in a catalog of 370 thousand, put it on your shelf and mark it: completed, playing, planned or dropped. Steam import and sale alerts included.",
+    "gameDescription": "{title}: summary, screenshots and similar games on Game Shelfed."
+  },
+  "consent": {
+    "title": "Cookies for ads",
+    "text": "To see which ads bring people here, we use Google and Meta analytics. They set their own cookies. If you say no, the site works the same.",
+    "more": "Details",
+    "accept": "Accept",
+    "decline": "No thanks"
+  },
+  "privacy": {
+    "eyebrow": "Privacy",
+    "title": "Privacy policy",
+    "lead": "What Game Shelfed knows about you, why, and how to delete all of it.",
+    "updated": "Updated October 6, 2026",
+    "footerLink": "Privacy",
+    "contactTitle": "Contact",
+    "contactText": "Questions about your data go here:",
+    "contactLink": "the project's GitHub",
+    "sections": [
+      {
+        "title": "What we store",
+        "text": [
+          "For your account: username, email and a hash of your password, so we never see the password itself. If you sign in with Steam, we store your Steam ID, profile name and avatar.",
+          "Your shelf: games, statuses, ratings, playtime, sale threshold and comments.",
+          "If you turn on notifications, your browser hands us a push address. We keep it until you turn them off."
+        ]
+      },
+      {
+        "title": "Visit stats",
+        "text": [
+          "To count visitors, your browser gets a random ID in localStorage. With it we record the page, where you came from (a site or an ad tag), your browser and device type, and the country our host derives from your IP. The IP address itself is not stored.",
+          "If you arrive through an ad link, your browser remembers its tag for 30 days. When you sign up, the tag is saved with your account so we can see which ad worked."
+        ]
+      },
+      {
+        "title": "Ads and cookies",
+        "text": [
+          "The site sets no cookies of its own: sign-in uses a token in localStorage. Google Analytics, Google Ads and the Meta Pixel load only if you accept in the banner. They count how many people came from ads and signed up. What they collect is described in Google's and Meta's own policies.",
+          "Changed your mind? Clear this site's data in your browser and the banner comes back."
+        ]
+      },
+      {
+        "title": "Who gets the data",
+        "text": [
+          "We sell nothing. Data passes only through the services the site needs to run:"
+        ],
+        "list": [
+          "Vercel: hosting for the site and its server functions.",
+          "Turso: the database with accounts and shelves.",
+          "IGDB (Twitch): the game catalog, which only receives search queries.",
+          "Steam: sign-in and library import, if you use them.",
+          "Your browser's push services (Google, Mozilla, Apple), if you turn on notifications.",
+          "Google and Meta, only after you accept in the banner."
+        ]
+      },
+      {
+        "title": "How long we keep it",
+        "text": [
+          "Your account and shelf stay until you delete them. The visit log is cleared after 120 days."
+        ]
+      },
+      {
+        "title": "Your rights",
+        "text": [
+          "Your data is visible on your account page. You can change your password there and delete your account at any time. Deletion erases the account, shelf, comments and notification subscriptions immediately and for good. The visit log keeps its entries without your name."
+        ]
+      }
+    ]
   }
 }

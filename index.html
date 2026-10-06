@@ -3,32 +3,138 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Game Shelfed — постав гру на полицю</title>
-    <meta name="description" content="Знаходь ігри у величезному каталозі, став їх на свою полицю та веди облік пройденого, того що в планах, і того, що граєш зараз." />
+    <title>Game Shelfed · усі твої ігри на одній полиці</title>
+    <meta name="description" content="Знайди будь-яку гру в каталозі на 370 тисяч, постав на полицю й відмічай: пройдено, граю, в планах чи кинуто. Є імпорт зі Steam і сповіщення про знижки." />
+    <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://game-shelfed.pp.ua/" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Game Shelfed" />
-    <meta property="og:title" content="Game Shelfed — постав гру на полицю" />
-    <meta property="og:description" content="Знаходь ігри у величезному каталозі, став їх на свою полицю та веди облік пройденого, того що в планах, і того, що граєш зараз." />
+    <meta property="og:locale" content="uk_UA" />
+    <meta property="og:title" content="Game Shelfed · усі твої ігри на одній полиці" />
+    <meta property="og:description" content="Знайди будь-яку гру в каталозі на 370 тисяч, постав на полицю й відмічай: пройдено, граю, в планах чи кинуто. Є імпорт зі Steam і сповіщення про знижки." />
     <meta property="og:image" content="https://game-shelfed.pp.ua/og-cover.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Game Shelfed: полиця з іграми й чотири статуси" />
     <meta property="og:url" content="https://game-shelfed.pp.ua/" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Game Shelfed — постав гру на полицю" />
-    <meta name="twitter:description" content="Знаходь ігри у величезному каталозі, став їх на свою полицю та веди облік пройденого, того що в планах, і того, що граєш зараз." />
+    <meta name="twitter:title" content="Game Shelfed · усі твої ігри на одній полиці" />
+    <meta name="twitter:description" content="Знайди будь-яку гру в каталозі на 370 тисяч, постав на полицю й відмічай: пройдено, граю, в планах чи кинуто. Є імпорт зі Steam і сповіщення про знижки." />
     <meta name="twitter:image" content="https://game-shelfed.pp.ua/og-cover.png" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=3" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#0c0c0e" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://images.igdb.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Onest:wght@400;500;600;700;800&family=Unbounded:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+      /* paints before the app bundle: dark page plus a small shelf animation */
+      html { background: #0c0c0e; }
+      body { margin: 0; }
+      .boot {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        opacity: 0;
+        animation: boot-in 0.3s ease 0.2s forwards;
+      }
+      .boot-shelf { position: relative; width: 100px; height: 66px; }
+      .boot-box {
+        position: absolute;
+        bottom: 8px;
+        width: 24px;
+        border: 3px solid #0c0c0e;
+        border-radius: 3px;
+        box-sizing: border-box;
+        animation: boot-drop 1.6s cubic-bezier(0.3, 1.35, 0.5, 1) infinite both;
+      }
+      .boot-b1 { left: 8px; height: 40px; background: #d4ff3a; }
+      .boot-b2 { left: 36px; height: 54px; background: #ff5b2e; animation-delay: 0.14s; }
+      .boot-b3 { left: 64px; height: 34px; background: #f3efe4; animation-delay: 0.28s; }
+      .boot-plank { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; border-radius: 2px; background: #f3efe4; }
+      .boot-label { font: 700 11px/1 Consolas, Menlo, monospace; letter-spacing: 0.32em; color: #77746c; }
+      @keyframes boot-in { to { opacity: 1; } }
+      @keyframes boot-drop {
+        0% { transform: translateY(-70px); opacity: 0; }
+        22% { transform: translateY(0); opacity: 1; }
+        82% { transform: translateY(0); opacity: 1; }
+        100% { transform: translateY(0); opacity: 0; }
+      }
+      @media (prefers-reduced-motion: reduce) { .boot-box { animation: none; } }
+    </style>
+    <script>
+      // The home page's first catalog request starts here, while the app
+      // bundle is still downloading; LibraryView picks the promise up.
+      (function () {
+        try {
+          if (location.pathname !== '/' || /[?&]q=/.test(location.search)) return
+          var seed = String(Math.floor(Math.random() * 12))
+          window.__gsCatalog = {
+            seed: seed,
+            req: fetch('/api/games-search?q=&page=1&seed=' + seed)
+              .then(function (r) { return r.ok ? r.json() : null })
+              .catch(function () { return null })
+          }
+        } catch (e) { /* the app falls back to its own request */ }
+      })()
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://game-shelfed.pp.ua/#website",
+          "name": "Game Shelfed",
+          "url": "https://game-shelfed.pp.ua/",
+          "inLanguage": ["uk", "en", "ru"],
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://game-shelfed.pp.ua/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "WebApplication",
+          "name": "Game Shelfed",
+          "url": "https://game-shelfed.pp.ua/",
+          "applicationCategory": "GameApplication",
+          "operatingSystem": "Any",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "UAH" },
+          "description": "Трекер ігор: каталог на 370 тисяч ігор, статуси пройдено, граю, в планах і кинуто, імпорт бібліотеки Steam і сповіщення про знижки."
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div class="boot" aria-hidden="true">
+        <div class="boot-shelf">
+          <span class="boot-box boot-b1"></span>
+          <span class="boot-box boot-b2"></span>
+          <span class="boot-box boot-b3"></span>
+          <span class="boot-plank"></span>
+        </div>
+        <span class="boot-label">GAME SHELFED</span>
+      </div>
+    </div>
+    <noscript>
+      <h1>Game Shelfed: усі твої ігри на одній полиці</h1>
+      <p>Каталог на 370 тисяч ігор. Став ігри на полицю зі статусом «пройдено», «граю», «в планах» або «кинуто», імпортуй бібліотеку Steam і отримуй сповіщення про знижки. Для роботи сайту потрібен JavaScript.</p>
+    </noscript>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

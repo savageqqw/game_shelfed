@@ -1,33 +1,24 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { api } from '../utils/api'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore } from '../stores/library'
 import { useSeo } from '../composables/useSeo'
 import GameCard from '../components/GameCard.vue'
 import AppIcon from '../components/AppIcon.vue'
+import { steamStartHref } from '../utils/attribution'
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
+const steamHref = steamStartHref()
 const auth = useAuthStore()
 const library = useLibraryStore()
 
-useSeo(() => ({
-  path: '/',
-  jsonLd: {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'Game Shelfed',
-    url: 'https://game-shelfed.pp.ua/',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: 'https://game-shelfed.pp.ua/?q={search_term_string}',
-      'query-input': 'required name=search_term_string'
-    }
-  }
-}))
+// the WebSite + SearchAction structured data is static in index.html
+useSeo(() => ({ path: '/' }))
 
 const query = ref('')
 const games = ref([])
@@ -41,12 +32,16 @@ const searchEl = ref(null)
 // the hero shelf is filled once from the first (no-query) page and then
 // left alone, so typing in the search box doesn't reshuffle it
 const shelf = ref([])
+const faceLoaded = ref(false)
 let debounceHandle = null
 
-// Regenerated on every page load so the default (no-query) catalog view
-// shows a fresh shuffle of currently-popular games each visit, while
-// "load more" pagination within one visit stays consistent (same seed).
-const seed = Math.random().toString(36).slice(2)
+// Picked on every page load so the default (no-query) catalog view shows a
+// fresh shuffle each visit, while "load more" within one visit stays
+// consistent (same seed). A small set of seeds lets the CDN cache them.
+// index.html may already have started the first request with its own seed
+const prefetched = window.__gsCatalog || null
+window.__gsCatalog = null
+const seed = prefetched?.seed || String(Math.floor(Math.random() * 12))
 
 function formatCount(n) {
   if (!n) return null
@@ -55,11 +50,19 @@ function formatCount(n) {
 }
 
 const tickerItems = computed(() => [
-  `${formatCount(catalogCount.value) || '500k+'} ${t('library.stats.games')}`,
+  `${formatCount(catalogCount.value) || '370k+'} ${t('library.stats.games')}`,
   `4 ${t('library.stats.statuses')}`,
   `3 ${t('library.stats.ratings')}`,
   t('myGames.steamCta'),
   t('myGames.dealsEyebrow')
+])
+
+// what a first-time visitor (often from an ad) needs to know, in four steps
+const howSteps = computed(() => [
+  { key: 'find', icon: 'search', title: t('library.how.findTitle'), text: t('library.how.findText', { count: formatCount(catalogCount.value) || '370k+' }) },
+  { key: 'shelve', icon: 'check', title: t('library.how.shelveTitle'), text: t('library.how.shelveText') },
+  { key: 'steam', icon: 'download', title: t('library.how.steamTitle'), text: t('library.how.steamText') },
+  { key: 'deals', icon: 'flame', title: t('library.how.dealsTitle'), text: t('library.how.dealsText') }
 ])
 
 // one face-out box plus spines, the way a real shelf is stocked
@@ -71,7 +74,9 @@ async function loadPage(reset = false) {
   loading.value = true
   error.value = null
   try {
-    const res = await api.get('/games-search', null, {
+    const early = reset && !query.value && prefetched ? await prefetched.req : null
+    if (prefetched) prefetched.req = Promise.resolve(null)
+    const res = early || await api.get('/games-search', null, {
       q: query.value,
       page: reset ? 1 : page.value,
       seed
@@ -81,7 +86,11 @@ async function loadPage(reset = false) {
     page.value = (reset ? 1 : page.value) + 1
     searched.value = true
     if (!query.value && res.catalogTotal) catalogCount.value = res.catalogTotal
-    if (!query.value && !shelf.value.length) shelf.value = res.results.filter((g) => g.cover).slice(0, 7)
+    // a ?q= landing never loads the popular list, so its results stock the shelf
+    if (!shelf.value.length) {
+      const withCovers = res.results.filter((g) => g.cover)
+      if (withCovers.length >= 3) shelf.value = withCovers.slice(0, 7)
+    }
   } catch (e) {
     error.value = e.message
     if (reset) games.value = []
@@ -119,6 +128,8 @@ function onHotkey(e) {
 }
 
 onMounted(() => {
+  // ?q= links (the search box in Google results points here) open pre-filled
+  if (typeof route.query.q === 'string' && route.query.q.trim()) query.value = route.query.q.trim().slice(0, 100)
   loadPage(true)
   if (auth.isAuthed && !library.loaded) library.fetchAll()
   window.addEventListener('keydown', onHotkey)
@@ -159,6 +170,19 @@ watch(() => auth.isAuthed, (v) => {
           </button>
           <span v-else class="kbd search-kbd" aria-hidden="true">/</span>
         </div>
+
+        <div v-if="!auth.isAuthed" class="guest-cta">
+          <router-link :to="{ name: 'register' }" class="btn btn-primary cta-main">
+            {{ t('library.ctaRegister') }}<AppIcon name="arrow-right" :size="17" :stroke="2.5" />
+          </router-link>
+          <a :href="steamHref" class="btn cta-steam">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2C6.99 2 2.87 5.8 2.14 10.73l5.15 2.13a2.7 2.7 0 0 1 1.53-.47c.05 0 .1 0 .15.01l2.29-3.32v-.05a3.65 3.65 0 1 1 3.65 3.65h-.08l-3.27 2.33v.13a2.7 2.7 0 0 1-4.34 2.14L2.5 15.8C3.79 19.42 7.6 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2ZM8.3 17.5l-1.18-.49a1.98 1.98 0 0 0 1.02.9 2.02 2.02 0 0 0 2.63-1.1 2 2 0 0 0-1.09-2.62 2 2 0 0 0-1.52-.01l1.22.5a1.47 1.47 0 1 1-1.08 2.72v.1Zm7.65-6.34a2.44 2.44 0 1 1 0-4.87 2.44 2.44 0 0 1 0 4.87Zm0-.73a1.7 1.7 0 1 0 0-3.41 1.7 1.7 0 0 0 0 3.41Z" />
+            </svg>
+            {{ t('library.ctaSteam') }}
+          </a>
+          <p class="cta-note mono">{{ t('library.ctaNote') }}</p>
+        </div>
       </div>
 
       <div class="hero-shelf">
@@ -175,7 +199,7 @@ watch(() => auth.isAuthed, (v) => {
             ><span class="spine-title mono">{{ g.title }}</span></router-link>
 
             <router-link :to="{ name: 'game-detail', params: { id: shelfFace.id } }" class="face" :aria-label="shelfFace.title">
-              <img :src="shelfFace.cover" :alt="shelfFace.title" />
+              <img :src="shelfFace.cover" :alt="shelfFace.title" fetchpriority="high" :class="{ loaded: faceLoaded }" @load="faceLoaded = true" @error="faceLoaded = true" />
               <span class="face-tag mono">{{ t('library.shelfPick') }}</span>
             </router-link>
 
@@ -197,7 +221,7 @@ watch(() => auth.isAuthed, (v) => {
         </div>
         <div class="plank" aria-hidden="true" />
         <div class="price-tag mono" aria-hidden="true">
-          <span class="price-num">{{ formatCount(catalogCount) || '500k+' }}</span>
+          <span class="price-num">{{ formatCount(catalogCount) || '370k+' }}</span>
           <span class="price-label">{{ t('library.stats.games') }}</span>
           <span class="barcode"><span v-for="n in 18" :key="n" /></span>
         </div>
@@ -211,6 +235,20 @@ watch(() => auth.isAuthed, (v) => {
         </template>
       </div>
     </div>
+
+    <section v-if="!auth.isAuthed" class="shell how" aria-labelledby="how-title">
+      <h2 id="how-title" class="rule-head">{{ t('library.how.title') }}</h2>
+      <ol class="how-steps">
+        <li v-for="(step, i) in howSteps" :key="step.key" class="how-step" :class="`hs-${step.key}`">
+          <span class="how-top">
+            <span class="how-num mono">{{ String(i + 1).padStart(2, '0') }}</span>
+            <span class="how-icon"><AppIcon :name="step.icon" :size="18" :stroke="2.5" /></span>
+          </span>
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.text }}</p>
+        </li>
+      </ol>
+    </section>
 
     <section class="shell catalog">
       <h2 class="rule-head">
@@ -450,7 +488,8 @@ watch(() => auth.isAuthed, (v) => {
   background: var(--bg-2);
   transition: transform var(--dur-med) var(--ease-spring);
 }
-.face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.face img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity 0.4s ease; }
+.face img.loaded { opacity: 1; }
 .face:hover { transform: translateY(-10px) rotate(-1.5deg); }
 .face-tag {
   position: absolute;
@@ -539,6 +578,69 @@ watch(() => auth.isAuthed, (v) => {
   to { transform: translateX(-50%); }
 }
 
+/* ---------------- guest call to action ---------------- */
+.guest-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 22px;
+  max-width: 560px;
+}
+.cta-main { min-height: 52px; padding: 0 22px; font-size: 16px; }
+.cta-steam {
+  min-height: 52px;
+  padding: 0 18px;
+  font-size: 15px;
+  border-color: #2a475e;
+  background: #1b2838;
+  color: #c7d5e0;
+}
+.cta-steam:hover { border-color: #66c0f4; color: #fff; box-shadow: 4px 4px 0 #66c0f4; }
+.cta-note {
+  flex-basis: 100%;
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-2);
+  letter-spacing: 0.04em;
+}
+
+/* ---------------- how it works (guests only) ---------------- */
+.how { padding-top: 72px; }
+.how-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+.how-step {
+  --c: var(--acid);
+  padding: 18px 18px 20px;
+  background: var(--bg-1);
+  border: var(--stroke) solid var(--line);
+  border-top: 6px solid var(--c);
+  border-radius: var(--radius-lg);
+}
+.hs-shelve { --c: var(--st-completed); }
+.hs-steam { --c: var(--st-playing); }
+.hs-deals { --c: var(--hot); }
+.how-top { display: flex; align-items: center; justify-content: space-between; }
+.how-num { font-size: 13px; font-weight: 700; color: var(--c); letter-spacing: 0.08em; }
+.how-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--c);
+  color: var(--ink);
+}
+.how-step h3 { margin-top: 16px; font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+.how-step p { margin: 8px 0 0; color: var(--text-1); font-size: 14px; line-height: 1.55; }
+
 /* ---------------- catalog ---------------- */
 .catalog { padding-top: 64px; }
 
@@ -607,6 +709,7 @@ watch(() => auth.isAuthed, (v) => {
 }
 
 @media (max-width: 900px) {
+  .how-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .game-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
 }
 
@@ -629,5 +732,8 @@ watch(() => auth.isAuthed, (v) => {
   .price-tag .barcode { display: none; }
   .catalog { padding-top: 48px; }
   .game-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .guest-cta .btn { flex: 1 1 100%; justify-content: center; }
+  .how { padding-top: 56px; }
+  .how-steps { grid-template-columns: 1fr; gap: 12px; }
 }
 </style>

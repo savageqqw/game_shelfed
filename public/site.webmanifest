@@ -1,0 +1,15 @@
+{
+  "name": "Game Shelfed",
+  "short_name": "Game Shelfed",
+  "description": "Усі твої ігри на одній полиці: статуси, оцінки, імпорт зі Steam і знижки.",
+  "lang": "uk",
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0c0c0e",
+  "theme_color": "#0c0c0e",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

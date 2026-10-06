@@ -94,7 +94,7 @@ useSeo(() => {
   const descBase = g.summary ? g.summary.slice(0, 155).trim() + (g.summary.length > 155 ? '…' : '') : null
   return {
     title: g.title,
-    description: descBase || `${g.title}${g.released ? ` (${g.released.slice(0, 4)})` : ''} — деталі, скріншоти та схожі ігри на Game Shelfed.`,
+    description: descBase || t('seo.gameDescription', { title: `${g.title}${g.released ? ` (${g.released.slice(0, 4)})` : ''}` }),
     path: `/game/${g.id}`,
     image: g.cover || undefined,
     jsonLd: {

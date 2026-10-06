@@ -81,6 +81,9 @@ async function search(req, res) {
     genres: (g.genres || []).map((x) => x.name)
   }))
 
+  // the client picks one of 12 shuffle seeds, so the CDN can answer almost
+  // every first-page load without waking the function or calling IGDB
+  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=21600, stale-while-revalidate=172800')
   sendJson(res, 200, { results, hasMore, count, catalogTotal })
 }
 
@@ -106,6 +109,7 @@ async function details(req, res) {
     genres: (g.genres || []).map((x) => x.name)
   }))
 
+  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400')
   sendJson(res, 200, { results })
 }
 
@@ -132,6 +136,8 @@ async function detail(req, res) {
   const official = (g.websites || []).find((w) => w.category === WEBSITE_CATEGORY.OFFICIAL)
   const steam = (g.websites || []).find((w) => w.category === WEBSITE_CATEGORY.STEAM)
 
+  // game pages change rarely; a day at the edge keeps them instant
+  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=86400, stale-while-revalidate=604800')
   sendJson(res, 200, {
     id: g.id,
     title: g.name,

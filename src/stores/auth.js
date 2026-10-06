@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { api } from '../utils/api'
 import { i18n } from '../i18n'
+import { attributionSource } from '../utils/attribution'
+import { trackSignup } from '../utils/ads'
 
 // server errors carry a `code`; show those in the visitor's language
 function errorText(e) {
@@ -29,8 +31,9 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       this.error = null
       try {
-        const res = await api.post('/auth-register', { username, email, password })
+        const res = await api.post('/auth-register', { username, email, password, source: attributionSource() })
         this.setSession(res.token, res.user)
+        trackSignup('email')
         return true
       } catch (e) {
         this.error = errorText(e)

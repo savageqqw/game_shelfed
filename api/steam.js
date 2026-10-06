@@ -21,6 +21,12 @@ function redirectTo(res, origin, path, params = {}) {
   res.end()
 }
 
+function cleanSource(raw) {
+  if (typeof raw !== 'string') return null
+  const v = raw.replace(/[\u0000-\u001f<>"]/g, '').trim().slice(0, 80)
+  return v || null
+}
+
 // --- OAuth: kick off "Sign in with Steam" / "Link Steam account" ---
 async function start(req, res) {
   if (req.method !== 'GET') {
@@ -42,6 +48,10 @@ async function start(req, res) {
 
   let returnTo = `${origin}/api/steam?action=callback`
   if (rawLinkToken) returnTo += `&link_token=${encodeURIComponent(rawLinkToken)}`
+  // where a new visitor came from, carried through Steam so a fresh account
+  // can record it (Steam signs return_to, so it comes back untouched)
+  const src = cleanSource(req.query?.src)
+  if (src && !rawLinkToken) returnTo += `&src=${encodeURIComponent(src)}`
 
   const params = new URLSearchParams({
     'openid.ns': 'http://specs.openid.net/auth/2.0',
@@ -214,6 +224,7 @@ async function callback(req, res) {
     const username = clash.rows.length ? `${displayName.slice(0, 26)}-${steamId.slice(-4)}` : displayName
 
     let user
+    let isNew = false
     if (existing.rows[0]) {
       await db.execute({
         sql: 'UPDATE users SET username = ?, avatar = ? WHERE id = ?',
@@ -224,10 +235,11 @@ async function callback(req, res) {
       const placeholderHash = await bcrypt.hash(randomUUID(), 10)
       const email = `steam-${steamId}@steamusers.local`
       const insertRes = await db.execute({
-        sql: 'INSERT INTO users (username, email, password_hash, steam_id, avatar) VALUES (?, ?, ?, ?, ?)',
-        args: [username, email, placeholderHash, steamId, avatar]
+        sql: 'INSERT INTO users (username, email, password_hash, steam_id, avatar, signup_source) VALUES (?, ?, ?, ?, ?, ?)',
+        args: [username, email, placeholderHash, steamId, avatar, cleanSource(returnTo.searchParams.get('src'))]
       })
       user = { id: Number(insertRes.lastInsertRowid), username, email }
+      isNew = true
     }
 
     const token = signToken(user)
@@ -236,7 +248,9 @@ async function callback(req, res) {
       id: String(user.id),
       username: user.username,
       email: user.email,
-      avatar: avatar || ''
+      avatar: avatar || '',
+      // lets the client count a sign-up conversion once
+      ...(isNew ? { new: '1' } : {})
     })
   } catch (e) {
     console.error('[steam callback] unhandled error', e)

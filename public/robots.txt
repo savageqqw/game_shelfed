@@ -1,4 +1,11 @@
 User-agent: *
 Allow: /
+Disallow: /account
+Disallow: /my-games
+Disallow: /import/
+Disallow: /auth/
+Disallow: /users
+Disallow: /u/
+Disallow: /api/
 
 Sitemap: https://game-shelfed.pp.ua/sitemap.xml

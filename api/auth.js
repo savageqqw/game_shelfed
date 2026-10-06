@@ -37,6 +37,13 @@ async function login(req, res) {
   sendJson(res, 200, { token, user })
 }
 
+// the ad campaign or site the person arrived from, as the client recorded it
+function cleanSource(raw) {
+  if (typeof raw !== 'string') return null
+  const v = raw.replace(/[\u0000-\u001f<>"]/g, '').trim().slice(0, 80)
+  return v || null
+}
+
 async function register(req, res) {
   if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' })
 
@@ -77,8 +84,8 @@ async function register(req, res) {
 
   const hash = await bcrypt.hash(password, 10)
   const result = await db.execute({
-    sql: 'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
-    args: [username, email, hash]
+    sql: 'INSERT INTO users (username, email, password_hash, signup_source) VALUES (?, ?, ?, ?)',
+    args: [username, email, hash, cleanSource(body.source)]
   })
 
   const user = { id: Number(result.lastInsertRowid), username, email }

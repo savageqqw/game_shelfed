@@ -1,4 +1,5 @@
 import { watchEffect } from 'vue'
+import { i18n } from '../i18n'
 
 const SITE = 'https://game-shelfed.pp.ua'
 const SITE_NAME = 'Game Shelfed'
@@ -51,8 +52,9 @@ export function useSeo(getMeta) {
     const m = getMeta()
     if (!m) return
 
-    const title = m.title ? `${m.title} — ${SITE_NAME}` : `${SITE_NAME} — постав гру на полицю`
-    const description = m.description || 'Знаходь ігри у величезному каталозі, став їх на свою полицю та веди облік пройденого, того що в планах, і того, що граєш зараз.'
+    const { t } = i18n.global
+    const title = m.title ? `${m.title} · ${SITE_NAME}` : t('seo.title')
+    const description = m.description || t('seo.description')
     const url = m.path ? `${SITE}${m.path}` : SITE
     const image = m.image || DEFAULT_IMAGE
 
@@ -68,6 +70,8 @@ export function useSeo(getMeta) {
     setMeta('meta[name="twitter:title"]', 'content', title)
     setMeta('meta[name="twitter:description"]', 'content', description)
     setMeta('meta[name="twitter:image"]', 'content', image)
+
+    setMeta('meta[name="robots"]', 'content', m.noindex ? 'noindex, follow' : 'index, follow')
 
     setJsonLd('page', m.jsonLd || null)
   })

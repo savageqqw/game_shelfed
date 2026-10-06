@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import NavBar from './components/NavBar.vue'
 import AppBackground from './components/AppBackground.vue'
 import AppIcon from './components/AppIcon.vue'
+import ConsentBanner from './components/ConsentBanner.vue'
 import { STATUSES, useLibraryStore } from './stores/library'
 import { useAuthStore } from './stores/auth'
 import { useDealsStore } from './stores/deals'
@@ -100,11 +101,13 @@ onBeforeUnmount(() => window.removeEventListener('gs:session-expired', onSession
           <router-link :to="{ name: 'donate' }" class="footer-donate mono">
             <AppIcon name="heart" :size="13" />{{ t('nav.donate') }}
           </router-link>
+          <router-link :to="{ name: 'privacy' }" class="footer-privacy mono">{{ t('privacy.footerLink') }}</router-link>
         </div>
       </div>
       <div class="footer-mark" aria-hidden="true">GAME&nbsp;SHELFED</div>
     </footer>
   </div>
+  <ConsentBanner />
 </template>
 
 <style scoped>
@@ -275,6 +278,13 @@ onBeforeUnmount(() => window.removeEventListener('gs:session-expired', onSession
   transition: border-color var(--dur-fast);
 }
 .footer-donate:hover { border-bottom-color: var(--hot); }
+.footer-privacy {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  text-decoration: none;
+}
+.footer-privacy:hover { color: var(--text-0); text-decoration: underline; }
 
 .footer-mark {
   margin-top: 36px;

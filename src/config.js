@@ -12,3 +12,8 @@ export const CRYPTO_WALLETS = [
   { id: 'base', network: 'Base', tag: 'EVM', address: EVM_ADDRESS },
   { id: 'robinhood', network: 'Robinhood Chain', tag: 'EVM', address: EVM_ADDRESS }
 ]
+
+// Contact for privacy questions, shown on /privacy. With no email set the
+// page points to the project's GitHub issues instead.
+export const CONTACT_EMAIL = ''
+export const CONTACT_URL = 'https://github.com/savageqqw/game_shelfed/issues'

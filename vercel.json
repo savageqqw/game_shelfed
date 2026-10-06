@@ -8,6 +8,7 @@
     { "source": "/api/account-info", "destination": "/api/account?action=info" },
     { "source": "/api/account-deal-threshold", "destination": "/api/account?action=deal-threshold" },
     { "source": "/api/account-change-password", "destination": "/api/account?action=change-password" },
+    { "source": "/api/account-delete", "destination": "/api/account?action=delete" },
 
     { "source": "/api/library-list", "destination": "/api/library?action=list" },
     { "source": "/api/library-upsert", "destination": "/api/library?action=upsert" },
@@ -39,6 +40,9 @@
     { "source": "/api/auth-register", "destination": "/api/auth?action=register" },
 
     { "source": "/api/planned-deals", "destination": "/api/deals?action=planned" },
+
+    { "source": "/", "has": [{ "type": "header", "key": "user-agent", "value": ".*(facebookexternalhit|Facebot|Twitterbot|TelegramBot|Discordbot|Slackbot|WhatsApp|LinkedInBot|vkShare|Viber|SkypeUriPreview|redditbot|Pinterest|Embedly|Iframely|Mastodon|Bluesky|Cardyb).*" }], "destination": "/api/sitemap?action=share&path=/" },
+    { "source": "/:path((?!api/|assets/)[^.]+)", "has": [{ "type": "header", "key": "user-agent", "value": ".*(facebookexternalhit|Facebot|Twitterbot|TelegramBot|Discordbot|Slackbot|WhatsApp|LinkedInBot|vkShare|Viber|SkypeUriPreview|redditbot|Pinterest|Embedly|Iframely|Mastodon|Bluesky|Cardyb).*" }], "destination": "/api/sitemap?action=share&path=/:path" },
 
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],

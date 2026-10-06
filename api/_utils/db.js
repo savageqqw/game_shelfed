@@ -55,7 +55,9 @@ const COLUMN_MIGRATIONS = {
   users: {
     steam_id: 'ALTER TABLE users ADD COLUMN steam_id TEXT',
     avatar: 'ALTER TABLE users ADD COLUMN avatar TEXT',
-    deal_threshold_percent: 'ALTER TABLE users ADD COLUMN deal_threshold_percent INTEGER'
+    deal_threshold_percent: 'ALTER TABLE users ADD COLUMN deal_threshold_percent INTEGER',
+    // where the person came from before signing up (utm tag or referrer host)
+    signup_source: 'ALTER TABLE users ADD COLUMN signup_source TEXT'
   },
   visits: {
     device: 'ALTER TABLE visits ADD COLUMN device TEXT',

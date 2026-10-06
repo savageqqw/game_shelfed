@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { api } from '../utils/api'
 import { useAuthStore } from './auth'
+import { currentTouch } from '../utils/attribution'
 
 // set once the server recognises the admin, so the owner's own visits stay
 // out of the stats even when they browse logged out
@@ -81,13 +82,12 @@ export const usePageViewsStore = defineStore('pageViews', {
       storageSet(sessionStorage, SESSION_KEY, String(Date.now()))
 
       const auth = useAuthStore()
-      const params = new URLSearchParams(location.search)
       try {
         const res = await api.post('/page-views', {
           visitorId: getVisitorId(),
           path: location.pathname,
           referrer: document.referrer || '',
-          source: params.get('utm_source') || params.get('ref') || '',
+          source: currentTouch(),
           webdriver: navigator.webdriver === true
         }, auth.token || undefined)
         if (res?.owner) markOwnerDevice()

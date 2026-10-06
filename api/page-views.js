@@ -44,7 +44,7 @@ function hostOf(raw) {
 // where the visit came from: an explicit ?utm_source / ?ref, else the
 // referring site's host (our own host counts as "direct")
 function sourceOf(body, ownHost) {
-  const tag = String(body.source || '').trim().slice(0, 40)
+  const tag = String(body.source || '').trim().slice(0, 80)
   if (tag) return `utm:${tag}`
   const host = hostOf(String(body.referrer || '')).replace(/^www\./, '')
   if (!host || host === ownHost.replace(/^www\./, '')) return null
@@ -124,7 +124,7 @@ async function recent(req, res) {
 
   const one = (sql) => db.execute(sql).then((r) => Number(r.rows[0]?.[0] || 0))
 
-  const [visitors7d, visitorsToday, visitorsPrev7d, sessions7d, bots7d, signups7d, usersTotal, daily, sources, countries, devices, list] = await Promise.all([
+  const [visitors7d, visitorsToday, visitorsPrev7d, sessions7d, bots7d, signups7d, usersTotal, daily, sources, countries, devices, signupSources, list] = await Promise.all([
     one("SELECT COUNT(DISTINCT visitor_id) FROM visitor_days WHERE day >= date('now', '-6 days')"),
     one("SELECT COUNT(*) FROM visitor_days WHERE day = date('now')"),
     one("SELECT COUNT(DISTINCT visitor_id) FROM visitor_days WHERE day BETWEEN date('now', '-13 days') AND date('now', '-7 days')"),
@@ -142,6 +142,9 @@ async function recent(req, res) {
     db.execute(`SELECT CASE WHEN device LIKE '%mobile' OR device LIKE '%tablet' THEN 'mobile' ELSE 'desktop' END AS k, COUNT(*) AS n FROM visits
                 WHERE is_bot = 0 AND device IS NOT NULL AND created_at >= datetime('now', '-7 days')
                 GROUP BY k`),
+    db.execute(`SELECT COALESCE(signup_source, '') AS k, COUNT(*) AS n FROM users
+                WHERE created_at >= datetime('now', '-30 days')
+                GROUP BY k ORDER BY n DESC LIMIT 8`),
     db.execute(`SELECT id, created_at, user_id, username, visitor_id, is_new_visitor, device, referrer, country, path, is_bot
                 FROM visits ORDER BY id DESC LIMIT 80`)
   ])
@@ -155,6 +158,7 @@ async function recent(req, res) {
     sources: pairs(sources),
     countries: pairs(countries),
     devices: pairs(devices),
+    signupSources: pairs(signupSources),
     visits: list.rows.map((r) => ({
       id: r.id,
       createdAt: r.created_at,

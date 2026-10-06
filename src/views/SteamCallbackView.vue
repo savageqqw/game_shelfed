@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useLibraryStore } from '../stores/library'
+import { trackSignup } from '../utils/ads'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -14,7 +15,7 @@ const library = useLibraryStore()
 const failed = ref(false)
 
 onMounted(async () => {
-  const { token, id, username, email, avatar, error } = route.query
+  const { token, id, username, email, avatar, error, new: isNew } = route.query
 
   if (error || !token) {
     failed.value = true
@@ -27,6 +28,7 @@ onMounted(async () => {
     email: String(email || ''),
     avatar: avatar ? String(avatar) : null
   })
+  if (isNew === '1') trackSignup('steam')
   await library.fetchAll()
   router.replace({ name: 'my-games' })
 })

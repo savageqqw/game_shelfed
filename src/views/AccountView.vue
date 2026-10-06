@@ -90,6 +90,37 @@ async function submitPasswordChange() {
   }
 }
 
+// ---------------- delete account ----------------
+const deleteOpen = ref(false)
+const deleteConfirm = ref('')
+const deleteLoading = ref(false)
+const deleteError = ref(null)
+const deleteReady = computed(() =>
+  !!info.value && deleteConfirm.value.trim().toLowerCase() === String(info.value.username).toLowerCase()
+)
+
+function cancelDelete() {
+  deleteOpen.value = false
+  deleteConfirm.value = ''
+  deleteError.value = null
+}
+
+async function submitDelete() {
+  if (!deleteReady.value) return
+  deleteLoading.value = true
+  deleteError.value = null
+  try {
+    await api.post('/account-delete', { confirm: deleteConfirm.value }, auth.token)
+    auth.logout()
+    // a full reload clears every store that still holds the old account
+    window.location.assign('/')
+  } catch (e) {
+    const key = `auth.errors.${e.code}`
+    deleteError.value = e.code && te(key) ? t(key) : e.message
+    deleteLoading.value = false
+  }
+}
+
 // ---------------- admin visit stats ----------------
 const stats = computed(() => pageViews.stats)
 
@@ -334,6 +365,17 @@ onMounted(() => {
             </ul>
           </div>
           <div class="bd">
+            <h3 class="mini-title mono">{{ t('account.stats.signupSources') }}</h3>
+            <p v-if="!stats.signupSources?.length" class="bd-empty">{{ t('account.stats.empty') }}</p>
+            <ul v-else class="bd-list">
+              <li v-for="r in stats.signupSources" :key="r.key">
+                <span class="bd-name">{{ r.key || t('account.stats.directOrUnknown') }}</span>
+                <span class="bd-num mono">{{ r.count }}</span>
+                <span class="bd-bar"><span class="bar-hot" :style="{ width: share(stats.signupSources, r.count) + '%' }" /></span>
+              </li>
+            </ul>
+          </div>
+          <div class="bd">
             <h3 class="mini-title mono">{{ t('account.stats.countries') }}</h3>
             <p v-if="!stats.countries.length" class="bd-empty">{{ t('account.stats.empty') }}</p>
             <ul v-else class="bd-list">
@@ -394,6 +436,25 @@ onMounted(() => {
         <button class="btn btn-primary submit-btn" :disabled="pwLoading" type="submit">
           {{ t('account.password.submit') }}
         </button>
+      </form>
+    </section>
+
+    <section v-if="!infoLoading && info && !isAdmin" class="card danger-card">
+      <h2 class="card-title">{{ t('account.delete.title') }}</h2>
+      <p class="card-sub">{{ t('account.delete.text') }}</p>
+      <button v-if="!deleteOpen" type="button" class="btn btn-outline danger-open" @click="deleteOpen = true">
+        <AppIcon name="trash" :size="16" />{{ t('account.delete.open') }}
+      </button>
+      <form v-else @submit.prevent="submitDelete" class="auth-form">
+        <label class="field-label">
+          <span>{{ t('account.delete.confirmLabel', { name: info.username }) }}</span>
+          <input v-model="deleteConfirm" type="text" class="input" autocomplete="off" spellcheck="false" required />
+        </label>
+        <p v-if="deleteError" class="error-msg">{{ deleteError }}</p>
+        <div class="danger-actions">
+          <button type="button" class="btn btn-ghost" @click="cancelDelete">{{ t('account.delete.cancel') }}</button>
+          <button type="submit" class="btn danger-submit" :disabled="!deleteReady || deleteLoading">{{ t('account.delete.submit') }}</button>
+        </div>
       </form>
     </section>
   </div>
@@ -638,7 +699,7 @@ onMounted(() => {
 
 .breakdowns {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
   margin-top: 30px;
 }
@@ -653,6 +714,7 @@ onMounted(() => {
 .bd-num { color: var(--text-1); font-size: 12px; font-weight: 700; }
 .bd-bar { grid-column: 1 / -1; height: 4px; background: var(--bg-3); border-radius: 1px; overflow: hidden; }
 .bd-bar span { display: block; height: 100%; background: var(--acid); }
+.bd-bar span.bar-hot { background: var(--hot); }
 .bd-empty { color: var(--text-2); font-size: 13px; margin: 0; }
 .cc {
   font-size: 10px;
@@ -702,6 +764,12 @@ onMounted(() => {
 
 /* --- password --- */
 .password-card { max-width: 480px; }
+.danger-card { max-width: 480px; border-color: rgba(255, 79, 94, 0.45); }
+.danger-open { color: var(--st-dropped); border-color: rgba(255, 79, 94, 0.6); }
+.danger-open:hover { border-color: var(--st-dropped); }
+.danger-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.danger-submit { background: var(--st-dropped); border-color: var(--st-dropped); color: var(--ink); }
+.danger-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 .auth-form { display: flex; flex-direction: column; gap: 16px; margin-top: 18px; }
 .submit-btn { width: 100%; min-height: 48px; margin-top: 4px; }
 .error-msg { color: var(--st-dropped); font-size: 13px; margin: 0; }
